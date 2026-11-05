@@ -85,6 +85,7 @@ SITUATIONS = [
     ("alone", "I feel alone", ["6.30", "9.22", "9.29", "18.65", "9.18"]),
     ("craving", "I can't stop wanting more", ["2.70", "2.71", "3.39", "16.21", "5.22"]),
     ("death", "I'm afraid of death", ["2.20", "2.22", "2.27", "8.5", "8.6"]),
+    ("habits", "I want better habits", ["6.5", "3.8", "17.16", "13.8", "6.17"]),
 ]
 
 # Core curriculum: the 20 themes and verse selection of Heartfulness's

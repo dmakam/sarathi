@@ -221,6 +221,9 @@ for sid, label, vids in SITUATIONS:
 
 WORD_PAGE_MIN = 3
 
+import graph_build as GB  # noqa: E402
+import graph_data as GD  # noqa: E402
+
 # ---------------------------------------------------------------- layout
 
 FONTS = ("https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600"
@@ -278,7 +281,7 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
 """.format(title=esc(full), desc=esc(desc or "Read the Bhagavad Gita word by word, with recitation, classical commentaries and verses for what you are facing."),
            base=BASE_URL, canon=esc(canonical), fonts=FONTS, ld=ld, bc=body_class, site=SITE, body=body,
            n1=nl("read", "/chapters/", "Read"), n2=nl("facing", "/facing/", "What you're facing"),
-           n3=nl("concepts", "/concepts/", "Concepts"), n4=nl("plans", "/plans/", "Plans"),
+           n3=nl("map", "/map/", "Map"), n4=nl("plans", "/plans/", "Plans"),
            n5=nl("practice", "/practice/", "Practice"), n0=nl("themes", "/themes/", "Themes"), scripts=scripts)
     write(rel, doc)
 
@@ -398,6 +401,7 @@ def build_verse(vid):
   {cm}
   <div class="cm-out" hidden></div>
 </section>
+{vmap}
 {related}
 {nav}
 </article>
@@ -407,7 +411,7 @@ def build_verse(vid):
            c=v["c"], chname=esc(ch["tr"]), n=v["n"], speaker=speaker, sa=sa_html(v), tl="<br>".join(esc(l) for l in v["tl"]),
            audio=audio, words="".join(words), tabs="".join(tabs), panels="".join(panels), cm="".join(cm_html),
            related=('<section class="v-sec"><h2>In this verse</h2><div class="chips">%s%s%s</div></section>' % (themes, concepts, sits)) if (themes or concepts or sits) else "",
-           nav=nav)
+           nav=nav, vmap=GB.verse_map_html(vid))
 
     en = eng(v)
     jsonld = {
@@ -421,7 +425,8 @@ def build_verse(vid):
         "description": trim(en, 300),
     }
     page("%d/%d/index.html" % (v["c"], v["n"]), "Bhagavad Gita %s: %s" % (vid, trim(en, 60)), body,
-         desc=trim("Bhagavad Gita chapter %d verse %d: %s" % (v["c"], v["n"], en), 155), jsonld=jsonld, body_class="pg-verse")
+         desc=trim("Bhagavad Gita chapter %d verse %d: %s" % (v["c"], v["n"], en), 155), jsonld=jsonld, body_class="pg-verse",
+         scripts='<script src="/assets/map.js" defer></script>' if vid in GD.TAGS else "")
 
     write_json("data/c/%s.json" % vid, v["cm"])
 
@@ -748,7 +753,7 @@ def build_home():
 
 def build_misc(word_pages):
     urls = ["/", "/themes/", "/chapters/", "/facing/", "/concepts/", "/plans/", "/practice/", "/search/", "/sources/"]
-    urls += ["/themes/%s/" % t[0] for t in THEMES]
+    urls += ["/themes/%s/" % t[0] for t in THEMES] + ["/map/"] + ["/state/%s/" % st[0] for st in GD.STATES]
     urls += ["/%d/" % n for n in range(1, 19)] + [verse_url(x) for x in ORDER]
     urls += ["/facing/%s/" % s[0] for s in SITUATIONS] + ["/concept/%s/" % c[0] for c in CONCEPTS]
     urls += ["/word/%s/" % k for k, e in WORD.items() if len(e["v"]) >= WORD_PAGE_MIN]
@@ -766,6 +771,8 @@ def main():
     shutil.copytree(ASSETS, os.path.join(OUT, "assets"))
     if "--no-audio" not in sys.argv:
         shutil.copytree(AUDIO_SRC, os.path.join(OUT, "audio"))
+    GB.init(V=V, ORDER=ORDER, CORE=CORE, THEMES=THEMES, SITUATIONS=SITUATIONS, CONCEPT=CONCEPT, page=page, esc=esc,
+            trim=trim, eng=eng, verse_url=verse_url, sa_html=sa_html, write_json=write_json)
     for x in ORDER:
         build_verse(x)
     for n in range(1, 19):
@@ -776,6 +783,8 @@ def main():
     wp = build_words()
     build_search()
     build_themes()
+    GB.build_state_pages()
+    GB.build_map_page()
     build_plans()
     for x in ORDER:
         build_practice(x)
