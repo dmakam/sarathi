@@ -1,9 +1,8 @@
 /* Sarathi recitation coach: listen, recite, score, check marks, spaced review.
-   Needs score.js. Uses the browser's speech recogniser (Chrome, Edge) in
-   Hindi mode, which writes Devanagari. ASCII only. */
+   Records the take in the browser and sends it to the Sarathi coach, which
+   force-aligns it against the known verse and marks each word. ASCII only. */
 (function () {
   "use strict";
-  var S = window.SarathiScore;
   function $(s, r) { return (r || document).querySelector(s); }
   function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
   function escH(s) { return String(s || "").replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -52,10 +51,10 @@
 
   function initPractice(page) {
     var vid = page.getAttribute("data-vid");
-    var words = JSON.parse(page.getAttribute("data-words"));
+    var api = page.getAttribute("data-api") || "/api/score";
     var spans = $$(".pw", page);
     var micBtn = $(".mic", page), micLbl = $(".mic-label", page), live = $(".live", page), result = $(".result", page);
-    var consentDlg = $(".consent"), SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    var consentDlg = $(".consent");
 
     function renderProgress() {
       var rec = getRec(vid), st = status(rec);
@@ -67,125 +66,132 @@
     }
     renderProgress();
 
-    if (!SR) {
+    if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder)) {
       micBtn.disabled = true;
-      micLbl.textContent = "Recording needs Chrome or Edge";
-      live.textContent = "This browser has no speech recogniser. Open this page in Chrome or Edge on a computer or Android phone.";
+      micLbl.textContent = "Recording isn't available in this browser";
+      live.textContent = "Open this page in a current version of Chrome, Edge, Safari or Firefox.";
       return;
     }
 
-    var rec = null, listening = false, finals = [], lastAlts = [], silenceT = null, maxT = null;
-    var media = null, chunks = [], takeUrl = null;
+    var stream = null, media = null, chunks = [], ctx = null, raf = 0, maxT = null, state = "idle";
+    var takeUrl = null, takeAudio = null, lastWords = [];
 
-    function setState(on) {
-      listening = on;
-      micBtn.classList.toggle("on", on);
-      micBtn.setAttribute("aria-pressed", on ? "true" : "false");
-      micLbl.textContent = on ? "Listening. Tap to finish." : "Tap and recite";
+    function setState(s, label) {
+      state = s;
+      micBtn.classList.toggle("on", s === "recording");
+      micBtn.classList.toggle("busy", s === "checking");
+      micBtn.disabled = s === "checking";
+      micBtn.setAttribute("aria-pressed", s === "recording" ? "true" : "false");
+      micLbl.textContent = label || (s === "recording" ? "Listening. Tap when you finish." : s === "checking" ? "Checking your recitation..." : "Tap and recite");
     }
-    function stopAll() {
-      clearTimeout(silenceT); clearTimeout(maxT);
-      try { rec && rec.stop(); } catch (e) {}
-      try { if (media && media.state !== "inactive") media.stop(); } catch (e) {}
+    function cleanup() {
+      cancelAnimationFrame(raf); clearTimeout(maxT);
+      if (ctx) { try { ctx.close(); } catch (e) {} ctx = null; }
+      if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
     }
-    function startRecording(stream) {
-      chunks = [];
+    function stop() { if (media && media.state === "recording") media.stop(); }
+
+    // Stop by itself: once voice has been heard, 2.5 s of quiet ends the take.
+    function watchSilence() {
       try {
-        media = new MediaRecorder(stream);
-        media.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
-        media.onstop = function () {
-          if (takeUrl) URL.revokeObjectURL(takeUrl);
-          takeUrl = chunks.length ? URL.createObjectURL(new Blob(chunks, { type: media.mimeType || "audio/webm" })) : null;
-          stream.getTracks().forEach(function (t) { t.stop(); });
-          var b = $(".play-take", page); if (b) b.hidden = !takeUrl;
-        };
-        media.start();
-      } catch (e) { media = null; stream.getTracks().forEach(function (t) { t.stop(); }); }
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        var src = ctx.createMediaStreamSource(stream), an = ctx.createAnalyser();
+        an.fftSize = 2048; src.connect(an);
+        var buf = new Float32Array(an.fftSize), heard = false, quietSince = 0, floor = 0.01;
+        (function tick() {
+          an.getFloatTimeDomainData(buf);
+          var sum = 0; for (var i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
+          var rms = Math.sqrt(sum / buf.length), now = performance.now();
+          if (rms > floor * 3) { heard = true; quietSince = 0; live.textContent = "Hearing you..."; }
+          else if (heard) { if (!quietSince) quietSince = now; else if (now - quietSince > 2500) { stop(); return; } }
+          raf = requestAnimationFrame(tick);
+        })();
+      } catch (e) {}
     }
 
     function begin() {
       result.hidden = true;
       spans.forEach(function (s) { s.className = "pw"; });
-      finals = []; lastAlts = [];
       live.textContent = "";
-      rec = new SR();
-      rec.lang = "hi-IN";
-      rec.continuous = true;
-      rec.interimResults = true;
-      rec.maxAlternatives = 5;
-      rec.onresult = function (e) {
-        var interim = "";
-        for (var i = e.resultIndex; i < e.results.length; i++) {
-          var r = e.results[i];
-          if (r.isFinal) {
-            finals.push(r[0].transcript);
-            lastAlts = []; for (var a = 0; a < r.length; a++) lastAlts.push(r[a].transcript);
-          } else interim += r[0].transcript;
-        }
-        live.textContent = (finals.join(" ") + " " + interim).trim();
-        clearTimeout(silenceT);
-        silenceT = setTimeout(stopAll, 3500);
-      };
-      rec.onerror = function (e) {
-        var msg = { "not-allowed": "Microphone access is blocked. Allow the microphone for this site in the address bar, then try again.",
-          "service-not-allowed": "Microphone access is blocked. Allow the microphone for this site in the address bar, then try again.",
-          "no-speech": "Didn't hear anything. Move closer to the microphone and try again.",
-          "network": "The speech service couldn't be reached. Check your connection and try again.",
-          "audio-capture": "No microphone found. Plug one in or pick another in your system settings." }[e.error];
-        if (msg) live.textContent = msg;
-      };
-      rec.onend = function () {
-        setState(false);
-        try { if (media && media.state !== "inactive") media.stop(); } catch (err) {}
-        if (finals.length) finish(); else if (!live.textContent) live.textContent = "Didn't hear anything. Tap and try again.";
-      };
-      navigator.mediaDevices && navigator.mediaDevices.getUserMedia
-        ? navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) { startRecording(stream); go(); }, function () { go(); })
-        : go();
-      function go() {
-        try { rec.start(); setState(true); maxT = setTimeout(stopAll, 60000); }
-        catch (e) { live.textContent = "Couldn't start listening. Reload the page and try again."; }
-      }
+      navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }).then(function (s) {
+        stream = s; chunks = [];
+        media = new MediaRecorder(stream);
+        media.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+        media.onstop = function () { cleanup(); upload(new Blob(chunks, { type: media.mimeType || "audio/webm" })); };
+        media.start();
+        setState("recording");
+        watchSilence();
+        maxT = setTimeout(stop, 70000);
+      }, function (err) {
+        setState("idle");
+        live.textContent = err && err.name === "NotFoundError" ? "No microphone found. Plug one in or pick another in your system settings."
+          : "Microphone access is blocked. Allow the microphone for this site in the address bar, then try again.";
+      });
     }
 
-    function finish() {
-      var joined = finals.join(" ");
-      var options = [joined];
-      if (finals.length === 1) options = lastAlts.length ? lastAlts : options;
-      else lastAlts.slice(1).forEach(function (alt) { options.push(finals.slice(0, -1).join(" ") + " " + alt); });
-      var r = S.score(words, options);
+    function upload(blob) {
+      if (takeUrl) URL.revokeObjectURL(takeUrl);
+      takeUrl = URL.createObjectURL(blob);
+      takeAudio = new Audio(takeUrl);
+      if (blob.size < 2000) { setState("idle"); live.textContent = "Didn't hear anything. Tap and try again."; return; }
+      setState("checking");
+      live.textContent = "";
+      fetch(api + "?v=" + encodeURIComponent(vid), { method: "POST", body: blob, headers: { "Content-Type": blob.type || "application/octet-stream" } })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (res) {
+          setState("idle");
+          if (!res.ok) { live.textContent = res.j.message || "The coach couldn't score that take. Try again."; return; }
+          show(res.j);
+        })
+        .catch(function () { setState("idle"); live.textContent = "Couldn't reach the coach. Check your connection and try again."; });
+    }
+
+    function playSpan(a, b) {
+      if (!takeAudio || a == null) return;
+      takeAudio.pause(); takeAudio.currentTime = Math.max(0, a - 0.15); takeAudio.play();
+      var stopAt = (b || a) + 0.2;
+      var h = function () { if (takeAudio.currentTime >= stopAt) { takeAudio.pause(); takeAudio.removeEventListener("timeupdate", h); } };
+      takeAudio.addEventListener("timeupdate", h);
+    }
+
+    function show(r) {
+      lastWords = r.words;
       var pct = Math.round(r.clearShare * 100);
-      r.words.forEach(function (w, i) { if (spans[i]) spans[i].className = "pw " + w.mark; });
-      var recd = addTry(vid, r.good, pct);
-      var st = status(recd);
-      var close = r.words.filter(function (w) { return w.mark === "close"; }).length, missed = r.missed;
+      r.words.forEach(function (w, i) {
+        var sp = spans[i]; if (!sp) return;
+        sp.className = "pw " + w.mark + (w.start != null ? " tap" : "");
+        sp.title = w.mark === "clear" ? "Clear. Tap to hear your take." : w.mark === "close" ? "Close. Tap to hear your take." : "Missed or unclear.";
+      });
+      var recd = addTry(vid, r.good, pct), st = status(recd);
+      var close = r.words.filter(function (w) { return w.mark === "close"; }).length;
       var detail = r.good
-        ? (close ? close + " word" + (close === 1 ? " was" : "s were") + " close; say " + (close === 1 ? "it" : "them") + " more slowly next time." : "Every word came through clearly.")
-        : missed ? missed + " word" + (missed === 1 ? " was" : "s were") + " missed or unclear. They are marked in the verse above." : "Some words were close but not clear. Try again a little more slowly.";
+        ? (close ? close + " word" + (close === 1 ? " was" : "s were") + " close. Say " + (close === 1 ? "it" : "them") + " a little more clearly next time." : "Every word came through clearly.")
+        : r.missed ? r.missed + " word" + (r.missed === 1 ? " was" : "s were") + " missed or unclear. They are marked in red in the verse above."
+        : "Some words were close but not clear. Try again a little more slowly.";
       result.hidden = false;
       result.className = "result " + (r.good ? "good" : "work");
       result.innerHTML = '<p class="verdict">' + (r.good ? '<span class="big-check" aria-hidden="true">' + CHECK + "</span> Good" : "Needs work") + "</p>" +
-        '<p class="detail">' + escH(detail) + " " + pct + "% of words clear.</p>" +
-        (r.good && st.label !== "Almost learned" && st.label !== "Practising" ? '<p class="detail strong">' + escH(st.label) + ". " + escH(st.text) + "</p>" : r.good ? '<p class="detail strong">' + escH(st.text) + "</p>" : "") +
-        '<div class="v-actions"><button type="button" class="btn again">Try again</button><button type="button" class="btn ghost play-take"' + (takeUrl ? "" : " hidden") + ">Play your take</button></div>" +
-        '<details class="heard"><summary>What the recogniser heard</summary><p lang="hi">' + escH(r.heard) + "</p></details>";
-      $(".again", result).addEventListener("click", function () { micBtn.focus(); start(); });
-      $(".play-take", result).addEventListener("click", function () { if (takeUrl) new Audio(takeUrl).play(); });
+        '<p class="detail">' + escH(detail) + " " + pct + "% of words clear. Tap any word in the verse to hear how you said it.</p>" +
+        (r.good ? '<p class="detail strong">' + escH(st.label === "Almost learned" ? st.text : st.label + ". " + st.text) + "</p>" : "") +
+        '<div class="v-actions"><button type="button" class="btn again">Try again</button><button type="button" class="btn ghost play-take">Play your take</button></div>';
+      $(".again", result).addEventListener("click", function () { start(); });
+      $(".play-take", result).addEventListener("click", function () { if (takeAudio) { takeAudio.currentTime = 0; takeAudio.play(); } });
       renderProgress();
       result.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
+    spans.forEach(function (sp, i) {
+      sp.addEventListener("click", function () { var w = lastWords[i]; if (w) playSpan(w.start, w.end); });
+    });
 
     function start() {
-      if (listening) { stopAll(); return; }
-      if (!store.get("reciteConsent", false)) {
-        if (consentDlg.showModal) consentDlg.showModal(); else consentDlg.setAttribute("open", "");
-        return;
-      }
+      if (state === "recording") { stop(); return; }
+      if (state === "checking") return;
+      if (!store.get("reciteConsent2", false)) { if (consentDlg.showModal) consentDlg.showModal(); else consentDlg.setAttribute("open", ""); return; }
       begin();
     }
     micBtn.addEventListener("click", start);
     $(".consent .ok", consentDlg).addEventListener("click", function () {
-      store.set("reciteConsent", true);
+      store.set("reciteConsent2", true);
       consentDlg.close ? consentDlg.close() : consentDlg.removeAttribute("open");
       begin();
     });

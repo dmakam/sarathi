@@ -252,7 +252,7 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
 {body}
 </main>
 <footer class="foot">
-  <p>{site} is a free reader for the Bhagavad Gita. Text, translations, commentaries and recitations come from the public-domain <a href="https://github.com/gita/gita">gita/gita</a> dataset. Nothing you read or mark is sent anywhere; it stays in your browser.</p>
+  <p>{site} is a free reader for the Bhagavad Gita. Text, translations, commentaries and recitations come from the public-domain <a href="https://github.com/gita/gita">gita/gita</a> dataset. What you read and mark stays in your browser. Practice recordings are scored on our server and thrown away straight after.</p>
   <p><a href="/sources/">Sources and credits</a></p>
 </footer>
 {scripts}<script src="/assets/app.js" defer></script>
@@ -590,7 +590,7 @@ def build_practice(vid):
               '<select class="p-speed" aria-label="Playback speed"><option value="0.75">0.75x</option><option value="1" selected>1x</option><option value="1.25">1.25x</option></select></div>' % v["audio"]) if v["audio"] else ""
     i = ORDER.index(vid)
     nxt = ORDER[i + 1] if i < len(ORDER) - 1 else None
-    body = """<article class="practice" data-vid="{vid}" data-words="{words}">
+    body = """<article class="practice" data-vid="{vid}">
 <div class="p-head">
   <p class="crumb"><a href="/practice/">Practice</a>, <a href="{vurl}">read verse {vid}</a></p>
   <h1>Recite {vid}</h1>
@@ -598,8 +598,8 @@ def build_practice(vid):
   <p class="tl">{tl}</p>
 </div>
 <div class="psteps">
-  <section class="pstep"><h2>Listen</h2><p class="hint">Hear it first. Turn on Repeat after me to chant along in the pauses.</p>{player}</section>
-  <section class="pstep rec"><h2>Recite</h2><p class="hint">Say the whole verse at your own pace. It stops by itself when you finish.</p>
+  <section class="pstep"><h2>Listen</h2><p class="hint">Hear it first. This recording reads the verse slowly, word by word, with the joins between words opened up. Turn on Repeat after me to say it back in the pauses.</p>{player}</section>
+  <section class="pstep rec"><h2>Recite</h2><p class="hint">Say the whole verse at your own pace. Recording stops by itself a few seconds after you finish.</p>
     <button type="button" class="mic" aria-pressed="false" aria-label="Start reciting"><svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></button>
     <p class="mic-label">Tap and recite</p>
     <p class="live" aria-live="polite"></p>
@@ -613,22 +613,22 @@ def build_practice(vid):
 </article>
 <dialog class="consent card-dlg">
   <h2>Before you record</h2>
-  <p>Your browser sends the recording to its speech service (Google, in Chrome) to turn it into text. S\u0101rathi keeps only your score, in this browser. Your own take stays on this device for playback and is gone when you leave the page.</p>
+  <p>Your recording is sent to the S\u0101rathi coach, scored against the verse, and thrown away straight after. Nothing is stored on the server. Your score is kept in this browser, and your take stays on this device for playback until you leave the page.</p>
   <div class="card-act"><button type="button" class="btn ok">Start recording</button><button type="button" class="btn ghost cancel">Not now</button></div>
 </dialog>""".format(vid=vid, words=esc(json.dumps(words, ensure_ascii=False)), vurl=verse_url(vid), lines="<br>".join(lines),
                     tl="<br>".join(esc(l) for l in v["tl"]), player=player,
                     next=('<p><a class="btn ghost" href="/practice/%s/%s/">Next verse, %s</a></p>' % (nxt.split(".")[0], nxt.split(".")[1], nxt)) if nxt else "")
     page("practice/%d/%d/index.html" % (v["c"], v["n"]), "Recite Bhagavad Gita %s" % vid, body, canonical=verse_url(vid),
          desc=trim("Practise reciting Bhagavad Gita %s: listen, recite, and see which words came through clearly." % vid, 155),
-         body_class="pg-verse pg-practice", nav="practice", scripts='<script src="/assets/score.js" defer></script><script src="/assets/recite.js" defer></script>')
+         body_class="pg-verse pg-practice", nav="practice", scripts='<script src="/assets/recite.js" defer></script>')
 
 
 def build_practice_index():
     body = """<section class="ch-head"><h1>Practice reciting</h1>
-<p class="lede">Learn verses by heart. Listen, recite, and get a check mark when every word comes through. Works in Chrome and Edge.</p></section>
+<p class="lede">Learn verses by heart. Listen, recite, and get a check mark when every word comes through.</p></section>
 <div class="practice-board vlist-wrap" data-essentials='{ess}'><p class="hint" style="max-width:880px;margin:24px auto;padding:0 16px">Loading your verses...</p></div>""".format(ess=json.dumps(ESSENTIALS))
     page("practice/index.html", "Practice reciting the Bhagavad Gita", body, nav="practice", body_class="pg-list",
-         scripts='<script src="/assets/score.js" defer></script><script src="/assets/recite.js" defer></script>')
+         scripts='<script src="/assets/recite.js" defer></script>')
 
 
 def build_sources():
@@ -717,6 +717,8 @@ def main():
     for x in ORDER:
         build_practice(x)
     build_practice_index()
+    with open(os.path.join(ROOT, "server", "practice-words.json"), "w", encoding="ascii") as f:
+        json.dump({x: practice_words(V[x]) for x in ORDER}, f, ensure_ascii=True)
     build_sources()
     build_home()
     n = build_misc(wp)

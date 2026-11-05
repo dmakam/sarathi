@@ -284,3 +284,8 @@ main > .v-sec .sits{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
 .consent p{max-width:52ch}
 .pstep .player{border-radius:var(--r-m);padding:10px 12px}
 .pstep .player .p-track{flex-basis:120px}
+.pw.tap{cursor:pointer}
+.pw.tap:hover{filter:brightness(.92)}
+.mic.busy{opacity:.7;cursor:progress}
+.mic.busy::after{content:"";position:absolute;inset:-8px;border-radius:50%;border:3px solid transparent;border-top-color:var(--gold);animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
