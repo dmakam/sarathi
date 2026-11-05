@@ -203,6 +203,7 @@
   if (board) {
     var all = store.get("recite", {}), ids = Object.keys(all);
     var ess = JSON.parse(board.getAttribute("data-essentials"));
+    var themes = JSON.parse(board.getAttribute("data-themes") || "[]");
     fetch("/data/search.json").then(function (r) { return r.json(); }).then(function (rows) {
       var sa = {}; rows.forEach(function (r) { sa[r[0]] = r[5]; });
       function row(id) {
@@ -215,7 +216,11 @@
       var html = "";
       if (due.length) html += "<h2>Due for review</h2><ol class=\"vlist\">" + due.map(row).join("") + "</ol>";
       if (going.length) html += "<h2>Your verses</h2><ol class=\"vlist\">" + going.map(row).join("") + "</ol>";
-      html += "<h2>" + (ids.length ? "More to learn" : "Start with these") + "</h2><ol class=\"vlist\">" + ess.filter(function (id) { return ids.indexOf(id) === -1; }).map(row).join("") + "</ol>";
+      themes.forEach(function (t, i) {
+        var left = t[1].filter(function (id) { return ids.indexOf(id) === -1; });
+        if (!left.length) return;
+        html += "<h2>Theme " + (i + 1) + ": " + escH(t[0]) + "</h2><ol class=\"vlist\">" + left.map(row).join("") + "</ol>";
+      });
       board.innerHTML = html;
     });
   }

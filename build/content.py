@@ -86,3 +86,31 @@ SITUATIONS = [
     ("craving", "I can't stop wanting more", ["2.70", "2.71", "3.39", "16.21", "5.22"]),
     ("death", "I'm afraid of death", ["2.20", "2.22", "2.27", "8.5", "8.6"]),
 ]
+
+# Core curriculum: the 20 themes and verse selection of Heartfulness's
+# Gitopadesh Vidyarthi course (learning.heartfulness.org/courses/GPDVY-EN).
+# Order within a theme follows the course. Theme 12 lists one unnumbered
+# shloka that is left out until confirmed.
+THEMES_SOURCE = ("Heartfulness Gitopadesh Vidyarthi course", "https://learning.heartfulness.org/courses/GPDVY-EN")
+THEMES = [
+    ("inner-potential", "Exploring inner potential", ["3.42", "3.43", "7.4", "7.5", "13.5", "13.6"]),
+    ("faculties", "Mastering your faculties", ["13.5", "13.6", "18.13", "18.14", "18.15", "3.42"]),
+    ("habits", "Habit formation", ["6.5", "17.16", "3.7", "3.8", "13.8", "4.39"]),
+    ("gunas", "The three gunas", ["14.6", "14.7", "14.8", "14.11", "14.12", "14.13"]),
+    ("demoniac-to-divine", "From demoniac to divine", ["16.6", "16.4", "16.5", "16.1", "16.2", "16.3"]),
+    ("self-mastery", "Self mastery", ["15.1", "15.2", "15.4", "15.5", "15.6", "15.10", "15.11"]),
+    ("mind", "Regulation of mind", ["2.60", "2.61", "2.64", "6.18", "6.25", "6.26"]),
+    ("joyful-action", "Joyful actions", ["3.20", "3.21", "3.25", "4.18", "4.19", "18.56"]),
+    ("altruistic-action", "Altruistic actions", ["2.47", "2.48", "3.26", "3.30", "4.21", "4.23"]),
+    ("moderation", "Moderation", ["2.62", "2.63", "2.66", "5.7", "5.8", "5.9"]),
+    ("conduct", "Conduct", ["17.15", "5.18", "4.34", "13.7", "2.54", "2.56"]),
+    ("food", "Attitude towards food", ["6.17", "17.8", "17.9", "17.10", "15.14"]),
+    ("life-force", "The seed of all life force", ["10.32", "10.33", "10.34", "10.35", "10.37", "10.39"]),
+    ("happiness", "Source of happiness", ["5.21", "5.22", "5.24", "18.39", "18.38", "18.37"]),
+    ("wisdom", "Source of wisdom", ["10.10", "10.11", "10.20", "13.17", "13.24", "9.13"]),
+    ("true-friend", "The true friend", ["7.24", "7.25", "7.3", "7.17", "7.18", "7.19"]),
+    ("guide", "Role of a guide", ["4.35", "4.34", "11.41", "11.42", "11.43", "11.44"]),
+    ("devotion", "Devotion in action", ["12.13", "12.14", "12.15", "12.16", "9.27", "12.18"]),
+    ("love", "Power of love", ["6.30", "9.26", "8.8", "8.9", "8.14", "9.22"]),
+    ("equanimity", "Equanimity", ["12.17", "2.53", "4.22", "6.8", "6.9", "2.50"]),
+]

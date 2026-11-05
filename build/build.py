@@ -16,7 +16,7 @@ import sys
 import unicodedata
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from content import COMMENTATORS, CONCEPTS, SITUATIONS, TRADITIONS, TRANSLATIONS  # noqa: E402
+from content import COMMENTATORS, CONCEPTS, SITUATIONS, THEMES, THEMES_SOURCE, TRADITIONS, TRANSLATIONS  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "src-data", "data")
@@ -108,6 +108,11 @@ for v in sorted(verses_raw, key=lambda x: x["verse_order"]):
     if lines and lines[0].endswith("वाच") and len(lines[0]) < 30:
         speaker = lines.pop(0)
     lines = [MARKER.sub(" ॥", l).strip() for l in lines]
+    # Some verses run both half-lines together ("...\u0964next"); split after a mid-line danda.
+    split_lines = []
+    for l in lines:
+        split_lines.extend(x.strip() for x in re.split("(?<=\u0964)(?=\\s*[^\u0964\u0965\\s])", l) if x.strip())
+    lines = split_lines
     tl = [l.strip() for l in v["transliteration"].split("\n") if l.strip()]
     t_speaker = None
     if speaker and tl and tl[0].endswith("uvācha"):
@@ -196,6 +201,18 @@ for cid, iast, deva, gloss, subs, exact in CONCEPTS:
     CONCEPT_VERSES[cid] = hits
 CONCEPT = {c[0]: c for c in CONCEPTS}
 
+THEME_OF = collections.defaultdict(list)
+for tid, tname, vids in THEMES:
+    for x in vids:
+        assert x in V, x
+        THEME_OF[x].append(tid)
+THEME = {t[0]: t for t in THEMES}
+CORE = []
+for _, _, vids in THEMES:
+    for x in vids:
+        if x not in CORE:
+            CORE.append(x)
+
 SIT_OF = collections.defaultdict(list)
 for sid, label, vids in SITUATIONS:
     for x in vids:
@@ -244,7 +261,7 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
 <header class="top">
   <a class="brand" href="/"><img src="/assets/icon.svg" alt="" width="28" height="28"><span>{site}</span></a>
   <nav class="nav" aria-label="Main">
-    {n1}{n2}{n3}{n4}{n5}
+    {n0}{n1}{n2}{n3}{n4}{n5}
   </nav>
   <a class="nav-search" href="/search/" aria-label="Search the Gita"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></a>
 </header>
@@ -262,7 +279,7 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
            base=BASE_URL, canon=esc(canonical), fonts=FONTS, ld=ld, bc=body_class, site=SITE, body=body,
            n1=nl("read", "/chapters/", "Read"), n2=nl("facing", "/facing/", "What you're facing"),
            n3=nl("concepts", "/concepts/", "Concepts"), n4=nl("plans", "/plans/", "Plans"),
-           n5=nl("practice", "/practice/", "Practice"), scripts=scripts)
+           n5=nl("practice", "/practice/", "Practice"), n0=nl("themes", "/themes/", "Themes"), scripts=scripts)
     write(rel, doc)
 
 
@@ -333,6 +350,8 @@ def build_verse(vid):
                        % (c, esc(CONCEPT[c][2]), esc(CONCEPT[c][1])) for c in v["concepts"])
     sits = "".join('<a class="chip soft" href="/facing/%s/">%s</a>' % (s, esc(next(x[1] for x in SITUATIONS if x[0] == s)))
                    for s in SIT_OF.get(vid, []))
+    themes = "".join('<a class="chip theme" href="/themes/%s/">Theme %d: %s</a>' % (t, [x[0] for x in THEMES].index(t) + 1, esc(THEME[t][1]))
+                     for t in THEME_OF.get(vid, []))
 
     audio = ""
     if v["audio"]:
@@ -387,7 +406,7 @@ def build_verse(vid):
 """.format(vid=vid, card=esc(json.dumps({"sa": v["sa"], "tl": v["tl"], "en": card_text(v), "id": vid}, ensure_ascii=False)),
            c=v["c"], chname=esc(ch["tr"]), n=v["n"], speaker=speaker, sa=sa_html(v), tl="<br>".join(esc(l) for l in v["tl"]),
            audio=audio, words="".join(words), tabs="".join(tabs), panels="".join(panels), cm="".join(cm_html),
-           related=('<section class="v-sec"><h2>In this verse</h2><div class="chips">%s%s</div></section>' % (concepts, sits)) if (concepts or sits) else "",
+           related=('<section class="v-sec"><h2>In this verse</h2><div class="chips">%s%s%s</div></section>' % (themes, concepts, sits)) if (themes or concepts or sits) else "",
            nav=nav)
 
     en = eng(v)
@@ -543,6 +562,8 @@ def build_plans():
     global ESSENTIALS
     ESSENTIALS = ess
     plans = {
+        "themes": {"name": "Twenty themes", "desc": "One theme a week, about six shlokas each. The core path through the Gita.",
+                   "days": [list(t[2]) for t in THEMES], "unit": "week", "labels": [t[1] for t in THEMES]},
         "eighteen": {"name": "Eighteen days", "desc": "One chapter a day, the way the battle lasted eighteen days.",
                      "days": [[x for x in ORDER if V[x]["c"] == n] for n in range(1, 19)]},
         "weekly": {"name": "A chapter a week", "desc": "Eighteen weeks, unhurried. Good for study circles.",
@@ -626,9 +647,43 @@ def build_practice(vid):
 def build_practice_index():
     body = """<section class="ch-head"><h1>Practice reciting</h1>
 <p class="lede">Learn verses by heart. Listen, recite, and get a check mark when every word comes through.</p></section>
-<div class="practice-board vlist-wrap" data-essentials='{ess}'><p class="hint" style="max-width:880px;margin:24px auto;padding:0 16px">Loading your verses...</p></div>""".format(ess=json.dumps(ESSENTIALS))
+<div class="practice-board vlist-wrap" data-essentials='{ess}' data-themes='{themes}'><p class="hint" style="max-width:880px;margin:24px auto;padding:0 16px">Loading your verses...</p></div>""".format(ess=json.dumps(CORE), themes=esc(json.dumps([[t[1], t[2]] for t in THEMES])))
     page("practice/index.html", "Practice reciting the Bhagavad Gita", body, nav="practice", body_class="pg-list",
          scripts='<script src="/assets/recite.js" defer></script>')
+
+
+def build_themes():
+    cards = []
+    for i, (tid, name, vids) in enumerate(THEMES, 1):
+        cards.append('<a class="tcard" href="/themes/%s/"><span class="tnum">%d</span><span class="tname">%s</span><span class="tmeta">%d shlokas: %s</span></a>'
+                     % (tid, i, esc(name), len(vids), esc(", ".join(vids))))
+    body = """<section class="ch-head"><h1>Twenty themes, {n} shlokas</h1>
+<p class="lede">The heart of the Gita in a path you can finish: one theme a week, about six shlokas each, to read, understand and learn by heart.</p>
+<div class="v-actions"><a class="btn" href="/themes/{first}/">Begin with theme 1</a><a class="btn ghost" href="/plans/">Follow it as a weekly plan</a></div></section>
+<div class="tgrid">{cards}</div>
+<p class="credit">Themes and shloka selection follow the <a href="{src}">{srcname}</a>.</p>""".format(
+        n=len(CORE), first=THEMES[0][0], cards="".join(cards), src=THEMES_SOURCE[1], srcname=esc(THEMES_SOURCE[0]))
+    page("themes/index.html", "Twenty themes of the Bhagavad Gita", body, nav="themes", body_class="pg-list",
+         desc="The Bhagavad Gita in 20 themes and %d shlokas, from inner potential to equanimity, with recitation and practice." % len(CORE))
+    for i, (tid, name, vids) in enumerate(THEMES, 1):
+        items = []
+        for x in vids:
+            v = V[x]
+            items.append('<li class="fcard"><a href="%s"><span class="vnum">%s</span>%s<span class="ven">%s</span></a>'
+                         '<div class="v-actions"><a class="btn ghost sm" href="/practice/%s/%s/">Practice reciting</a></div></li>'
+                         % (verse_url(x), x, sa_html(v, "vsa"), esc(trim(eng(v), 320)), v["c"], v["n"]))
+        prev_t = THEMES[i - 2] if i > 1 else None
+        next_t = THEMES[i] if i < len(THEMES) else None
+        nav = '<nav class="vnav">%s<a href="/themes/">All themes</a>%s</nav>' % (
+            '<a rel="prev" href="/themes/%s/">Theme %d: %s</a>' % (prev_t[0], i - 1, esc(prev_t[1])) if prev_t else "<span></span>",
+            '<a rel="next" href="/themes/%s/">Theme %d: %s</a>' % (next_t[0], i + 1, esc(next_t[1])) if next_t else "<span></span>")
+        body = """<section class="ch-head"><p class="crumb"><a href="/themes/">Themes</a>, {i} of 20</p><h1>{name}</h1>
+<p class="lede">{n} shlokas. Read them in this order, then practise reciting each one.</p>
+<div class="v-actions"><a class="btn" href="/practice/{pc}/{pn}/">Start practising</a></div></section>
+<ol class="flist">{items}</ol>
+{nav}""".format(i=i, name=esc(name), n=len(vids), pc=V[vids[0]]["c"], pn=V[vids[0]]["n"], items="".join(items), nav=nav)
+        page("themes/%s/index.html" % tid, "%s: Bhagavad Gita theme %d" % (name, i), body, nav="themes", body_class="pg-list",
+             desc=trim("%s: %d Bhagavad Gita shlokas (%s) with word meanings, translation and recitation practice." % (name, len(vids), ", ".join(vids)), 155))
 
 
 def build_sources():
@@ -637,11 +692,12 @@ def build_sources():
     body = """<section class="ch-head"><h1>Sources and credits</h1></section>
 <div class="prose">
 <p>The Sanskrit text, transliteration, word meanings, translations, commentaries and recitations come from the <a href="https://github.com/gita/gita">gita/gita</a> open dataset, released into the public domain under the Unlicense. Thank you to everyone who built it.</p>
+<h2>Themes</h2><p>The twenty themes and their shloka selection follow the <a href="{tsrc}">{tname}</a>.</p>
 <h2>Translations</h2><ul>{tr}</ul>
 <h2>Commentaries, by tradition</h2><ul>{cm}</ul>
 <h2>How concepts are found</h2><p>A verse is linked to a concept when the Sanskrit word for it, or a form of it, appears in the verse's word-by-word breakdown. This is literal, not interpretive: a verse about desire that never says <em>k&#257;ma</em> will not appear under it.</p>
 <h2>Privacy</h2><p>There are no accounts, no tracking scripts and no ads. Plan progress and preferences are stored in your own browser.</p>
-</div>""".format(tr=tr, cm=cm)
+</div>""".format(tr=tr, cm=cm, tsrc=THEMES_SOURCE[1], tname=esc(THEMES_SOURCE[0]))
     page("sources/index.html", "Sources and credits", body, nav="", body_class="pg-list")
 
 
@@ -653,7 +709,7 @@ def build_home():
   <div class="hero-copy">
     <h1>The Gita, word by word.</h1>
     <p class="lede">All 701 verses with recitation, every Sanskrit word explained, and sixteen classical commentaries side by side.</p>
-    <div class="v-actions"><a class="btn" href="/1/1/">Start at the beginning</a><a class="btn ghost" href="/facing/">Start from your life</a></div>
+    <div class="v-actions"><a class="btn" href="/themes/">Start with the 20 themes</a><a class="btn ghost" href="/facing/">Start from your life</a></div>
   </div>
   <figure class="hero-verse" data-src="{audio}">
     <p class="hv-sa" lang="sa">{sa}</p>
@@ -661,6 +717,11 @@ def build_home():
     <p class="hv-meaning" aria-live="polite">&nbsp;</p>
     <figcaption><a href="/2/47/">Chapter 2, verse 47</a><button type="button" class="hv-play" aria-label="Play verse 2.47"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path class="i-play" d="M8 5v14l11-7z" fill="currentColor"/><path class="i-pause" d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg><span>Listen</span></button></figcaption>
   </figure>
+</section>
+<section class="band">
+  <h2>Twenty themes, {ncore} shlokas</h2>
+  <p class="band-lede">Start here. The core of the Gita, one theme a week.</p>
+  <div class="tgrid">{themes}</div>
 </section>
 <section class="band">
   <h2>What are you facing?</h2>
@@ -677,7 +738,7 @@ def build_home():
 <section class="band">
   <h2>Ideas that run through it</h2>
   <div class="chips">{concepts}</div>
-</section>""".format(audio=hero_v["audio"] or "", sa="<br>".join(esc(l) for l in hero_v["sa"]), hwords=hwords, sits=sit_cards(),
+</section>""".format(ncore=len(CORE), themes="".join('<a class="tcard" href="/themes/%s/"><span class="tnum">%d</span><span class="tname">%s</span><span class="tmeta">%d shlokas</span></a>' % (t[0], i, esc(t[1]), len(t[2])) for i, t in enumerate(THEMES, 1)), audio=hero_v["audio"] or "", sa="<br>".join(esc(l) for l in hero_v["sa"]), hwords=hwords, sits=sit_cards(),
                      vod=vod, chapters=chapter_rows(),
                      concepts="".join('<a class="chip" href="/concept/%s/"><span lang="sa">%s</span> %s</a>' % (c[0], esc(c[2]), esc(c[1])) for c in CONCEPTS))
     jsonld = {"@context": "https://schema.org", "@type": "WebSite", "name": SITE, "url": BASE_URL + "/",
@@ -686,7 +747,8 @@ def build_home():
 
 
 def build_misc(word_pages):
-    urls = ["/", "/chapters/", "/facing/", "/concepts/", "/plans/", "/practice/", "/search/", "/sources/"]
+    urls = ["/", "/themes/", "/chapters/", "/facing/", "/concepts/", "/plans/", "/practice/", "/search/", "/sources/"]
+    urls += ["/themes/%s/" % t[0] for t in THEMES]
     urls += ["/%d/" % n for n in range(1, 19)] + [verse_url(x) for x in ORDER]
     urls += ["/facing/%s/" % s[0] for s in SITUATIONS] + ["/concept/%s/" % c[0] for c in CONCEPTS]
     urls += ["/word/%s/" % k for k, e in WORD.items() if len(e["v"]) >= WORD_PAGE_MIN]
@@ -713,6 +775,7 @@ def main():
     build_concepts()
     wp = build_words()
     build_search()
+    build_themes()
     build_plans()
     for x in ORDER:
         build_practice(x)

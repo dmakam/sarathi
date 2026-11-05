@@ -289,3 +289,18 @@ main > .v-sec .sits{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
 .mic.busy{opacity:.7;cursor:progress}
 .mic.busy::after{content:"";position:absolute;inset:-8px;border-radius:50%;border:3px solid transparent;border-top-color:var(--gold);animation:spin .9s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;max-width:1120px;margin:16px auto 0;padding:0 clamp(16px,4vw,32px)}
+.band .tgrid{padding:0;margin-top:0}
+.tcard{display:grid;grid-template-columns:40px 1fr;grid-template-rows:auto auto;column-gap:12px;padding:16px 18px;border-radius:var(--r-m);background:var(--paper);border:1px solid var(--line);text-decoration:none}
+.tcard:hover{border-color:var(--field);box-shadow:var(--shadow)}
+.tnum{grid-row:span 2;align-self:center;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--ink);color:var(--gold-soft);font:400 20px/1 var(--sa)}
+.tname{font:400 19px/1.3 var(--sa)}
+.tmeta{font-size:13px;color:var(--muted)}
+.band-lede{color:var(--muted);margin:-6px 0 16px}
+.chip.theme{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn.sm{padding:8px 14px;font-size:14px}
+.fcard .v-actions{margin:-8px 0 18px}
+.credit{max-width:1120px;margin:24px auto 0;padding:0 clamp(16px,4vw,32px);font-size:14px;color:var(--muted)}
+.flist .fcard{border-bottom:1px solid var(--line);padding-bottom:16px}
+.flist .fcard a{border-bottom:0;padding-bottom:8px}
+.flist .fcard .v-actions{margin:0}

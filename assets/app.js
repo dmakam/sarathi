@@ -358,7 +358,7 @@
           var i = Math.min(p.days.length - 1, Math.floor((dayNumber() - cur.start) / unitDays));
           var day = p.days[i];
           today.hidden = false;
-          today.innerHTML = '<div class="today-in"><h2>' + escH(p.name) + ", " + (p.unit || "day") + " " + (i + 1) + "</h2>" +
+          today.innerHTML = '<div class="today-in"><h2>' + escH(p.name) + ", " + (p.unit || "day") + " " + (i + 1) + (p.labels ? ": " + escH(p.labels[i]) : "") + "</h2>" +
             '<div class="chips">' + day.map(function (x) { return '<a class="chip' + (read.indexOf(x) !== -1 ? " read" : "") + '" href="' + vurl(x) + '">' + x + "</a>"; }).join("") + "</div></div>";
         } else today.hidden = true;
       }
