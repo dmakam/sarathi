@@ -210,7 +210,7 @@ FONTS = ("https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;
          "&family=Tiro+Devanagari+Sanskrit:ital@0;1&display=swap")
 
 
-def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", nav="read"):
+def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", nav="read", scripts=""):
     canonical = canonical or "/" + rel.replace("index.html", "")
     full = title if title.startswith(SITE) else "%s | %s" % (title, SITE)
     ld = ('<script type="application/ld+json">%s</script>' % json.dumps(jsonld, ensure_ascii=True)) if jsonld else ""
@@ -244,7 +244,7 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
 <header class="top">
   <a class="brand" href="/"><img src="/assets/icon.svg" alt="" width="28" height="28"><span>{site}</span></a>
   <nav class="nav" aria-label="Main">
-    {n1}{n2}{n3}{n4}
+    {n1}{n2}{n3}{n4}{n5}
   </nav>
   <a class="nav-search" href="/search/" aria-label="Search the Gita"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></a>
 </header>
@@ -255,13 +255,14 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
   <p>{site} is a free reader for the Bhagavad Gita. Text, translations, commentaries and recitations come from the public-domain <a href="https://github.com/gita/gita">gita/gita</a> dataset. Nothing you read or mark is sent anywhere; it stays in your browser.</p>
   <p><a href="/sources/">Sources and credits</a></p>
 </footer>
-<script src="/assets/app.js" defer></script>
+{scripts}<script src="/assets/app.js" defer></script>
 </body>
 </html>
 """.format(title=esc(full), desc=esc(desc or "Read the Bhagavad Gita word by word, with recitation, classical commentaries and verses for what you are facing."),
            base=BASE_URL, canon=esc(canonical), fonts=FONTS, ld=ld, bc=body_class, site=SITE, body=body,
            n1=nl("read", "/chapters/", "Read"), n2=nl("facing", "/facing/", "What you're facing"),
-           n3=nl("concepts", "/concepts/", "Concepts"), n4=nl("plans", "/plans/", "Plans"))
+           n3=nl("concepts", "/concepts/", "Concepts"), n4=nl("plans", "/plans/", "Plans"),
+           n5=nl("practice", "/practice/", "Practice"), scripts=scripts)
     write(rel, doc)
 
 
@@ -358,6 +359,7 @@ def build_verse(vid):
   <div class="v-actions">
     <button type="button" class="btn ghost mark" data-vid="{vid}">Mark as read</button>
     <button type="button" class="btn ghost share">Make a share card</button>
+    <a class="btn ghost" href="/practice/{c}/{n}/">Practice reciting</a>
   </div>
 </div>
 <section class="v-sec" aria-labelledby="h-words">
@@ -538,6 +540,8 @@ def build_plans():
            "15.7", "16.21", "18.65", "18.66"]
     for x in ess:
         assert x in V, x
+    global ESSENTIALS
+    ESSENTIALS = ess
     plans = {
         "eighteen": {"name": "Eighteen days", "desc": "One chapter a day, the way the battle lasted eighteen days.",
                      "days": [[x for x in ORDER if V[x]["c"] == n] for n in range(1, 19)]},
@@ -556,6 +560,75 @@ def build_plans():
 <div class="today" hidden></div>
 <div class="plans">{cards}</div>""".format(cards=cards)
     page("plans/index.html", "Bhagavad Gita reading plans", body, nav="plans", body_class="pg-list pg-plans")
+
+
+def practice_words(v):
+    out = []
+    for line in v["sa"]:
+        for tok in line.split():
+            if re.sub(r"[\u0964\u0965\s]", "", tok):
+                out.append(tok)
+    return out
+
+
+def build_practice(vid):
+    v = V[vid]
+    words = practice_words(v)
+    spans, i = [], 0
+    lines = []
+    for line in v["sa"]:
+        parts = []
+        for tok in line.split():
+            if re.sub(r"[\u0964\u0965\s]", "", tok):
+                parts.append('<span class="pw" data-i="%d">%s</span>' % (i, esc(tok)))
+                i += 1
+            else:
+                parts.append('<span class="pd">%s</span>' % esc(tok))
+        lines.append(" ".join(parts))
+    player = ('<div class="player" data-src="%s"><button type="button" class="play" aria-label="Play recitation"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path class="i-play" d="M8 5v14l11-7z" fill="currentColor"/><path class="i-pause" d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg></button>'
+              '<div class="p-track"><div class="p-bar"></div></div><label class="p-opt"><input type="checkbox" class="repeat"> Repeat after me</label>'
+              '<select class="p-speed" aria-label="Playback speed"><option value="0.75">0.75x</option><option value="1" selected>1x</option><option value="1.25">1.25x</option></select></div>' % v["audio"]) if v["audio"] else ""
+    i = ORDER.index(vid)
+    nxt = ORDER[i + 1] if i < len(ORDER) - 1 else None
+    body = """<article class="practice" data-vid="{vid}" data-words="{words}">
+<div class="p-head">
+  <p class="crumb"><a href="/practice/">Practice</a>, <a href="{vurl}">read verse {vid}</a></p>
+  <h1>Recite {vid}</h1>
+  <p class="pv" lang="sa">{lines}</p>
+  <p class="tl">{tl}</p>
+</div>
+<div class="psteps">
+  <section class="pstep"><h2>Listen</h2><p class="hint">Hear it first. Turn on Repeat after me to chant along in the pauses.</p>{player}</section>
+  <section class="pstep rec"><h2>Recite</h2><p class="hint">Say the whole verse at your own pace. It stops by itself when you finish.</p>
+    <button type="button" class="mic" aria-pressed="false" aria-label="Start reciting"><svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></button>
+    <p class="mic-label">Tap and recite</p>
+    <p class="live" aria-live="polite"></p>
+  </section>
+</div>
+<div class="result" hidden aria-live="polite"></div>
+<section class="pstep pprog"><h2>Your progress</h2><div class="progress"></div>
+  <p class="hint">A Good earns a check mark. Two Goods on different days mark the verse learned, then reviews come back after 1, 3, 7 and 21 days.</p>
+  {next}
+</section>
+</article>
+<dialog class="consent card-dlg">
+  <h2>Before you record</h2>
+  <p>Your browser sends the recording to its speech service (Google, in Chrome) to turn it into text. S\u0101rathi keeps only your score, in this browser. Your own take stays on this device for playback and is gone when you leave the page.</p>
+  <div class="card-act"><button type="button" class="btn ok">Start recording</button><button type="button" class="btn ghost cancel">Not now</button></div>
+</dialog>""".format(vid=vid, words=esc(json.dumps(words, ensure_ascii=False)), vurl=verse_url(vid), lines="<br>".join(lines),
+                    tl="<br>".join(esc(l) for l in v["tl"]), player=player,
+                    next=('<p><a class="btn ghost" href="/practice/%s/%s/">Next verse, %s</a></p>' % (nxt.split(".")[0], nxt.split(".")[1], nxt)) if nxt else "")
+    page("practice/%d/%d/index.html" % (v["c"], v["n"]), "Recite Bhagavad Gita %s" % vid, body, canonical=verse_url(vid),
+         desc=trim("Practise reciting Bhagavad Gita %s: listen, recite, and see which words came through clearly." % vid, 155),
+         body_class="pg-verse pg-practice", nav="practice", scripts='<script src="/assets/score.js" defer></script><script src="/assets/recite.js" defer></script>')
+
+
+def build_practice_index():
+    body = """<section class="ch-head"><h1>Practice reciting</h1>
+<p class="lede">Learn verses by heart. Listen, recite, and get a check mark when every word comes through. Works in Chrome and Edge.</p></section>
+<div class="practice-board vlist-wrap" data-essentials='{ess}'><p class="hint" style="max-width:880px;margin:24px auto;padding:0 16px">Loading your verses...</p></div>""".format(ess=json.dumps(ESSENTIALS))
+    page("practice/index.html", "Practice reciting the Bhagavad Gita", body, nav="practice", body_class="pg-list",
+         scripts='<script src="/assets/score.js" defer></script><script src="/assets/recite.js" defer></script>')
 
 
 def build_sources():
@@ -613,7 +686,7 @@ def build_home():
 
 
 def build_misc(word_pages):
-    urls = ["/", "/chapters/", "/facing/", "/concepts/", "/plans/", "/search/", "/sources/"]
+    urls = ["/", "/chapters/", "/facing/", "/concepts/", "/plans/", "/practice/", "/search/", "/sources/"]
     urls += ["/%d/" % n for n in range(1, 19)] + [verse_url(x) for x in ORDER]
     urls += ["/facing/%s/" % s[0] for s in SITUATIONS] + ["/concept/%s/" % c[0] for c in CONCEPTS]
     urls += ["/word/%s/" % k for k, e in WORD.items() if len(e["v"]) >= WORD_PAGE_MIN]
@@ -641,6 +714,9 @@ def main():
     wp = build_words()
     build_search()
     build_plans()
+    for x in ORDER:
+        build_practice(x)
+    build_practice_index()
     build_sources()
     build_home()
     n = build_misc(wp)
