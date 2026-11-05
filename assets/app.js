@@ -1,0 +1,375 @@
+/* Sarathi front-end. Plain JS, no build step. ASCII only. */
+(function () {
+  "use strict";
+
+  // ---------- storage (per-browser only, never required) ----------
+  var store = {
+    get: function (k, d) { try { var v = localStorage.getItem("sarathi." + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem("sarathi." + k, JSON.stringify(v)); } catch (e) {} }
+  };
+  function readSet() { return store.get("read", []); }
+  function isRead(id) { return readSet().indexOf(id) !== -1; }
+  function setRead(id, on) {
+    var s = readSet().filter(function (x) { return x !== id; });
+    if (on) s.push(id);
+    store.set("read", s);
+    if (on) store.set("last", id);
+  }
+
+  function $(s, r) { return (r || document).querySelector(s); }
+  function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+  function el(tag, attrs, html) {
+    var e = document.createElement(tag);
+    for (var k in attrs || {}) e.setAttribute(k, attrs[k]);
+    if (html != null) e.innerHTML = html;
+    return e;
+  }
+  function escH(s) { return String(s || "").replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function vurl(id) { var p = id.split("."); return "/" + p[0] + "/" + p[1] + "/"; }
+  var cache = {};
+  function getJSON(u) {
+    if (!cache[u]) cache[u] = fetch(u).then(function (r) { if (!r.ok) throw new Error(u); return r.json(); });
+    return cache[u];
+  }
+  function dayNumber(d) { d = d || new Date(); return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000); }
+  var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---------- audio player with "repeat after me" ----------
+  function Player(root) {
+    var a = new Audio(), src = root.getAttribute("data-src");
+    a.preload = "none";
+    var btn = $(".play", root), bar = $(".p-bar", root), rep = $(".repeat", root), spd = $(".p-speed", root);
+    var rounds = 0, waitT = null;
+    function ui() { root.classList.toggle("playing", !a.paused || !!waitT); }
+    function stop() { a.pause(); clearTimeout(waitT); waitT = null; root.classList.remove("wait"); rounds = 0; ui(); }
+    btn.addEventListener("click", function () {
+      if (!a.paused || waitT) { stop(); return; }
+      if (!a.src) a.src = src;
+      a.playbackRate = parseFloat(spd.value) || 1;
+      rounds = 0;
+      a.play();
+      ui();
+    });
+    spd.addEventListener("change", function () { a.playbackRate = parseFloat(spd.value) || 1; });
+    a.addEventListener("timeupdate", function () { if (a.duration) bar.style.width = (100 * a.currentTime / a.duration) + "%"; });
+    a.addEventListener("pause", ui);
+    a.addEventListener("ended", function () {
+      bar.style.width = "100%";
+      if (rep.checked && rounds < 2) {
+        // Leave a gap as long as the verse so the listener can chant it back.
+        rounds++;
+        root.classList.add("wait");
+        var gap = (a.duration || 8) * 1000 / (a.playbackRate || 1);
+        waitT = setTimeout(function () { waitT = null; root.classList.remove("wait"); a.currentTime = 0; a.play(); ui(); }, gap);
+        ui();
+      } else { rounds = 0; ui(); }
+    });
+  }
+  $$(".player").forEach(Player);
+
+  // ---------- home hero: the verse explains itself ----------
+  var hero = $(".hero-verse");
+  if (hero) {
+    var hws = $$(".hw", hero), out = $(".hv-meaning", hero), idx = -1, timer = null, userTook = false;
+    function show(i) {
+      hws.forEach(function (w, j) { w.classList.toggle("on", j === i); });
+      out.textContent = i >= 0 ? hws[i].getAttribute("data-m") : "\u00a0";
+    }
+    function step() { idx = (idx + 1) % hws.length; show(idx); }
+    function auto(ms) { clearInterval(timer); timer = setInterval(step, ms); }
+    hws.forEach(function (w, j) {
+      function take() { userTook = true; clearInterval(timer); idx = j; show(j); }
+      w.addEventListener("mouseenter", take);
+      w.addEventListener("focus", take);
+      w.addEventListener("click", take);
+    });
+    if (!reduced) { setTimeout(function () { if (!userTook) { step(); auto(1700); } }, 900); }
+    else { show(0); }
+    // Listen: play the real recitation and walk the words through it.
+    var ha = null, hbtn = $(".hv-play", hero);
+    hbtn.addEventListener("click", function () {
+      if (!ha) { ha = new Audio(hero.getAttribute("data-src")); ha.addEventListener("ended", function () { hbtn.classList.remove("playing"); clearInterval(timer); show(-1); }); }
+      if (!ha.paused) { ha.pause(); hbtn.classList.remove("playing"); clearInterval(timer); return; }
+      ha.currentTime = 0; ha.play(); hbtn.classList.add("playing");
+      idx = -1; userTook = true;
+      var go = function () { auto(Math.max(500, (ha.duration * 1000) / hws.length)); step(); };
+      if (ha.duration) go(); else ha.addEventListener("loadedmetadata", go, { once: true });
+    });
+  }
+
+  // ---------- today's verse ----------
+  var vod = $(".vod");
+  if (vod) {
+    var order = JSON.parse(vod.getAttribute("data-order"));
+    var id = order[dayNumber() % order.length];
+    getJSON("/data/search.json").then(function (rows) {
+      var r = rows.filter(function (x) { return x[0] === id; })[0];
+      if (!r) return;
+      $(".vod-body", vod).innerHTML = '<p class="vsa" lang="sa">' + escH(r[5]) + '</p><p class="ven">' + escH(r[2]) +
+        '</p><a class="btn ghost" href="' + vurl(id) + '">Read ' + id + " in full</a>";
+    }).catch(function () {});
+  }
+
+  // ---------- chapter progress ----------
+  var rows = $$(".crow");
+  if (rows.length) {
+    var read = readSet();
+    rows.forEach(function (row) {
+      var ch = row.getAttribute("data-ch");
+      var n = read.filter(function (x) { return x.split(".")[0] === ch; }).length;
+      if (n) {
+        var meta = $(".cmeta", row).textContent, total = parseInt(meta.replace(/.*?(\d+) verses.*/, "$1"), 10) || 1;
+        $(".cprog", row).innerHTML = '<i style="width:' + Math.min(100, 100 * n / total) + '%"></i>';
+      }
+    });
+  }
+  var resume = $(".resume");
+  if (resume) {
+    var last = store.get("last", null), ch = resume.getAttribute("data-ch");
+    if (last && last.split(".")[0] === ch) {
+      var nxt = parseInt(last.split(".")[1], 10) + 1;
+      resume.hidden = false;
+      resume.textContent = "Resume at verse " + nxt;
+      resume.addEventListener("click", function () { location.href = "/" + ch + "/" + nxt + "/"; });
+    }
+  }
+
+  // ---------- verse page ----------
+  var verse = $(".verse");
+  if (verse) {
+    var vid = verse.getAttribute("data-vid");
+
+    // translation tabs, remembered
+    var tabs = $$('.tabs [role="tab"]', verse);
+    function selectTab(t) {
+      tabs.forEach(function (b) {
+        var on = b === t;
+        b.setAttribute("aria-selected", on ? "true" : "false");
+        b.tabIndex = on ? 0 : -1;
+        document.getElementById(b.getAttribute("aria-controls")).hidden = !on;
+      });
+    }
+    tabs.forEach(function (b, i) {
+      b.tabIndex = i === 0 ? 0 : -1;
+      b.addEventListener("click", function () { selectTab(b); store.set("tr", b.getAttribute("data-tr")); });
+      b.addEventListener("keydown", function (e) {
+        var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+        if (d) { var n = tabs[(i + d + tabs.length) % tabs.length]; n.focus(); n.click(); }
+      });
+    });
+    var pref = store.get("tr", null);
+    if (pref) { var pt = tabs.filter(function (b) { return b.getAttribute("data-tr") === pref; })[0]; if (pt) selectTab(pt); }
+
+    // word layer: every verse a word appears in
+    var pop = $(".word-pop", verse), openBtn = null;
+    $$(".word", verse).forEach(function (b) {
+      b.setAttribute("aria-expanded", "false");
+      b.addEventListener("click", function () {
+        if (openBtn === b) { pop.hidden = true; b.setAttribute("aria-expanded", "false"); openBtn = null; return; }
+        if (openBtn) openBtn.setAttribute("aria-expanded", "false");
+        openBtn = b; b.setAttribute("aria-expanded", "true");
+        var keys = (b.getAttribute("data-k") || "").split(" ").filter(Boolean);
+        pop.hidden = false; pop.innerHTML = "<p>Looking up...</p>";
+        b.parentNode.insertBefore(pop, b.nextSibling);
+        Promise.all([getJSON("/data/words.json"), getJSON("/data/wordpages.json")]).then(function (res) {
+          var W = res[0], pages = res[1], html = "", tapped = $(".w-sa", b).textContent, here = $(".w-m", b).textContent;
+          html += "<h3>" + escH(tapped) + "</h3><p>Here it means: " + escH(here) + ".</p>";
+          keys.forEach(function (k) {
+            var e = W[k]; if (!e) return;
+            var others = e[2].filter(function (x) { return x !== vid; });
+            var label = keys.length > 1 ? escH(e[0]) + " appears " : "It appears ";
+            html += "<p>" + label + (others.length ? "in " + others.length + " other verse" + (others.length === 1 ? "" : "s") + ", most often meaning: " + escH(e[1]) + "." : "only in this verse.") + "</p>";
+            if (others.length) {
+              html += "<ul>" + others.slice(0, 24).map(function (x) { return '<li><a href="' + vurl(x) + '">' + x + "</a></li>"; }).join("") + "</ul>";
+              if (pages.indexOf(k) !== -1) html += '<a class="more" href="/word/' + k + '/">See every use of ' + escH(e[0]) + "</a>";
+            }
+          });
+          pop.innerHTML = html || "<p>No other uses found.</p>";
+        }).catch(function () { pop.innerHTML = "<p>Couldn't load the word index. Check your connection and tap again.</p>"; });
+      });
+    });
+
+    // commentaries, loaded on demand
+    var cmOut = $(".cm-out", verse), cmBtns = $$(".cm-btn", verse);
+    cmBtns.forEach(function (b) {
+      b.setAttribute("aria-pressed", "false");
+      b.addEventListener("click", function () {
+        var on = b.getAttribute("aria-pressed") === "true";
+        cmBtns.forEach(function (x) { x.setAttribute("aria-pressed", "false"); });
+        if (on) { cmOut.hidden = true; return; }
+        b.setAttribute("aria-pressed", "true");
+        b.closest(".trad").appendChild(cmOut);
+        cmOut.hidden = false; cmOut.textContent = "Loading...";
+        getJSON("/data/c/" + vid + ".json").then(function (C) {
+          var a = b.getAttribute("data-author");
+          cmOut.innerHTML = "<h3>" + escH(a) + "</h3>" + escH(C[a] || "Not available for this verse.");
+        }).catch(function () { cmOut.textContent = "Couldn't load this commentary. Check your connection and try again."; });
+      });
+    });
+
+    // mark as read
+    var mark = $(".mark", verse);
+    function markUI() { var on = isRead(vid); mark.textContent = on ? "Read" : "Mark as read"; mark.classList.toggle("done", on); mark.setAttribute("aria-pressed", on ? "true" : "false"); }
+    mark.addEventListener("click", function () { setRead(vid, !isRead(vid)); markUI(); });
+    markUI();
+    store.set("last", vid);
+
+    // share card
+    var dlg = $(".card-dlg"), canvas = $("canvas", dlg), data = JSON.parse(verse.getAttribute("data-card"));
+    $(".share", verse).addEventListener("click", function () {
+      (document.fonts && document.fonts.load ? Promise.all([
+        document.fonts.load('64px "Tiro Devanagari Sanskrit"'),
+        document.fonts.load('italic 40px "Tiro Devanagari Sanskrit"'),
+        document.fonts.load('600 30px "Instrument Sans"')]) : Promise.resolve()).then(function () {
+        drawCard(canvas, data);
+        if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+      });
+    });
+    $(".close", dlg).addEventListener("click", function () { dlg.close ? dlg.close() : dlg.removeAttribute("open"); });
+    $(".dl", dlg).addEventListener("click", function () {
+      var a = el("a", { href: canvas.toDataURL("image/png"), download: "bhagavad-gita-" + vid.replace(".", "-") + ".png" });
+      document.body.appendChild(a); a.click(); a.remove();
+    });
+    var sh = $(".sh", dlg);
+    if (navigator.canShare && window.File) {
+      sh.hidden = false;
+      sh.addEventListener("click", function () {
+        canvas.toBlob(function (blob) {
+          var f = new File([blob], "gita-" + vid + ".png", { type: "image/png" });
+          var payload = { files: [f], title: "Bhagavad Gita " + vid, url: location.href };
+          if (navigator.canShare(payload)) navigator.share(payload).catch(function () {});
+        });
+      });
+    }
+  }
+
+  function wrap(ctx, text, maxW) {
+    var words = text.split(/\s+/), lines = [], line = "";
+    words.forEach(function (w) {
+      var t = line ? line + " " + w : w;
+      if (ctx.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t;
+    });
+    if (line) lines.push(line);
+    return lines;
+  }
+  function drawCard(c, d) {
+    var x = c.getContext("2d"), W = c.width, H = c.height, pad = 96, maxW = W - pad * 2;
+    var g = x.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, "#145F65"); g.addColorStop(0.6, "#0B3B40"); g.addColorStop(1, "#24306E");
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    var r = x.createRadialGradient(W - 150, 170, 10, W - 150, 170, 260);
+    r.addColorStop(0, "rgba(36,48,110,.95)"); r.addColorStop(0.35, "rgba(15,82,87,.6)"); r.addColorStop(0.55, "rgba(201,162,39,.35)"); r.addColorStop(1, "rgba(201,162,39,0)");
+    x.fillStyle = r; x.fillRect(0, 0, W, H);
+    x.textBaseline = "alphabetic";
+    function lines(font, arr) { x.font = font; var o = []; arr.forEach(function (l) { o = o.concat(wrap(x, l, maxW)); }); return o; }
+    // Fit the block to the space between the header and the footer link.
+    var top = pad + 150, bottom = H - pad - 80, room = bottom - top, L;
+    var sizes = [[64, 34, 46], [56, 30, 40], [50, 28, 36], [44, 26, 32]];
+    for (var i = 0; i < sizes.length; i++) {
+      var s = sizes[i];
+      L = {
+        s: s,
+        sa: lines(s[0] + 'px "Tiro Devanagari Sanskrit", serif', d.sa),
+        tl: lines("italic " + s[1] + 'px "Tiro Devanagari Sanskrit", serif', d.tl).slice(0, 4),
+        en: lines(s[2] + 'px "Tiro Devanagari Sanskrit", serif', [d.en])
+      };
+      L.h = L.sa.length * s[0] * 1.5 + 36 + L.tl.length * s[1] * 1.45 + 48 + L.en.length * s[2] * 1.42;
+      if (L.h <= room) break;
+    }
+    var y = top + Math.max(0, (room - L.h) / 2) + L.s[0];
+    x.fillStyle = "#C9A227"; x.fillRect(pad, pad, 90, 6);
+    x.fillStyle = "#E9D58A"; x.font = '600 30px "Instrument Sans", sans-serif';
+    x.fillText("Bhagavad Gita " + d.id, pad, pad + 70);
+    x.fillStyle = "#FFFFFF"; x.font = L.s[0] + 'px "Tiro Devanagari Sanskrit", serif';
+    L.sa.forEach(function (l) { x.fillText(l, pad, y); y += L.s[0] * 1.5; });
+    y += 36 - L.s[0] * 0.5 + L.s[1];
+    x.fillStyle = "#9FC2BC"; x.font = "italic " + L.s[1] + 'px "Tiro Devanagari Sanskrit", serif';
+    L.tl.forEach(function (l) { x.fillText(l, pad, y); y += L.s[1] * 1.45; });
+    y += 48 - L.s[1] * 0.45 + L.s[2] * 0.4;
+    x.fillStyle = "#EAF4F1"; x.font = L.s[2] + 'px "Tiro Devanagari Sanskrit", serif';
+    var en = L.en, maxLines = Math.floor((bottom - y) / (L.s[2] * 1.42)) + 1;
+    if (en.length > maxLines) { en = en.slice(0, maxLines); en[maxLines - 1] = en[maxLines - 1].replace(/\s+\S*$/, "") + "..."; }
+    en.forEach(function (l) { x.fillText(l, pad, y); y += L.s[2] * 1.42; });
+    x.fillStyle = "#E9D58A"; x.font = '600 28px "Instrument Sans", sans-serif';
+    x.fillText(location.host + vurl(d.id), pad, H - pad);
+  }
+
+  // ---------- search ----------
+  var q = $("#q");
+  if (q) {
+    var list = $(".s-results"), status = $(".s-status"), data = null;
+    var params = new URLSearchParams(location.search);
+    function fold(s) { return (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
+    function run() {
+      var raw = q.value.trim();
+      history.replaceState(null, "", raw ? "?q=" + encodeURIComponent(raw) : location.pathname);
+      if (!raw) { list.innerHTML = ""; status.textContent = "Searches the transliteration, word meanings and five English translations."; return; }
+      var m = raw.match(/^(\d{1,2})[.:\s](\d{1,2})$/);
+      if (m) { location.href = "/" + m[1] + "/" + m[2] + "/"; return; }
+      var terms = fold(raw).split(/\s+/).filter(function (t) { return t.length > 1; });
+      var hits = [];
+      data.forEach(function (r) {
+        var tl = fold(r[1]), en = fold(r[2] + " " + r[3]), wm = fold(r[4]), s = 0;
+        terms.forEach(function (t) {
+          if (en.indexOf(t) !== -1) s += 3;
+          if (wm.indexOf(t) !== -1) s += 2;
+          if (tl.indexOf(t) !== -1) s += 2;
+        });
+        if (fold(r[2] + " " + r[3] + " " + r[4]).indexOf(fold(raw)) !== -1) s += 6;
+        var all = terms.every(function (t) { return (tl + en + wm).indexOf(t) !== -1; });
+        if (s && all) hits.push([s, r]);
+      });
+      hits.sort(function (a, b) { return b[0] - a[0]; });
+      status.textContent = hits.length ? hits.length + " verse" + (hits.length === 1 ? "" : "s") + " found." : "No verses matched. Try a simpler word, like \"mind\" or \"duty\".";
+      var re = new RegExp("(" + terms.map(function (t) { return t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }).join("|") + ")", "gi");
+      list.innerHTML = hits.slice(0, 60).map(function (h) {
+        var r = h[1];
+        return '<li class="vrow"><a href="' + vurl(r[0]) + '"><span class="vnum">' + r[0] + '</span><span class="vsa" lang="sa">' + escH(r[5]) +
+          '</span><span class="ven">' + escH(r[2]).replace(re, "<mark>$1</mark>") + "</span></a></li>";
+      }).join("");
+    }
+    getJSON("/data/search.json").then(function (d) {
+      data = d;
+      if (params.get("q")) q.value = params.get("q");
+      run();
+      var t; q.addEventListener("input", function () { clearTimeout(t); t = setTimeout(run, 120); });
+    });
+  }
+
+  // ---------- plans ----------
+  var plansEl = $(".plans");
+  if (plansEl) {
+    getJSON("/data/plans.json").then(function (P) {
+      function render() {
+        var cur = store.get("plan", null), read = readSet();
+        $$(".plan", plansEl).forEach(function (card) {
+          var k = card.getAttribute("data-plan"), active = cur && cur.id === k, p = P[k];
+          card.classList.toggle("active", !!active);
+          var btn = $(".start", card);
+          if (active) {
+            var done = p.days.filter(function (d) { return d.every(function (x) { return read.indexOf(x) !== -1; }); }).length;
+            $(".plan-state", card).textContent = "In progress: " + done + " of " + p.days.length + " " + (p.unit || "day") + "s done.";
+            btn.textContent = "Stop this plan";
+          } else { $(".plan-state", card).textContent = ""; btn.textContent = "Start this plan"; }
+        });
+        var today = $(".today");
+        if (cur && P[cur.id]) {
+          var p = P[cur.id], unitDays = p.unit === "week" ? 7 : 1;
+          var i = Math.min(p.days.length - 1, Math.floor((dayNumber() - cur.start) / unitDays));
+          var day = p.days[i];
+          today.hidden = false;
+          today.innerHTML = '<div class="today-in"><h2>' + escH(p.name) + ", " + (p.unit || "day") + " " + (i + 1) + "</h2>" +
+            '<div class="chips">' + day.map(function (x) { return '<a class="chip' + (read.indexOf(x) !== -1 ? " read" : "") + '" href="' + vurl(x) + '">' + x + "</a>"; }).join("") + "</div></div>";
+        } else today.hidden = true;
+      }
+      $$(".plan .start", plansEl).forEach(function (b) {
+        b.addEventListener("click", function () {
+          var k = b.closest(".plan").getAttribute("data-plan"), cur = store.get("plan", null);
+          store.set("plan", cur && cur.id === k ? null : { id: k, start: dayNumber() });
+          render();
+        });
+      });
+      render();
+    });
+  }
+})();
