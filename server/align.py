@@ -10,6 +10,7 @@ could do on those same frames unconstrained. A word that was said scores
 near 0; a skipped or wrong word scores far below it.
 """
 import re
+import shutil
 import subprocess
 
 import numpy as np
@@ -57,8 +58,16 @@ def roman(word):
     return "".join(out)
 
 
+def ffmpeg():
+    exe = shutil.which("ffmpeg")
+    if exe:
+        return exe
+    import imageio_ffmpeg  # bundled static ffmpeg for machines without one (local runs)
+    return imageio_ffmpeg.get_ffmpeg_exe()
+
+
 def load_audio(path_or_bytes):
-    args = ["ffmpeg", "-v", "quiet", "-i", "pipe:0" if isinstance(path_or_bytes, bytes) else path_or_bytes,
+    args = [ffmpeg(), "-v", "quiet", "-i", "pipe:0" if isinstance(path_or_bytes, bytes) else path_or_bytes,
             "-f", "s16le", "-ac", "1", "-ar", str(BUNDLE.sample_rate), "-"]
     raw = subprocess.run(args, input=path_or_bytes if isinstance(path_or_bytes, bytes) else None, capture_output=True).stdout
     return np.frombuffer(raw, np.int16).astype(np.float32) / 32768
