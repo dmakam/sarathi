@@ -2,3 +2,4 @@ site/
 src-data/
 __pycache__/
 server/__pycache__/
+.venv/

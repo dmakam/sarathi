@@ -17,6 +17,17 @@ python3 -I build/build.py --no-audio   # faster, skips copying the MP3s
 cd site && python3 -m http.server 8000
 ```
 
+## Try it on your own computer first
+
+```
+./run-local.sh
+```
+
+Then open http://localhost:8080/practice/2/47/ in Chrome. It sets up its own Python
+environment in `.venv` (no admin rights or Homebrew), builds the site, and runs the site
+and the coach together. The first run downloads about 2 GB and takes a few minutes; later
+runs start in seconds. Press Ctrl+C to stop.
+
 ## Deploy to the VPS
 
 Two containers on the shared `signal-desk-app` Caddy network, no host web server:
