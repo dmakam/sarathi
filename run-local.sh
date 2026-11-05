@@ -26,13 +26,12 @@ if ! python -c "import torch, torchaudio, numpy, imageio_ffmpeg" 2>/dev/null; th
   fi
 fi
 
-if [ ! -d src-data ]; then
-  echo "== Downloading the public-domain Gita dataset"
-  git clone --quiet https://github.com/gita/gita.git src-data
-  git -C src-data checkout --quiet c6fce39595445768876ddbb8d1268a9c935e1d2b
-fi
-
 if [ ! -f site/index.html ] || [ build/build.py -nt site/index.html ] || [ assets/recite.js -nt site/index.html ]; then
+  if [ ! -d src-data ]; then
+    echo "== Downloading the public-domain Gita dataset"
+    git clone --quiet https://github.com/gita/gita.git src-data
+    git -C src-data checkout --quiet c6fce39595445768876ddbb8d1268a9c935e1d2b
+  fi
   echo "== Building the site"
   SARATHI_BASE_URL="http://localhost:${PORT:-8080}" python -I build/build.py
 fi
