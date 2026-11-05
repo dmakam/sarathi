@@ -26,7 +26,7 @@ AVAIL_MB="$(awk '/MemAvailable/ {print int($2/1024)}' /proc/meminfo)"
 DISK_GB="$(df -BG --output=avail /var/lib/docker 2>/dev/null | tail -1 | tr -dc 0-9)"
 echo "Memory available: ${AVAIL_MB} MB, disk free for Docker: ${DISK_GB:-?} GB"
 [ "${AVAIL_MB:-0}" -ge 2500 ] || echo "WARNING: the coach needs about 2.5 GB of free memory while scoring. It may be killed on this server."
-[ "${DISK_GB:-99}" -ge 6 ] || echo "WARNING: the coach image is about 3.5 GB. Free some disk space first."
+[ "${DISK_GB:-99}" -ge 6 ] || echo "WARNING: the coach image is estimated at 3 to 4 GB. Free some disk space first."
 
 echo "== 2. Checking DNS for $DOMAIN"
 IP="$(getent hosts "$DOMAIN" | awk '{print $1}' | head -n1 || true)"
