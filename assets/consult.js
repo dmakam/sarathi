@@ -118,9 +118,19 @@
   function vFeel() {
     var t = "";
     D.feel.forEach(function (f, i) {
-      t += '<button type="button" class="cx-tile feel f-' + f[0] + '" style="--i:' + i + '" data-act="feel" data-id="' + f[0] + '">' + face(f[0]) + '<span>' + esc(f[1]) + "</span></button>";
+      t += feelTile(f, i, "");
     });
     return '<p class="cx-kicker">' + esc(byId(D.aud, S.aud)[1]) + '</p><h1 class="cx-h">How does it feel?</h1><div class="cx-tiles six">' + t + "</div>" + helpLink();
+  }
+  function feelTile(f, i, extra) {
+    var hint = (D.hints[S.aud || "me"] || {})[f[0]] || "";
+    return '<button type="button" class="cx-tile feel f-' + f[0] + extra + '" style="--i:' + i + '" data-act="feel" data-id="' + f[0] + '">' + face(f[0]) +
+      '<span class="ft"><b>' + esc(f[1]) + "</b>" + (hint ? "<small>" + esc(hint) + "</small>" : "") + "</span></button>";
+  }
+  function forTopic(aud, feel) {
+    return D.sit.filter(function (s) { return s.a.indexOf(aud) >= 0 && s.f.indexOf(feel) >= 0; })
+      .map(function (s, k) { return { s: s, key: s.f.indexOf(feel) + (s.a[0] === aud ? 0 : 0.5) + k / 1000 }; })
+      .sort(function (x, y) { return x.key - y.key; }).map(function (x) { return x.s; }).slice(0, 4);
   }
   function sitCard(s, i) {
     return '<button type="button" class="cx-sit" style="--i:' + i + '" data-act="sit" data-id="' + s.id + '"><span>' + esc(s.t) + '</span><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>';
@@ -132,18 +142,17 @@
       head = list.length ? "Is it one of these?" : "I couldn&rsquo;t place that yet.";
       if (!list.length) sub = '<p class="cx-q">Pick the feeling that&rsquo;s closest, and I&rsquo;ll take it from there.</p>';
     } else {
-      list = D.sit.filter(function (s) { return s.a === S.aud && s.f.indexOf(S.feel) >= 0; });
-      var more = D.sit.filter(function (s) { return s.a !== S.aud && s.f.indexOf(S.feel) >= 0; });
-      list = list.concat(more).slice(0, 4);
+      list = forTopic(S.aud, S.feel);
       head = "Is it one of these?";
     }
     var h = "";
     list.forEach(function (s, i) { h += sitCard(s, i); });
     if (S.matches && !list.length) {
-      D.feel.forEach(function (f, i) { h += '<button type="button" class="cx-tile feel slim f-' + f[0] + '" style="--i:' + i + '" data-act="feel" data-id="' + f[0] + '">' + face(f[0]) + '<span>' + esc(f[1]) + "</span></button>"; });
+      D.feel.forEach(function (f, i) { h += feelTile(f, i, " slim"); });
       return '<h1 class="cx-h">' + head + "</h1>" + sub + '<div class="cx-tiles six">' + h + "</div>" + writeBox("Try saying it another way\u2026") + helpLink();
     }
-    return '<h1 class="cx-h">' + head + '</h1><div class="cx-sits">' + h +
+    var kick = (!S.matches && S.aud && S.feel) ? '<p class="cx-kicker">' + esc(byId(D.aud, S.aud)[1]) + " &middot; " + esc(byId(D.feel, S.feel)[1]) + "</p>" : "";
+    return kick + '<h1 class="cx-h">' + head + '</h1><div class="cx-sits">' + h +
       '<details class="cx-else" style="--i:' + list.length + '"><summary>Something else</summary>' + writeBox("Tell me what happened\u2026") + "</details></div>" + helpLink();
   }
   function vAnswer() {
@@ -227,7 +236,7 @@
     var scored = D.sit.map(function (s) {
       var sc = hits(t, s.w) * 2;
       s.f.forEach(function (f) { if (feels[f]) sc += 1.5; });
-      if (auds[s.a] || s.a === S.aud) sc += 1;
+      if (s.a.some(function (a) { return auds[a] || a === S.aud; })) sc += 1;
       return { s: s, sc: sc };
     }).filter(function (x) { return x.sc >= 2; });
     scored.sort(function (a, b) { return b.sc - a.sc; });

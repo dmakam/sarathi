@@ -694,7 +694,7 @@ def build_themes():
 
 def build_consult():
     data = {"aud": [[a, l, w] for a, l, w in CD.AUDIENCES], "feel": [[a, l, w] for a, l, w in CD.FEELINGS],
-            "crisis": CD.CRISIS, "unsafe": CD.UNSAFE, "sit": [], "v": {}}
+            "crisis": CD.CRISIS, "unsafe": CD.UNSAFE, "hints": CD.HINTS, "sit": [], "v": {}}
     for sid, aud, feels, title, words, vs, todo, ask in CD.SITUATIONS:
         data["sit"].append({"id": sid, "a": aud, "f": feels, "t": title, "w": words,
                             "v": [[x, why] for x, why in vs], "do": todo, "ask": ask})
