@@ -115,3 +115,27 @@ THEMES = [
     ("love", "Power of love", ["6.30", "9.26", "8.8", "8.9", "8.14", "9.22"]),
     ("equanimity", "Equanimity", ["12.17", "2.53", "4.22", "6.8", "6.9", "2.50"]),
 ]
+
+# A Sanskrit keyword for each theme card: (devanagari, romanised).
+THEME_WORDS = {
+    "inner-potential": ("\u0936\u0915\u094d\u0924\u093f", "\u015bakti"),
+    "faculties": ("\u0907\u0928\u094d\u0926\u094d\u0930\u093f\u092f", "indriya"),
+    "habits": ("\u0905\u092d\u094d\u092f\u093e\u0938", "abhy\u0101sa"),
+    "gunas": ("\u0917\u0941\u0923", "gu\u1e47a"),
+    "demoniac-to-divine": ("\u0926\u0948\u0935\u0940 \u0938\u092e\u094d\u092a\u0926\u094d", "daiv\u012b sampad"),
+    "self-mastery": ("\u0906\u0924\u094d\u092e\u0938\u0902\u092f\u092e", "\u0101tma-sa\u1e43yama"),
+    "mind": ("\u092e\u0928\u0938\u094d", "manas"),
+    "joyful-action": ("\u0932\u094b\u0915\u0938\u0919\u094d\u0917\u094d\u0930\u0939", "loka-sa\u1e45graha"),
+    "altruistic-action": ("\u0928\u093f\u0937\u094d\u0915\u093e\u092e \u0915\u0930\u094d\u092e", "ni\u1e63k\u0101ma karma"),
+    "moderation": ("\u092f\u0941\u0915\u094d\u0924", "yukta"),
+    "conduct": ("\u0906\u091a\u093e\u0930", "\u0101c\u0101ra"),
+    "food": ("\u0906\u0939\u093e\u0930", "\u0101h\u0101ra"),
+    "life-force": ("\u0935\u093f\u092d\u0942\u0924\u093f", "vibh\u016bti"),
+    "happiness": ("\u0938\u0941\u0916", "sukha"),
+    "wisdom": ("\u091c\u094d\u091e\u093e\u0928", "j\u00f1\u0101na"),
+    "true-friend": ("\u0938\u0941\u0939\u0943\u0926\u094d", "suh\u1e5bd"),
+    "guide": ("\u0917\u0941\u0930\u0941", "guru"),
+    "devotion": ("\u092d\u0915\u094d\u0924\u093f", "bhakti"),
+    "love": ("\u092a\u094d\u0930\u0940\u0924\u093f", "pr\u012bti"),
+    "equanimity": ("\u0938\u092e\u0924\u094d\u0935", "samatva"),
+}

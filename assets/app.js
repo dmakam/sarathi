@@ -27,6 +27,16 @@
   function escH(s) { return String(s || "").replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function vurl(id) { var p = id.split("."); return "/" + p[0] + "/" + p[1] + "/"; }
   var cache = {};
+  (function themeProgress() {
+    var read = store.get("read", []);
+    Array.prototype.forEach.call(document.querySelectorAll(".tc2[data-v]"), function (c) {
+      var vs = c.getAttribute("data-v").split(","), n = vs.filter(function (v) { return read.indexOf(v) !== -1; }).length;
+      if (!n) return;
+      c.classList.add("started"); if (n === vs.length) c.classList.add("done");
+      c.style.setProperty("--p", Math.round(100 * n / vs.length) + "%");
+      c.setAttribute("aria-label", c.querySelector(".tc2-name").textContent + ", " + n + " of " + vs.length + " read");
+    });
+  })();
   (function textSize() {
     var b = document.querySelector(".nav-size"); if (!b) return;
     var steps = [1, 1.15, 1.3], names = ["normal", "large", "largest"];

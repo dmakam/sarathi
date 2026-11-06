@@ -16,7 +16,7 @@ import sys
 import unicodedata
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from content import COMMENTATORS, CONCEPTS, SITUATIONS, THEMES, THEMES_SOURCE, TRADITIONS, TRANSLATIONS  # noqa: E402
+from content import COMMENTATORS, CONCEPTS, SITUATIONS, THEMES, THEMES_SOURCE, THEME_WORDS, TRADITIONS, TRANSLATIONS  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "src-data", "data")
@@ -663,18 +663,26 @@ def build_practice_index():
          scripts='<script src="/assets/recite.js" defer></script>')
 
 
-def build_themes():
-    cards = []
+def theme_cards():
+    out = []
     for i, (tid, name, vids) in enumerate(THEMES, 1):
-        cards.append('<a class="tcard" href="/themes/%s/"><span class="tnum">%d</span><span class="tname">%s</span><span class="tmeta">%d shlokas: %s</span></a>'
-                     % (tid, i, esc(name), len(vids), esc(", ".join(vids))))
-    body = """<section class="ch-head"><h1>Twenty themes, {n} shlokas</h1>
-<p class="lede">The heart of the Gita in a path you can finish: one theme a week, about six shlokas each, to read, understand and learn by heart.</p>
-<div class="v-actions"><a class="btn" href="/themes/{first}/">Begin with theme 1</a><a class="btn ghost" href="/plans/">Follow it as a weekly plan</a></div></section>
-<div class="tgrid">{cards}</div>
-<p class="credit">Themes and shloka selection follow the <a href="{src}">{srcname}</a>.</p>""".format(
-        n=len(CORE), first=THEMES[0][0], cards="".join(cards), src=THEMES_SOURCE[1], srcname=esc(THEMES_SOURCE[0]))
-    page("themes/index.html", "Twenty themes of the Bhagavad Gita", body, nav="themes", body_class="pg-list",
+        dev, rom = THEME_WORDS[tid]
+        out.append('<a class="tc2 h%d" href="/themes/%s/" data-v="%s" style="--i:%d">'
+                   '<span class="tc2-n">%02d</span><span class="tc2-sa" lang="sa">%s</span><span class="tc2-tl" lang="sa-Latn">%s</span>'
+                   '<span class="tc2-name">%s</span><span class="tc2-bar" aria-hidden="true"><i></i></span></a>'
+                   % ((i - 1) % 5, tid, ",".join(vids), i - 1, i, esc(dev), esc(rom), esc(name)))
+    return '<div class="tc2-grid">%s</div>' % "".join(out)
+
+
+def build_themes():
+    body = """<section class="th-stage">
+<div class="th-head"><div><h1>The Gita in twenty themes</h1>
+<p class="lede">One theme a week. Read, understand, learn by heart.</p></div>
+<div class="v-actions"><a class="btn" href="/themes/{first}/">Begin with theme 1</a><a class="btn ghost on-dark" href="/plans/">Weekly plan</a></div></div>
+{cards}
+<p class="credit">Themes and shloka selection follow the <a href="{src}">{srcname}</a>.</p></section>""".format(
+        first=THEMES[0][0], cards=theme_cards(), src=THEMES_SOURCE[1], srcname=esc(THEMES_SOURCE[0]))
+    page("themes/index.html", "Twenty themes of the Bhagavad Gita", body, nav="themes", body_class="pg-themes",
          desc="The Bhagavad Gita in 20 themes and %d shlokas, from inner potential to equanimity, with recitation and practice." % len(CORE))
     for i, (tid, name, vids) in enumerate(THEMES, 1):
         items = []
@@ -762,9 +770,9 @@ def build_home():
   </figure>
 </section>
 <section class="band">
-  <h2>Twenty themes, {ncore} shlokas</h2>
+  <h2>The Gita in twenty themes</h2>
   <p class="band-lede">Start here. The core of the Gita, one theme a week.</p>
-  <div class="tgrid">{themes}</div>
+  {themes}
 </section>
 <section class="band">
   <h2>What are you facing?</h2>
@@ -781,7 +789,7 @@ def build_home():
 <section class="band">
   <h2>Ideas that run through it</h2>
   <div class="chips">{concepts}</div>
-</section>""".format(ncore=len(CORE), themes="".join('<a class="tcard" href="/themes/%s/"><span class="tnum">%d</span><span class="tname">%s</span><span class="tmeta">%d shlokas</span></a>' % (t[0], i, esc(t[1]), len(t[2])) for i, t in enumerate(THEMES, 1)), audio=hero_v["audio"] or "", sa="<br>".join(esc(l) for l in hero_v["sa"]), htl="<br>".join(esc(l) for l in hero_v["tl"]), hwords=hwords, sits=sit_cards(),
+</section>""".format(ncore=len(CORE), themes=theme_cards(), audio=hero_v["audio"] or "", sa="<br>".join(esc(l) for l in hero_v["sa"]), htl="<br>".join(esc(l) for l in hero_v["tl"]), hwords=hwords, sits=sit_cards(),
                      vod=vod, chapters=chapter_rows(),
                      concepts="".join('<a class="chip" href="/concept/%s/"><span lang="sa">%s</span> %s</a>' % (c[0], esc(c[2]), esc(c[1])) for c in CONCEPTS))
     jsonld = {"@context": "https://schema.org", "@type": "WebSite", "name": SITE, "url": BASE_URL + "/",
