@@ -645,7 +645,7 @@ def build_practice(vid):
   <p class="pv" lang="sa">{lines}</p>
   <p class="tl" lang="sa-Latn"><span class="tl-k">Say it</span>{tl}</p>
   <p class="p-en">{en}</p>
-  {theme_rail}
+  <p class="p-how">Listen first, then tap the mic and say the whole verse. Recording stops by itself when you finish.</p>
 </div>
 <div class="psteps">
   <section class="pstep"><h2>Listen</h2><p class="hint">Hear it first. This recording reads the verse slowly, word by word, with the joins between words opened up. Turn on Repeat after me to say it back in the pauses.</p>{player}</section>
@@ -660,6 +660,7 @@ def build_practice(vid):
   <p class="hint">A Good earns a check mark. Two Goods on different days mark the verse learned, then reviews come back after 1, 3, 7 and 21 days.</p>
   {next}
 </section>
+{theme_rail}
 </article>
 <dialog class="consent card-dlg">
   <h2>Before you record</h2>

@@ -58,7 +58,7 @@
     // Without the recitation coach running, hide recording and point to the self check.
     fetch(api.replace(/score$/, "health")).then(function (r) { if (!r.ok) throw 0; }).catch(function () {
       var sec = $(".pstep.rec", page); if (!sec) return;
-      micBtn.hidden = true; micLbl.hidden = true;
+      micBtn.hidden = true; micLbl.hidden = true; sec.classList.add("no-coach");
       var h = $(".hint", sec); if (h) h.textContent = "Recite it aloud from memory, then tap \u201cI recited it from memory\u201d under Your progress. An automatic check of your recitation is coming soon.";
     });
 
@@ -189,7 +189,12 @@
       $(".again", result).addEventListener("click", function () { start(); });
       $(".play-take", result).addEventListener("click", function () { if (takeAudio) { takeAudio.currentTime = 0; takeAudio.play(); } });
       renderProgress();
-      result.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      if (window.matchMedia("(max-width:1099px)").matches) {
+        // phones and tablets: the controls stay docked under the verse, so show the verdict
+        // there and keep the coloured verse in view
+        micLbl.textContent = (r.good ? "Good" : "Needs work") + ", " + pct + "% clear";
+        var pv = $(".pv", page); if (pv) pv.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      } else result.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
     spans.forEach(function (sp, i) {
       sp.addEventListener("click", function () { var w = lastWords[i]; if (w) playSpan(w.start, w.end); });

@@ -28,6 +28,7 @@ DICT = B.get_dict(star="*")
 FPS = 50  # emission frames per second (20 ms)
 SR = B.sample_rate
 _m = None
+SKIP = {(13, 1)}
 
 
 def model():
@@ -142,6 +143,9 @@ def run_chapter(path, ch, verses):
         # window: about 1.7x this verse's expected length at the chapter's pace, so a
         # refrain that recurs in later verses ("sa me priyah") can't pull the match ahead
         hi = min(T, cur + int(max(need * pace * 1.7, 20 * FPS)))
+        if hi - cur < need + 50:
+            res.append(None)
+            continue
         first, last, score, csc = align_verse(lp[cur:hi], chunks)
         if not first:
             res.append(None)
@@ -195,7 +199,10 @@ def main():
     data = json.load(open(os.path.join(HERE, "..", "src-data", "data", "verse.json"), encoding="utf-8"))
     res = json.load(open(dst)) if os.path.exists(dst) else {}
     for ch in chs:
-        vs = sorted([v for v in data if v["chapter_number"] == ch], key=lambda v: v["verse_number"])
+        # 13.1 (Arjuna's question about prakrti and purusa) is in some editions only; this
+        # recording starts chapter 13 at "idam sariram" (13.2)
+        vs = sorted([v for v in data if v["chapter_number"] == ch and (ch, v["verse_number"]) not in SKIP],
+                    key=lambda v: v["verse_number"])
         res.update(run_chapter(os.path.join(src, "BGChapter%d.opus" % ch), ch, vs))
         json.dump(res, open(dst, "w"), indent=0)
         print("chapter", ch, "done", flush=True)
