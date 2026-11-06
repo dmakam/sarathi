@@ -15,15 +15,65 @@
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function byId(list, id) { for (var i = 0; i < list.length; i++) if ((list[i].id || list[i][0]) === id) return list[i]; return null; }
 
-  /* Scenes for who is asking. Line art, gold stroke; "k" shapes are filled to sit in front. */
+  /* Full-card scenes for who is asking. Flat illustration, 160x190, ground at y=150. */
   var SCENE = {
-    student: '<path d="M18 54c2-9 7-14 14-14s12 5 14 14"/><circle cx="32" cy="28" r="7"/><path class="k" d="M19 17l13-6 13 6-13 6z"/><path d="M41 19v6"/><path class="k" d="M16 50l16 4 16-4v9l-16 4-16-4z"/><path d="M32 54v9"/>',
-    work: '<circle cx="32" cy="19" r="7"/><path d="M18 44c2-9 7-14 14-14s12 5 14 14"/><rect class="k" x="16" y="34" width="32" height="19" rx="2"/><path d="M9 56h46"/><circle cx="32" cy="43.5" r="1.4" class="dot"/>',
-    family: '<circle cx="20" cy="18" r="6"/><path d="M8 44c2-8 6-12 12-12s10 4 12 12"/><circle cx="44" cy="18" r="6"/><path d="M32 44c2-8 6-12 12-12s10 4 12 12"/><circle class="k" cx="32" cy="35" r="5"/><path class="k" d="M22 58c1.6-7 5-10.5 10-10.5S40.4 51 42 58z"/>',
-    love: '<path class="heart" d="M32 18c-2.6-4.4-9-3.4-9 1.8 0 4 5.3 7.4 9 10 3.7-2.6 9-6 9-10 0-5.2-6.4-6.2-9-1.8z"/><circle cx="20" cy="34" r="6.5"/><path d="M7 60c2-9 7-13.5 13-13.5S31 51 33 60"/><circle class="k" cx="44" cy="34" r="6.5"/><path class="k" d="M31 60c2-9 7-13.5 13-13.5S55 51 57 60z"/>',
-    me: '<circle cx="32" cy="13" r="6"/><path d="M32 20v14"/><path d="M32 25c-6 1-10 6-11 13M32 25c6 1 10 6 11 13"/><path class="k" d="M13 46c6-5 13-6 19-2 6-4 13-3 19 2-6 6-13 7-19 3-6 4-13 3-19-3z"/>'
+    student: '<rect width="160" height="190" fill="#26346B"/>' +
+      '<rect x="88" y="16" width="58" height="50" rx="3" fill="#141C44"/><path d="M117 16v50M88 41h58" stroke="#26346B" stroke-width="2.5"/>' +
+      '<circle cx="131" cy="31" r="8" fill="#F4E6B8"/><circle cx="134.5" cy="28.5" r="7" fill="#141C44"/>' +
+      '<circle class="tw" cx="98" cy="25" r="1.1" fill="#fff"/><circle class="tw t2" cx="108" cy="55" r="1" fill="#fff"/><circle class="tw t3" cx="140" cy="57" r="1" fill="#fff"/>' +
+      '<path class="glow" d="M33 66 8 116h58z" fill="#F6D77A" opacity=".22"/>' +
+      '<path d="M22 112V84l12-18" stroke="#C9A227" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M27 62l15-4 2 10z" fill="#C9A227"/><rect x="14" y="110" width="18" height="4" rx="2" fill="#C9A227"/>' +
+      '<circle cx="92" cy="74" r="9.5" fill="#3A2A22"/><path d="M75 116c0-19 7-28 17-28s17 9 17 28z" fill="#E8A65A"/>' +
+      '<path d="M84 99c-6 5-12 9-17 11" stroke="#E8A65A" stroke-width="6" stroke-linecap="round" fill="none"/>' +
+      '<rect x="116" y="100" width="24" height="5" rx="1" fill="#D07FA8"/><rect x="118" y="95" width="21" height="5" rx="1" fill="#7FC4BA"/><rect x="115" y="90" width="23" height="5" rx="1" fill="#E9D58A"/>' +
+      '<path d="M50 112l14-4 14 4v3l-14-3-14 3z" fill="#F4F7F6"/>' +
+      '<rect x="6" y="114" width="148" height="7" rx="2" fill="#6B4A2E"/><rect x="14" y="121" width="5" height="30" fill="#55391F"/><rect x="141" y="121" width="5" height="30" fill="#55391F"/>' +
+      '<rect y="150" width="160" height="40" fill="#18224A"/>',
+    work: '<rect width="160" height="190" fill="#2F6F73"/>' +
+      '<rect x="12" y="16" width="74" height="56" rx="3" fill="#A9D8D3"/>' +
+      '<path d="M12 72V52h10v-8h9v14h8V40h12v18h7V48h11v24z" fill="#5E9E9C"/><path d="M12 72v-8h16v-6h12v14z" fill="#4A8785"/>' +
+      '<path class="cloud" d="M28 30a6 6 0 0 1 11-2 5 5 0 0 1 7 5H24a4 4 0 0 1 4-3z" fill="#fff" opacity=".85"/>' +
+      '<rect x="12" y="16" width="74" height="56" rx="3" fill="none" stroke="#24585B" stroke-width="3"/>' +
+      '<circle cx="82" cy="70" r="9.5" fill="#2A1E18"/><path d="M63 118c0-21 8-30 19-30s19 9 19 30z" fill="#F4F7F6"/>' +
+      '<rect x="60" y="89" width="44" height="28" rx="2.5" fill="#12262A"/><rect x="63" y="92" width="38" height="22" rx="1" fill="#1F4A50"/><path d="M66 98h22M66 103h28M66 108h16" stroke="#7FC4BA" stroke-width="1.6" stroke-linecap="round"/>' +
+      '<path d="M54 117h56l-4 4H58z" fill="#9DB6B3"/>' +
+      '<rect x="126" y="98" width="16" height="20" rx="2" fill="#C9A227"/><ellipse cx="128" cy="90" rx="5" ry="10" transform="rotate(-25 128 90)" fill="#4C9A6A"/><ellipse cx="140" cy="88" rx="5" ry="11" transform="rotate(20 140 88)" fill="#3F8A5C"/><ellipse cx="134" cy="84" rx="4.5" ry="12" fill="#57A877"/>' +
+      '<rect x="24" y="106" width="12" height="12" rx="2" fill="#E9D58A"/><path d="M36 109a3 3 0 0 1 0 6" stroke="#E9D58A" stroke-width="2" fill="none"/>' +
+      '<path class="steam" d="M28 102c-2-3 2-5 0-8M32 102c-2-3 2-5 0-8" stroke="#fff" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".7"/>' +
+      '<rect x="6" y="118" width="148" height="7" rx="2" fill="#E9D58A"/><rect x="14" y="125" width="5" height="26" fill="#B89A3E"/><rect x="141" y="125" width="5" height="26" fill="#B89A3E"/>' +
+      '<rect y="150" width="160" height="40" fill="#1F5458"/>',
+    family: '<rect width="160" height="190" fill="#9E4F3A"/>' +
+      '<rect x="102" y="20" width="44" height="50" rx="22" fill="#C97A5C"/><rect x="102" y="20" width="44" height="50" rx="22" fill="none" stroke="#7E3B2B" stroke-width="3"/>' +
+      '<path d="M60 0v20" stroke="#5A2E28" stroke-width="2"/><path d="M48 32l12-12 12 12z" fill="#E9D58A"/><path class="glow" d="M48 32h24l18 52H30z" fill="#F6D77A" opacity=".16"/>' +
+      '<path d="M10 104q0-8 8-8h124q8 0 8 8v40H10z" fill="#5A2E28"/><rect x="6" y="110" width="16" height="36" rx="6" fill="#4A2520"/><rect x="138" y="110" width="16" height="36" rx="6" fill="#4A2520"/>' +
+      '<circle cx="48" cy="72" r="9.5" fill="#3A2A22"/><path d="M32 124c0-22 7-33 16-33s16 11 16 33z" fill="#E9D58A"/>' +
+      '<circle cx="108" cy="70" r="10" fill="#2A1E18"/><path d="M91 124c0-23 7-34 17-34s17 11 17 34z" fill="#24306E"/>' +
+      '<circle cx="78" cy="92" r="7.5" fill="#3A2A22"/><path d="M66 126c0-15 5-22 12-22s12 7 12 22z" fill="#F07E5A"/>' +
+      '<path d="M60 104l10 6M96 102l-10 7" stroke="#E9D58A" stroke-width="5" stroke-linecap="round"/>' +
+      '<rect x="10" y="124" width="140" height="18" rx="4" fill="#6E3427"/>' +
+      '<rect y="150" width="160" height="40" fill="#6E3427"/><ellipse cx="80" cy="162" rx="58" ry="8" fill="#8A4532"/>',
+    love: '<defs><linearGradient id="cx-dusk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5B4A8E"/><stop offset=".6" stop-color="#D98A8A"/><stop offset="1" stop-color="#F4B98A"/></linearGradient></defs>' +
+      '<rect width="160" height="190" fill="url(#cx-dusk)"/>' +
+      '<circle cx="104" cy="122" r="24" fill="#FFD9A0"/>' +
+      '<path d="M0 126q40-14 80-4t80-6v40H0z" fill="#7A5A8E"/>' +
+      '<rect x="18" y="74" width="7" height="60" fill="#3B2F55"/><circle cx="22" cy="60" r="22" fill="#4A3B6B"/><circle cx="36" cy="72" r="14" fill="#4A3B6B"/>' +
+      '<path class="float" d="M80 44c-3-5-11-4-11 2 0 5 6 9 11 12 5-3 11-7 11-12 0-6-8-7-11-2z" fill="#FF8A98"/>' +
+      '<circle cx="68" cy="88" r="8.5" fill="#2A1E2A"/><path d="M54 126c0-19 6-29 14-29s14 10 14 29z" fill="#E9D58A"/>' +
+      '<circle cx="93" cy="86" r="9" fill="#1E1620"/><path d="M78 126c0-20 6-30 15-30s15 10 15 30z" fill="#24306E"/>' +
+      '<path d="M76 106l6 4 6-4" stroke="#E9D58A" stroke-width="4.5" stroke-linecap="round" fill="none"/>' +
+      '<rect x="40" y="124" width="82" height="6" rx="2" fill="#3A2E3A"/><rect x="46" y="130" width="4" height="20" fill="#3A2E3A"/><rect x="112" y="130" width="4" height="20" fill="#3A2E3A"/>' +
+      '<rect y="150" width="160" height="40" fill="#3B2F55"/>',
+    me: '<defs><linearGradient id="cx-dawn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F6E9C4"/><stop offset="1" stop-color="#EDB97E"/></linearGradient></defs>' +
+      '<rect width="160" height="190" fill="url(#cx-dawn)"/>' +
+      '<g class="sun"><circle cx="80" cy="96" r="44" fill="#FFE2A0" opacity=".55"/><circle cx="80" cy="96" r="30" fill="#FFD27A"/></g>' +
+      '<path class="bird" d="M30 40q4-4 8 0q4-4 8 0M118 30q3-3 6 0q3-3 6 0" stroke="#7A5A3A" stroke-width="1.4" fill="none" stroke-linecap="round"/>' +
+      '<path d="M0 132q40-20 80-14t80 6v66H0z" fill="#8FB09A"/>' +
+      '<path d="M0 128q80-28 160 0v62H0z" fill="#4F7F6E"/>' +
+      '<circle cx="80" cy="80" r="8" fill="#1E3A3A"/><path d="M69 112c0-15 5-23 11-23s11 8 11 23z" fill="#1E3A3A"/>' +
+      '<ellipse cx="80" cy="114" rx="20" ry="6" fill="#1E3A3A"/><path d="M71 99c-4 5-8 9-12 13M89 99c4 5 8 9 12 13" stroke="#1E3A3A" stroke-width="4.5" stroke-linecap="round"/>' +
+      '<rect y="150" width="160" height="40" fill="#4F7F6E"/>'
   };
-  function scene(id) { return '<svg class="cx-scene" viewBox="0 0 64 64" width="64" height="64" aria-hidden="true">' + (SCENE[id] || "") + "</svg>"; }
+  function scene(id) { return '<svg class="cx-art" viewBox="0 0 160 190" preserveAspectRatio="' + (id === "me" ? "xMidYMid slice" : "xMidYMax slice") + '" aria-hidden="true">' + (SCENE[id] || "") + "</svg>"; }
 
   /* Faces drawn from the facial actions Ekman's FACS links to each emotion:
      anger = brows lowered and pulled together, narrowed eyes, pressed lips;
@@ -60,7 +110,7 @@
   function vWho() {
     var t = "";
     D.aud.forEach(function (a, i) {
-      t += '<button type="button" class="cx-tile big" style="--i:' + i + '" data-act="aud" data-id="' + a[0] + '">' + scene(a[0]) + "<span>" + esc(a[1]) + "</span></button>";
+      t += '<button type="button" class="cx-tile art a-' + a[0] + '" style="--i:' + i + '" data-act="aud" data-id="' + a[0] + '">' + scene(a[0]) + "<span>" + esc(a[1]) + "</span></button>";
     });
     return '<p class="cx-kicker">Ask S&#257;rathi</p><h1 class="cx-h">What&rsquo;s on your mind?</h1>' +
       '<p class="cx-q">Who&rsquo;s asking?</p><div class="cx-tiles five">' + t + "</div>" + writeBox("Or tell me in your own words\u2026") + helpLink();
