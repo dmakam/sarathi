@@ -223,6 +223,7 @@ WORD_PAGE_MIN = 3
 
 import graph_build as GB  # noqa: E402
 import graph_data as GD  # noqa: E402
+import consult_data as CD  # noqa: E402
 
 # ---------------------------------------------------------------- layout
 
@@ -280,7 +281,7 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
 </html>
 """.format(title=esc(full), desc=esc(desc or "Read the Bhagavad Gita word by word, with recitation, classical commentaries and verses for what you are facing."),
            base=BASE_URL, canon=esc(canonical), fonts=FONTS, ld=ld, bc=body_class, site=SITE, body=body,
-           n1=nl("read", "/chapters/", "Read"), n2=nl("facing", "/facing/", "What you're facing"),
+           n1=nl("read", "/chapters/", "Read"), n2=nl("consult", "/consult/", "Ask S\u0101rathi"),
            n3=nl("map", "/map/", "Map"), n4=nl("plans", "/plans/", "Plans"),
            n5=nl("practice", "/practice/", "Practice"), n0=nl("themes", "/themes/", "Themes"), scripts=scripts)
     write(rel, doc)
@@ -691,6 +692,37 @@ def build_themes():
              desc=trim("%s: %d Bhagavad Gita shlokas (%s) with word meanings, translation and recitation practice." % (name, len(vids), ", ".join(vids)), 155))
 
 
+def build_consult():
+    data = {"aud": [[a, l, w] for a, l, w in CD.AUDIENCES], "feel": [[a, l, w] for a, l, w in CD.FEELINGS],
+            "crisis": CD.CRISIS, "unsafe": CD.UNSAFE, "sit": [], "v": {}}
+    for sid, aud, feels, title, words, vs, todo, ask in CD.SITUATIONS:
+        data["sit"].append({"id": sid, "a": aud, "f": feels, "t": title, "w": words,
+                            "v": [[x, why] for x, why in vs], "do": todo, "ask": ask})
+        for x, _ in vs:
+            assert x in V, x
+            v = V[x]
+            data["v"][x] = {"sa": v["sa"], "en": eng(v), "url": verse_url(x), "audio": v["audio"],
+                            "pr": "/practice/%d/%d/" % (v["c"], v["n"])}
+    write_json("data/consult.json", data)
+    body = """<section class="cx" data-src="/data/consult.json">
+  <div class="cx-stage" aria-live="polite">
+    <div class="cx-step is-on">
+      <p class="cx-kicker">Ask S&#257;rathi</p>
+      <h1 class="cx-h">What&rsquo;s on your mind?</h1>
+      <p class="cx-q">Loading&hellip;</p>
+    </div>
+  </div>
+  <noscript><p class="cx-q">This guide needs JavaScript. You can still browse <a href="/facing/">verses for what you&rsquo;re facing</a>.</p></noscript>
+</section>
+<section class="cx-saved" hidden>
+  <h2>Saved for you</h2>
+  <ul class="cx-savelist"></ul>
+</section>"""
+    page("consult/index.html", "Ask S\u0101rathi", body, nav="consult", body_class="pg-consult",
+         desc="Say what you're going through and get one shloka from the Gita, what it means for you, and one thing to try today.",
+         scripts='<script src="/assets/consult.js" defer></script>\n')
+
+
 def build_sources():
     tr = "".join("<li>%s (%s)%s</li>" % (esc(a), l.title(), ", following %s" % esc(f) if f else "") for a, l, f in TRANSLATIONS)
     cm = "".join("<li><strong>%s:</strong> %s</li>" % (esc(TRAD[t][1]), esc(", ".join(a for a, tt in COMMENTATORS.items() if tt == t))) for t in TRAD)
@@ -714,7 +746,7 @@ def build_home():
   <div class="hero-copy">
     <h1>The Gita, word by word.</h1>
     <p class="lede">All 701 verses with recitation, every Sanskrit word explained, and sixteen classical commentaries side by side.</p>
-    <div class="v-actions"><a class="btn" href="/themes/">Start with the 20 themes</a><a class="btn ghost" href="/facing/">Start from your life</a></div>
+    <div class="v-actions"><a class="btn" href="/consult/">Ask S&#257;rathi about your day</a><a class="btn ghost" href="/themes/">Start with the 20 themes</a></div>
   </div>
   <figure class="hero-verse" data-src="{audio}">
     <p class="hv-sa" lang="sa">{sa}</p>
@@ -752,7 +784,7 @@ def build_home():
 
 
 def build_misc(word_pages):
-    urls = ["/", "/themes/", "/chapters/", "/facing/", "/concepts/", "/plans/", "/practice/", "/search/", "/sources/"]
+    urls = ["/", "/consult/", "/themes/", "/chapters/", "/facing/", "/concepts/", "/plans/", "/practice/", "/search/", "/sources/"]
     urls += ["/themes/%s/" % t[0] for t in THEMES] + ["/map/"] + ["/state/%s/" % st[0] for st in GD.STATES]
     urls += ["/%d/" % n for n in range(1, 19)] + [verse_url(x) for x in ORDER]
     urls += ["/facing/%s/" % s[0] for s in SITUATIONS] + ["/concept/%s/" % c[0] for c in CONCEPTS]
@@ -791,6 +823,7 @@ def main():
     build_practice_index()
     with open(os.path.join(ROOT, "server", "practice-words.json"), "w", encoding="ascii") as f:
         json.dump({x: practice_words(V[x]) for x in ORDER}, f, ensure_ascii=True)
+    build_consult()
     build_sources()
     build_home()
     n = build_misc(wp)
