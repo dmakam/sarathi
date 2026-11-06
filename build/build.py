@@ -629,12 +629,23 @@ def build_practice(vid):
               '<select class="p-speed" aria-label="Playback speed"><option value="0.75">0.75x</option><option value="1" selected>1x</option><option value="1.25">1.25x</option></select></div>' % v["audio"]) if v["audio"] else ""
     i = ORDER.index(vid)
     nxt = ORDER[i + 1] if i < len(ORDER) - 1 else None
+    theme_rail = ""
+    for ti, (tid, tname, tv) in enumerate(THEMES, 1):
+        if vid in tv:
+            k = tv.index(vid)
+            nxt = tv[k + 1] if k < len(tv) - 1 else (THEMES[ti][2][0] if ti < len(THEMES) else nxt)
+            lis = "".join('<li data-v="%s"%s><a href="/practice/%s/%s/"%s><span class="tr-lamp"></span><span class="tr-n">%s</span><span class="tr-t">%s</span></a></li>'
+                          % (x, ' class="on"' if x == vid else "", V[x]["c"], V[x]["n"], ' aria-current="page"' if x == vid else "", x, esc(trim(eng(V[x]), 54))) for x in tv)
+            theme_rail = '<nav class="p-theme" aria-label="Verses in this theme"><p class="p-tk"><a href="/themes/%s/">Theme %d: %s</a></p><ol class="tp-list">%s</ol></nav>' % (tid, ti, esc(tname), lis)
+            break
     body = """<article class="practice" data-vid="{vid}">
 <div class="p-head">
   <p class="crumb"><a href="/practice/">Practice</a>, <a href="{vurl}">read verse {vid}</a></p>
   <h1>Recite {vid}</h1>
   <p class="pv" lang="sa">{lines}</p>
   <p class="tl" lang="sa-Latn"><span class="tl-k">Say it</span>{tl}</p>
+  <p class="p-en">{en}</p>
+  {theme_rail}
 </div>
 <div class="psteps">
   <section class="pstep"><h2>Listen</h2><p class="hint">Hear it first. This recording reads the verse slowly, word by word, with the joins between words opened up. Turn on Repeat after me to say it back in the pauses.</p>{player}</section>
@@ -655,7 +666,7 @@ def build_practice(vid):
   <p>Your recording is sent to the S\u0101rathi coach, scored against the verse, and thrown away straight after. Nothing is stored on the server. Your score is kept in this browser, and your take stays on this device for playback until you leave the page.</p>
   <div class="card-act"><button type="button" class="btn ok">Start recording</button><button type="button" class="btn ghost cancel">Not now</button></div>
 </dialog>""".format(vid=vid, words=esc(json.dumps(words, ensure_ascii=False)), vurl=verse_url(vid), lines="<br>".join(lines),
-                    tl="<br>".join(esc(l) for l in v["tl"]), player=player,
+                    tl="<br>".join(esc(l) for l in v["tl"]), player=player, en=esc(eng(v)), theme_rail=theme_rail,
                     next=('<p><a class="btn ghost" href="/practice/%s/%s/">Next verse, %s</a></p>' % (nxt.split(".")[0], nxt.split(".")[1], nxt)) if nxt else "")
     page("practice/%d/%d/index.html" % (v["c"], v["n"]), "Recite Bhagavad Gita %s" % vid, body, canonical=verse_url(vid),
          desc=trim("Practise reciting Bhagavad Gita %s: listen, recite, and see which words came through clearly." % vid, 155),

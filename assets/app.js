@@ -50,10 +50,42 @@
     });
   })();
   (function themeRail() {
-    Array.prototype.forEach.call(document.querySelectorAll(".tp-list li[data-v]"), function (li) {
+    Array.prototype.forEach.call(document.querySelectorAll(".tp-list li[data-v], .p-theme li[data-v]"), function (li) {
       var v = li.getAttribute("data-v"), on = LEARNED.indexOf(v) !== -1;
       li.querySelector(".tr-lamp").innerHTML = on ? DIYA_ON : DIYA_OFF;
       if (on) li.classList.add("learned"); else if (READ.indexOf(v) !== -1) li.classList.add("read");
+    });
+  })();
+  (function themeFocus() {
+    var tp = document.querySelector(".tp"); if (!tp) return;
+    var cards = Array.prototype.slice.call(tp.querySelectorAll(".tp-main .fcard"));
+    var items = Array.prototype.slice.call(tp.querySelectorAll(".tp-list li"));
+    if (!cards.length) return;
+    tp.classList.add("focus");
+    cards.forEach(function (c, k) {
+      var pv = cards[k - 1], nx = cards[k + 1], nav = document.createElement("div");
+      nav.className = "tp-pager";
+      nav.innerHTML = (pv ? '<a class="btn ghost" href="#' + pv.id + '">\u2039 ' + pv.id.slice(2).replace("-", ".") + "</a>" : "<span></span>") +
+        (nx ? '<a class="btn" href="#' + nx.id + '">Next verse \u00b7 ' + nx.id.slice(2).replace("-", ".") + " \u203a</a>" : '<a class="btn" href="/themes/">Back to all themes</a>');
+      c.appendChild(nav);
+    });
+    function show(id, scroll) {
+      var hit = cards.filter(function (c) { return c.id === id; })[0];
+      if (!hit) {
+        hit = cards.filter(function (c) { return LEARNED.indexOf(c.id.slice(2).replace("-", ".")) === -1; })[0] || cards[0];
+      }
+      cards.forEach(function (c) { c.hidden = c !== hit; if (c === hit) { c.classList.remove("in"); void c.offsetWidth; c.classList.add("in"); } });
+      items.forEach(function (li) { li.classList.toggle("on", "v-" + li.getAttribute("data-v").replace(".", "-") === hit.id); });
+      if (scroll && innerWidth < 1100) hit.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    function top() { if (innerWidth >= 1100) requestAnimationFrame(function () { scrollTo(0, 0); }); }
+    show((location.hash || "").slice(1), false); top();
+    addEventListener("hashchange", function () { show(location.hash.slice(1), true); top(); });
+    document.addEventListener("keydown", function (e) {
+      if (e.target.closest && e.target.closest("input,textarea,select")) return;
+      var cur = cards.filter(function (c) { return !c.hidden; })[0], k = cards.indexOf(cur);
+      if (e.key === "ArrowRight" && cards[k + 1]) location.hash = cards[k + 1].id;
+      if (e.key === "ArrowLeft" && cards[k - 1]) location.hash = cards[k - 1].id;
     });
   })();
   (function sky() {

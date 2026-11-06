@@ -1029,3 +1029,37 @@ html[data-sky="evening"] .sky,html[data-sky="night"] .sky{--acc-k:#F2DFA0}
   .v-rail .v-sec{margin-top:16px}
   .v-rail .vnav{flex-direction:column;align-items:stretch;gap:8px}
 }
+
+/* theme page: one verse at a time */
+.tp.focus .tp-main .fcard{border-bottom:0}
+.tp.focus .tp-main .fcard.in{animation:cx-in .45s cubic-bezier(.2,.8,.2,1) both}
+.tp-list li.on a{background:var(--nav-on)}
+.tp-list li.on .tr-n{color:var(--text)}
+.tp-list li.on .tr-t{color:var(--text)}
+.tp-pager{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:26px;padding-top:22px;border-top:1px solid var(--line)}
+@media (min-width:1100px){
+  .tp.focus .tp-main{margin-top:56px}
+  .tp.focus .tp-main .fcard .vnum{font-size:20px}
+  .tp.focus .tp-main .fcard .vsa{font-size:clamp(38px,3.2vw,48px);line-height:1.5}
+  .tp.focus .tp-main .fcard .vtl{font-size:21px}
+  .tp.focus .tp-main .fcard .ven{font-size:clamp(26px,2vw,30px);line-height:1.5}
+  .tp.focus .tp-main .fcard .v-actions{margin-top:18px}
+}
+
+/* practice page: the verse on the left, listen, recite and progress on the right */
+.p-en{font-family:var(--verse);font-size:21px;line-height:1.5;margin:14px 0 0;color:var(--text)}
+.p-theme{margin-top:26px;padding-top:18px;border-top:1px solid var(--line)}
+.p-tk{margin:0 0 6px;font-weight:600;font-size:15.5px}.p-tk a{color:var(--cx-acc);text-decoration:none}
+.p-theme li.on a{background:var(--nav-on)}
+@media (min-width:1100px){
+  .practice{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);column-gap:56px;max-width:1440px;margin:0 auto;padding:0 clamp(24px,4vw,64px) 48px}
+  .practice>*{grid-column:2;min-width:0}
+  .practice>.p-head{grid-column:1;grid-row:1 / span 10;align-self:start;position:sticky;top:76px;max-height:calc(100vh - 92px);overflow:auto;padding:28px 4px 24px 0}
+  .practice .psteps{display:flex;flex-direction:column;gap:16px;margin-top:40px}
+  .practice .pstep{margin:0}
+  .practice .pprog{margin-top:16px}
+  .practice .pv{font-size:clamp(36px,3vw,48px);line-height:1.6}
+  .practice .p-head h1{font-size:clamp(34px,2.8vw,46px)}
+}
+.tp-pager a.btn{display:inline-flex;align-items:center;gap:6px;padding:12px 22px;border-radius:999px;font-size:16px;font-weight:600;white-space:nowrap;text-decoration:none;grid-template-columns:none}
+@media (min-width:1100px){.practice .pv{font-size:clamp(28px,2.3vw,38px);line-height:1.7;word-spacing:-.05em}}
