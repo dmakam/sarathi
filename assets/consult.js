@@ -179,7 +179,7 @@
         '<span>Did this help?</span><button type="button" class="cx-pill" data-act="fb" data-v="yes">Yes</button><button type="button" class="cx-pill" data-act="fb" data-v="no">Not quite</button>') + "</div>" +
       '<p class="cx-note">The shloka and translation are from the Gita text. The three notes are S&#257;rathi&rsquo;s, written to help you apply it.</p>' +
       "</div></article>" +
-      '<nav class="cx-deeper" aria-label="Go deeper"><a href="' + v.pr + '">Learn to recite it</a><a href="' + v.url + '">Read the commentaries</a><a href="' + v.url + '#h-map">See what it connects to</a><button type="button" class="cx-link" data-act="restart">Ask about something else</button></nav>';
+      '<nav class="cx-deeper" aria-label="Go deeper"><a href="' + v.pr + '">Learn to recite it</a><a href="' + v.url + '">Read the full verse</a><a href="' + v.url + '#h-map">See what it connects to</a><button type="button" class="cx-link" data-act="restart">Ask about something else</button></nav>';
   }
   function vHelp() {
     if (S.help === "unsafe") {

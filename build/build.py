@@ -404,12 +404,13 @@ def build_verse(vid):
   <div class="tabs" role="tablist" aria-label="Translators">{tabs}</div>
   {panels}
 </section>
-<section class="v-sec" aria-labelledby="h-cm">
-  <h2 id="h-cm">Classical commentaries</h2>
-  <p class="hint">The great teachers read this verse differently. Open one to compare. Most are in the original Sanskrit.</p>
+<details class="v-sec cm-fold">
+  <summary><span class="cm-sum-t" id="h-cm">Classical commentaries</span><span class="cm-sum-d">For deeper study. Most are in the original Sanskrit.</span></summary>
+  <div class="cm-body">
   {cm}
   <div class="cm-out" hidden></div>
-</section>
+  </div>
+</details>
 {vmap}
 {related}
 {nav}

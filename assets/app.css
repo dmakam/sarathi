@@ -888,3 +888,13 @@ html[data-sky="morning"] .sky-ask button,html[data-sky="day"] .sky-ask button{ba
 /* choices read best as one list: no orphaned card, whatever the count */
 @media (min-width:1000px){.cx-sits{grid-template-columns:minmax(0,1fr)!important;max-width:760px}}
 .cx-step.s-pick{max-width:760px;margin-inline:auto}
+
+/* commentaries: folded away by default */
+.cm-fold{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding-block:0}
+.cm-fold summary{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;padding:20px 40px 20px 0;cursor:pointer;list-style:none;position:relative}
+.cm-fold summary::-webkit-details-marker{display:none}
+.cm-fold summary::after{content:"";position:absolute;right:8px;top:50%;width:10px;height:10px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:translateY(-70%) rotate(45deg);transition:transform .2s}
+.cm-fold[open] summary::after{transform:translateY(-30%) rotate(-135deg)}
+.cm-sum-t{font:600 20px/1.3 var(--ui);color:var(--text)}
+.cm-sum-d{font-size:15.5px;color:var(--muted)}
+.cm-fold .cm-body{padding-bottom:24px}
