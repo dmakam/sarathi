@@ -163,10 +163,10 @@
     var c = vid.split(".");
     return '<article class="cx-card"><div class="cx-l">' +
       '<p class="cx-for">' + esc(s.t) + "</p>" +
-      '<p class="cx-sa" lang="sa">' + lines + "</p>" +
-      '<p class="cx-tl" lang="sa-Latn"><span class="tl-k">Say it</span>' + (v.tl || []).map(esc).join("<br>") + "</p>" +
-      '<p class="cx-ref"><a href="' + v.url + '">Bhagavad Gita ' + c[0] + "." + c[1] + "</a></p>" +
-      '<blockquote class="cx-en">' + esc(v.en) + "<cite>Swami Sivananda</cite></blockquote></div>" + '<div class="cx-r">' +
+      '<blockquote class="cx-en">\u201c' + esc(v.en) + "\u201d</blockquote>" +
+      '<p class="cx-ref"><a href="' + v.url + '">Bhagavad Gita ' + c[0] + "." + c[1] + "</a> &middot; Swami Sivananda</p>" +
+      '<details class="cx-sk"><summary>Show the Sanskrit</summary><p class="cx-sa" lang="sa">' + lines + "</p>" +
+      '<p class="cx-tl" lang="sa-Latn"><span class="tl-k">Say it</span>' + (v.tl || []).map(esc).join("<br>") + "</p></details></div>" + '<div class="cx-r">' +
       '<dl class="cx-notes"><div style="--i:0"><dt>For you</dt><dd>' + esc(pair[1]) + "</dd></div>" +
       '<div style="--i:1"><dt>Try today</dt><dd>' + esc(s.do) + "</dd></div>" +
       '<div style="--i:2"><dt>Sit with</dt><dd>' + esc(s.ask) + "</dd></div></dl>" +
@@ -308,6 +308,17 @@
   });
   fetch(root.getAttribute("data-src")).then(function (r) { return r.json(); }).then(function (d) {
     D = d;
+    var qs = (location.search.match(/[?&]q=([^&]*)/) || [])[1];
+    var ah = (location.hash.match(/^#a-([a-z]+)$/) || [])[1];
+    if (qs) {
+      try { history.replaceState(null, "", location.pathname); } catch (e) {}
+      S.text = decodeURIComponent(qs.replace(/\+/g, " ")).slice(0, 400);
+      var m0 = match(S.text);
+      S.hist = [{ step: "who" }];
+      if (m0.help) { S.help = m0.help; S.step = "help"; } else { S.matches = m0.list; S.step = "pick"; }
+      render("same"); return;
+    }
+    if (ah && byId(D.aud, ah)) { S.aud = ah; S.step = "feel"; S.hist = [{ step: "who" }]; render("same"); return; }
     var h = (location.hash || "").slice(1), mm = h.match(/^(.+?)(?:-(\d))?$/);
     if (mm && byId(D.sit, mm[1])) { S.sit = mm[1]; S.vi = mm[2] ? (+mm[2] - 1) : 0; S.step = "answer"; S.hist = [{ step: "who" }]; }
     render("same");

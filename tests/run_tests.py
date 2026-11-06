@@ -42,7 +42,7 @@ def serve():
     return srv
 
 
-PAGES = ["/", "/consult/", "/themes/", "/themes/habits/", "/chapters/", "/2/", "/2/47/", "/6/5/", "/facing/",
+PAGES = ["/", "/consult/", "/explore/", "/themes/", "/themes/habits/", "/chapters/", "/2/", "/2/47/", "/6/5/", "/facing/",
          "/map/", "/state/anger/", "/plans/", "/practice/", "/practice/2/47/", "/search/?q=karma",
          "/concept/karma/", "/sources/"]
 SIZES = [("laptop", 1536, 864), ("200% zoom", 768, 432), ("phone", 390, 844)]
@@ -137,7 +137,7 @@ def run():
         page.wait_for_selector(".cx-card")
         page.wait_for_timeout(600)
         check("Ask: answer shows shloka, romanised line and three notes",
-              page.locator(".cx-sa").count() == 1 and page.locator(".cx-tl").inner_text().strip() != "" and page.locator(".cx-notes > div").count() == 3)
+              page.locator(".cx-sa").count() == 1 and (page.locator(".cx-tl").text_content() or "").strip() != "" and page.locator(".cx-notes > div").count() == 3)
         page.click("[data-act=next]")
         page.wait_for_timeout(400)
         check("Ask: Another verse switches the shloka", "2.56" in page.inner_text(".cx-ref"))

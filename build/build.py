@@ -227,7 +227,7 @@ import consult_data as CD  # noqa: E402
 
 # ---------------------------------------------------------------- layout
 
-FONTS = ("https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600"
+FONTS = ("https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700"
          "&family=Tiro+Devanagari+Sanskrit:ital@0;1&display=swap")
 
 
@@ -236,8 +236,11 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
     full = title if title.startswith(SITE) else "%s | %s" % (title, SITE)
     ld = ('<script type="application/ld+json">%s</script>' % json.dumps(jsonld, ensure_ascii=True)) if jsonld else ""
 
+    group = {"themes": "learn", "plans": "learn", "practice": "learn", "read": "explore", "map": "explore",
+             "facing": "explore", "concepts": "explore", "explore": "explore", "consult": "consult"}.get(nav, nav)
+
     def nl(key, href, label):
-        cur = ' aria-current="page"' if key == nav else ""
+        cur = ' aria-current="page"' if key == group else ""
         return '<a href="%s"%s>%s</a>' % (href, cur, label)
 
     doc = """<!doctype html>
@@ -258,7 +261,7 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="{fonts}">
 <link rel="stylesheet" href="/assets/app.css">
-<script>try{{var z=JSON.parse(localStorage.getItem("sarathi.textsize")||"1");if(z>1)document.documentElement.style.setProperty("--zoom",z)}}catch(e){{}}</script>
+<script>(function(){{var h=new Date().getHours();document.documentElement.setAttribute("data-sky",h>=5&&h<11?"morning":h<17?"day":h<20?"evening":"night")}})();try{{var z=JSON.parse(localStorage.getItem("sarathi.textsize")||"1");if(z>1)document.documentElement.style.setProperty("--zoom",z)}}catch(e){{}}</script>
 {ld}
 </head>
 <body class="{bc}">
@@ -266,7 +269,7 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
 <header class="top">
   <a class="brand" href="/"><img src="/assets/icon.svg" alt="" width="28" height="28"><span>{site}</span></a>
   <nav class="nav" aria-label="Main">
-    {n0}{n1}{n2}{n3}{n4}{n5}
+    {n2}{n1}{n3}
   </nav>
   <a class="nav-search" href="/search/" aria-label="Search the Gita"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></a>
   <button type="button" class="nav-size" aria-label="Text size: normal. Tap to make text larger."><span aria-hidden="true">A<small>A</small></span></button>
@@ -283,9 +286,9 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
 </html>
 """.format(title=esc(full), desc=esc(desc or "Read the Bhagavad Gita word by word, with recitation, classical commentaries and verses for what you are facing."),
            base=BASE_URL, canon=esc(canonical), fonts=FONTS, ld=ld, bc=body_class, site=SITE, body=body,
-           n1=nl("read", "/chapters/", "Read"), n2=nl("consult", "/consult/", "Ask S\u0101rathi"),
-           n3=nl("map", "/map/", "Map"), n4=nl("plans", "/plans/", "Plans"),
-           n5=nl("practice", "/practice/", "Practice"), n0=nl("themes", "/themes/", "Themes"), scripts=scripts)
+           n1=nl("learn", "/themes/", "Learn"), n2=nl("consult", "/consult/", "Ask"),
+           n3=nl("explore", "/explore/", "Explore"),
+           scripts=scripts)
     write(rel, doc)
 
 
@@ -666,23 +669,22 @@ def build_practice_index():
 def theme_cards():
     out = []
     for i, (tid, name, vids) in enumerate(THEMES, 1):
-        dev, rom = THEME_WORDS[tid]
-        out.append('<a class="tc2 h%d" href="/themes/%s/" data-v="%s" style="--i:%d">'
-                   '<span class="tc2-n">%02d</span><span class="tc2-sa" lang="sa">%s</span><span class="tc2-tl" lang="sa-Latn">%s</span>'
-                   '<span class="tc2-name">%s</span><span class="tc2-bar" aria-hidden="true"><i></i></span></a>'
-                   % ((i - 1) % 5, tid, ",".join(vids), i - 1, i, esc(dev), esc(rom), esc(name)))
-    return '<div class="tc2-grid">%s</div>' % "".join(out)
+        out.append('<a class="tc3" href="/themes/%s/" data-v="%s" style="--i:%d">'
+                   '<span class="tc3-top"><span class="tc3-n">Theme %d</span><span class="tc3-name">%s</span></span>'
+                   '<span class="tc3-st">Not started</span></a>'
+                   % (tid, ",".join(vids), i - 1, i, esc(name)))
+    return '<div class="tc3-grid">%s</div>' % "".join(out)
 
 
 def build_themes():
     body = """<section class="th-stage">
-<div class="th-head"><div><h1>The Gita in twenty themes</h1>
-<p class="lede">One theme a week. Read, understand, learn by heart.</p></div>
-<div class="v-actions"><a class="btn" href="/themes/{first}/">Begin with theme 1</a><a class="btn ghost on-dark" href="/plans/">Weekly plan</a></div></div>
+<div class="th-head"><div><h1>Learn the Gita in 20 themes</h1>
+<p class="lede">One theme a week. Read it, understand it, learn it by heart.</p></div>
+<div class="v-actions"><a class="btn th-go" href="/themes/{first}/">Begin with theme 1</a><a class="btn ghost" href="/practice/">Practice</a><a class="btn ghost" href="/plans/">Plans</a></div></div>
 {cards}
 <p class="credit">Themes and shloka selection follow the <a href="{src}">{srcname}</a>.</p></section>""".format(
         first=THEMES[0][0], cards=theme_cards(), src=THEMES_SOURCE[1], srcname=esc(THEMES_SOURCE[0]))
-    page("themes/index.html", "Twenty themes of the Bhagavad Gita", body, nav="themes", body_class="pg-themes",
+    page("themes/index.html", "Learn the Gita in 20 themes", body, nav="themes", body_class="pg-themes",
          desc="The Bhagavad Gita in 20 themes and %d shlokas, from inner potential to equanimity, with recitation and practice." % len(CORE))
     for i, (tid, name, vids) in enumerate(THEMES, 1):
         items = []
@@ -752,53 +754,58 @@ def build_sources():
 
 
 def build_home():
-    hero_v = V["2.47"]
-    hwords = "".join('<span class="hw" tabindex="0" data-m="%s">%s</span> ' % (esc(w["w"] + ": " + w["m"]), esc(w["w"])) for w in hero_v["words"])
-    vod = json.dumps([x for x in ORDER], ensure_ascii=True)
-    body = """<section class="hero">
-  <div class="hero-copy">
-    <h1>The Gita, word by word.</h1>
-    <p class="lede">All 701 verses with recitation, every Sanskrit word explained, and sixteen classical commentaries side by side.</p>
-    <div class="v-actions"><a class="btn" href="/consult/">Ask S&#257;rathi about your day</a><a class="btn ghost" href="/themes/">Start with the 20 themes</a></div>
+    tod = [[x, eng(V[x]), V[x]["audio"] or ""] for x in CORE]
+    themes = [[t[0], t[1], t[2]] for t in THEMES]
+    chips = "".join('<a class="sky-chip" href="/consult/#a-%s">%s</a>' % (a, l) for a, l in
+                    (("student", "Studies"), ("work", "Work"), ("family", "Family"), ("love", "Relationships"), ("me", "Just me")))
+    stars = "".join('<circle cx="%d" cy="%d" r="%.1f"/>' % (x, y, r) for x, y, r in
+                    ((120, 90, 1.4), (260, 180, 1), (380, 60, 1.6), (520, 140, 1.1), (700, 50, 1.3), (860, 120, 1), (980, 70, 1.5),
+                     (1300, 90, 1.2), (1380, 220, 1), (60, 260, 1.1), (1240, 300, 1.3), (640, 230, 1), (1080, 250, 1.2), (180, 330, 1)))
+    body = """<section class="sky" data-tod='{tod}' data-themes='{themes}'>
+  <svg class="sky-art" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <g class="sky-stars">{stars}</g>
+    <g class="sky-sun"><circle class="halo" cx="1120" cy="640" r="150"/><circle class="disc" cx="1120" cy="640" r="92"/></g>
+    <g class="sky-moon"><circle class="halo" cx="1150" cy="330" r="70"/><circle class="disc" cx="1150" cy="330" r="34"/><circle class="bite" cx="1165" cy="320" r="30"/></g>
+    <path class="hill1" d="M0 720 C 240 660, 420 690, 640 700 S 1080 640, 1440 690 L 1440 900 L 0 900 Z"/>
+    <path class="hill2" d="M0 790 C 300 740, 560 770, 820 780 S 1220 740, 1440 770 L 1440 900 L 0 900 Z"/>
+  </svg>
+  <div class="sky-in">
+    <p class="sky-greet">Welcome.</p>
+    <h1>What&rsquo;s on your mind?</h1>
+    <form class="sky-ask" action="/consult/" method="get">
+      <label class="vh" for="sky-q">Tell S&#257;rathi what is going on</label>
+      <input id="sky-q" name="q" autocomplete="off" maxlength="400" placeholder="Tell me what happened&hellip;">
+      <button type="submit" aria-label="Ask"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </form>
+    <div class="sky-chips"><span class="vh">Or start with</span>{chips}</div>
   </div>
-  <figure class="hero-verse" data-src="{audio}">
-    <p class="hv-sa" lang="sa">{sa}</p>
-    <p class="hv-tl" lang="sa-Latn">{htl}</p>
-    <p class="hv-words">{hwords}</p>
-    <p class="hv-meaning" aria-live="polite">&nbsp;</p>
-    <figcaption><a href="/2/47/">Chapter 2, verse 47</a><button type="button" class="hv-play" aria-label="Play verse 2.47"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path class="i-play" d="M8 5v14l11-7z" fill="currentColor"/><path class="i-pause" d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg><span>Listen</span></button></figcaption>
-  </figure>
-</section>
-<section class="band">
-  <h2>The Gita in twenty themes</h2>
-  <p class="band-lede">Start here. The core of the Gita, one theme a week.</p>
-  {themes}
-</section>
-<section class="band">
-  <h2>What are you facing?</h2>
-  <div class="sits">{sits}</div>
-</section>
-<section class="band vod" data-order='{vod}'>
-  <h2>Today's verse</h2>
-  <div class="vod-body"></div>
-</section>
-<section class="band">
-  <h2>Read in order</h2>
-  <ol class="clist">{chapters}</ol>
-</section>
-<section class="band">
-  <h2>Ideas that run through it</h2>
-  <div class="chips">{concepts}</div>
-</section>""".format(ncore=len(CORE), themes=theme_cards(), audio=hero_v["audio"] or "", sa="<br>".join(esc(l) for l in hero_v["sa"]), htl="<br>".join(esc(l) for l in hero_v["tl"]), hwords=hwords, sits=sit_cards(),
-                     vod=vod, chapters=chapter_rows(),
-                     concepts="".join('<a class="chip" href="/concept/%s/"><span lang="sa">%s</span> %s</a>' % (c[0], esc(c[2]), esc(c[1])) for c in CONCEPTS))
+  <div class="sky-cards">
+    <article class="sky-card sky-tod"><p class="sky-k">Today&rsquo;s verse</p><p class="sky-q"></p><p class="sky-ref"><a href="/2/47/">Read it in full</a></p></article>
+    <article class="sky-card sky-learn"><p class="sky-k">Keep learning</p><p class="sky-t">Theme 1: Exploring inner potential</p>
+      <div class="sky-prog"><span class="sky-bar"><i></i></span><a class="sky-go" href="/themes/">Start</a></div></article>
+  </div>
+</section>""".format(tod=esc(json.dumps(tod, ensure_ascii=True)), themes=esc(json.dumps(themes, ensure_ascii=True)), chips=chips, stars=stars)
     jsonld = {"@context": "https://schema.org", "@type": "WebSite", "name": SITE, "url": BASE_URL + "/",
               "potentialAction": {"@type": "SearchAction", "target": BASE_URL + "/search/?q={q}", "query-input": "required name=q"}}
-    page("index.html", "%s: the Bhagavad Gita, word by word" % SITE, body, jsonld=jsonld, body_class="pg-home", nav="")
+    page("index.html", "%s: guidance from the Bhagavad Gita" % SITE, body, jsonld=jsonld, body_class="pg-home", nav="",
+         desc="Say what's on your mind and get one verse from the Bhagavad Gita, what it means for you, and one small step for today.")
+
+
+def build_explore():
+    cards = [("/map/", "The map", "See how feelings, verses and ideas connect, and find a path from one to another."),
+             ("/chapters/", "Read all 18 chapters", "Every one of the 701 verses, word by word, with recitation and commentaries."),
+             ("/facing/", "Verses for what you face", "Short lists of verses for common struggles."),
+             ("/concepts/", "Key ideas", "Dharma, karma, yoga and the other ideas that run through the Gita."),
+             ("/search/", "Search", "Find a verse by its words, its number or a Sanskrit term.")]
+    body = """<section class="ex-head"><h1>Explore the whole Gita</h1>
+<p class="lede">Everything beyond the 20 themes, for when you want to go deeper.</p></section>
+<div class="ex-grid">{c}</div>""".format(c="".join('<a class="ex-card" href="%s"><span class="ex-t">%s</span><span class="ex-d">%s</span></a>' % c for c in cards))
+    page("explore/index.html", "Explore the Bhagavad Gita", body, nav="explore", body_class="pg-list",
+         desc="Explore all 701 verses of the Bhagavad Gita: the map of ideas, every chapter, key concepts and search.")
 
 
 def build_misc(word_pages):
-    urls = ["/", "/consult/", "/themes/", "/chapters/", "/facing/", "/concepts/", "/plans/", "/practice/", "/search/", "/sources/"]
+    urls = ["/", "/consult/", "/explore/", "/themes/", "/chapters/", "/facing/", "/concepts/", "/plans/", "/practice/", "/search/", "/sources/"]
     urls += ["/themes/%s/" % t[0] for t in THEMES] + ["/map/"] + ["/state/%s/" % st[0] for st in GD.STATES]
     urls += ["/%d/" % n for n in range(1, 19)] + [verse_url(x) for x in ORDER]
     urls += ["/facing/%s/" % s[0] for s in SITUATIONS] + ["/concept/%s/" % c[0] for c in CONCEPTS]
@@ -840,6 +847,7 @@ def main():
     build_consult()
     build_sources()
     build_home()
+    build_explore()
     n = build_misc(wp)
     print("verses=%d chapters=18 concepts=%d situations=%d words=%d word_pages=%d sitemap_urls=%d"
           % (len(ORDER), len(CONCEPTS), len(SITUATIONS), len(WORD), wp, n))

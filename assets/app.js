@@ -27,15 +27,33 @@
   function escH(s) { return String(s || "").replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function vurl(id) { var p = id.split("."); return "/" + p[0] + "/" + p[1] + "/"; }
   var cache = {};
-  (function themeProgress() {
+  function themeState(vs, read) {
+    var n = vs.filter(function (v) { return read.indexOf(v) !== -1; }).length;
+    return { n: n, of: vs.length, done: n === vs.length, started: n > 0 };
+  }
+  (function themeCards() {
     var read = store.get("read", []);
-    Array.prototype.forEach.call(document.querySelectorAll(".tc2[data-v]"), function (c) {
-      var vs = c.getAttribute("data-v").split(","), n = vs.filter(function (v) { return read.indexOf(v) !== -1; }).length;
-      if (!n) return;
-      c.classList.add("started"); if (n === vs.length) c.classList.add("done");
-      c.style.setProperty("--p", Math.round(100 * n / vs.length) + "%");
-      c.setAttribute("aria-label", c.querySelector(".tc2-name").textContent + ", " + n + " of " + vs.length + " read");
+    Array.prototype.forEach.call(document.querySelectorAll(".tc3[data-v]"), function (c) {
+      var st = themeState(c.getAttribute("data-v").split(","), read), el = c.querySelector(".tc3-st");
+      if (st.done) { c.classList.add("done"); el.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Done'; }
+      else if (st.started) { c.classList.add("started"); el.innerHTML = '<span class="tc3-bar"><i style="width:' + Math.round(100 * st.n / st.of) + '%"></i></span>' + st.n + " of " + st.of + " read"; }
     });
+  })();
+  (function sky() {
+    var sk = document.querySelector(".sky"); if (!sk) return;
+    var t = document.documentElement.getAttribute("data-sky") || "day";
+    var greet = { morning: "Good morning.", day: "Good afternoon.", evening: "Good evening.", night: "Can\u2019t sleep? You\u2019re not alone." }[t];
+    sk.querySelector(".sky-greet").textContent = greet;
+    var tod = JSON.parse(sk.getAttribute("data-tod")), d = Math.floor(Date.now() / 86400000), v = tod[d % tod.length];
+    sk.querySelector(".sky-tod .sky-k").textContent = "Today\u2019s verse \u00b7 " + v[0];
+    sk.querySelector(".sky-q").textContent = "\u201c" + v[1] + "\u201d";
+    var p = v[0].split("."); sk.querySelector(".sky-ref a").setAttribute("href", "/" + p[0] + "/" + p[1] + "/");
+    var themes = JSON.parse(sk.getAttribute("data-themes")), read = store.get("read", []), pick = 0, st = null;
+    for (var i = 0; i < themes.length; i++) { st = themeState(themes[i][2], read); if (!st.done) { pick = i; break; } }
+    st = themeState(themes[pick][2], read);
+    sk.querySelector(".sky-t").textContent = "Theme " + (pick + 1) + ": " + themes[pick][1];
+    sk.querySelector(".sky-bar i").style.width = Math.round(100 * st.n / st.of) + "%";
+    var go = sk.querySelector(".sky-go"); go.setAttribute("href", "/themes/" + themes[pick][0] + "/"); go.textContent = st.started ? "Continue" : "Start";
   })();
   (function textSize() {
     var b = document.querySelector(".nav-size"); if (!b) return;
