@@ -22,9 +22,9 @@
   function saveRec(vid, rec) { var all = store.get("recite", {}); all[vid] = rec; store.set("recite", all); }
   function goodDays(rec) { var s = {}; rec.tries.forEach(function (t) { if (t.good) s[t.d] = 1; }); return Object.keys(s).map(Number).sort(function (a, b) { return a - b; }); }
   function nextDue(rec) { return rec.learned == null || rec.stage >= REVIEWS.length ? null : rec.learned + REVIEWS[rec.stage]; }
-  function addTry(vid, good, pct) {
+  function addTry(vid, good, pct, self) {
     var rec = getRec(vid), d = today();
-    rec.tries.push({ d: d, good: good, pct: pct });
+    rec.tries.push(self ? { d: d, good: good, pct: null, self: 1 } : { d: d, good: good, pct: pct });
     if (rec.tries.length > 40) rec.tries = rec.tries.slice(-40);
     if (good) {
       var days = goodDays(rec);
@@ -59,10 +59,16 @@
     function renderProgress() {
       var rec = getRec(vid), st = status(rec);
       var ticks = rec.tries.slice(-10).map(function (t) {
-        return '<span class="tick ' + (t.good ? "ok" : "no") + '" title="' + dayLabel(t.d) + ": " + (t.good ? "Good" : "Needs work") + " (" + t.pct + '%)">' + (t.good ? CHECK : "\u00b7") + "</span>";
+        return '<span class="tick ' + (t.good ? "ok" : "no") + '" title="' + dayLabel(t.d) + ": " + (t.self ? "You marked it recited" : (t.good ? "Good" : "Needs work") + " (" + t.pct + "%)") + '">' + (t.good ? CHECK : "\u00b7") + "</span>";
       }).join("");
       $(".progress", page).innerHTML = '<p class="st ' + st.cls + '">' + st.label + "</p><p class=\"st-text\">" + st.text + "</p>" +
-        (ticks ? '<div class="ticks" aria-label="Recent takes">' + ticks + "</div>" : "");
+        (ticks ? '<div class="ticks" aria-label="Recent takes">' + ticks + "</div>" : "") +
+        '<p class="self-mark"><button type="button" class="btn ghost sm self">I recited it from memory</button>' +
+        '<span class="hint">No microphone needed. Use this when you practise aloud elsewhere, or can&rsquo;t record.</span></p>';
+      var sb = $(".self", page);
+      var doneToday = rec.tries.some(function (t) { return t.self && t.d === today(); });
+      if (doneToday) { sb.disabled = true; sb.textContent = "Marked for today"; }
+      sb.addEventListener("click", function () { addTry(vid, true, null, true); renderProgress(); var live2 = $(".live", page); if (live2) live2.textContent = "Marked as recited today."; });
     }
     renderProgress();
 

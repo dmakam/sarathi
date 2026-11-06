@@ -27,6 +27,21 @@
   function escH(s) { return String(s || "").replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function vurl(id) { var p = id.split("."); return "/" + p[0] + "/" + p[1] + "/"; }
   var cache = {};
+  (function textSize() {
+    var b = document.querySelector(".nav-size"); if (!b) return;
+    var steps = [1, 1.15, 1.3], names = ["normal", "large", "largest"];
+    function apply(z) {
+      document.documentElement.style.setProperty("--zoom", z);
+      var i = steps.indexOf(z); if (i < 0) i = 0;
+      b.setAttribute("aria-label", "Text size: " + names[i] + ". Tap to change.");
+      b.classList.toggle("on", i > 0);
+    }
+    var cur = store.get("textsize", 1); apply(cur);
+    b.addEventListener("click", function () {
+      var i = steps.indexOf(store.get("textsize", 1)); var z = steps[(i + 1) % steps.length];
+      store.set("textsize", z); apply(z);
+    });
+  })();
   function getJSON(u) {
     if (!cache[u]) cache[u] = fetch(u).then(function (r) { if (!r.ok) throw new Error(u); return r.json(); });
     return cache[u];

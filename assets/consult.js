@@ -164,6 +164,7 @@
     return '<article class="cx-card"><div class="cx-l">' +
       '<p class="cx-for">' + esc(s.t) + "</p>" +
       '<p class="cx-sa" lang="sa">' + lines + "</p>" +
+      '<p class="cx-tl" lang="sa-Latn"><span class="tl-k">Say it</span>' + (v.tl || []).map(esc).join("<br>") + "</p>" +
       '<p class="cx-ref"><a href="' + v.url + '">Bhagavad Gita ' + c[0] + "." + c[1] + "</a></p>" +
       '<blockquote class="cx-en">' + esc(v.en) + "<cite>Swami Sivananda</cite></blockquote></div>" + '<div class="cx-r">' +
       '<dl class="cx-notes"><div style="--i:0"><dt>For you</dt><dd>' + esc(pair[1]) + "</dd></div>" +
@@ -300,6 +301,11 @@
     S.matches = m.list; go("pick");
   });
 
+  window.addEventListener("hashchange", function () {
+    if (!D) return;
+    var mm = (location.hash || "").slice(1).match(/^(.+?)(?:-(\d))?$/);
+    if (mm && byId(D.sit, mm[1]) && !(S.step === "answer" && S.sit === mm[1])) { S.sit = mm[1]; S.vi = mm[2] ? (+mm[2] - 1) : 0; go("answer"); }
+  });
   fetch(root.getAttribute("data-src")).then(function (r) { return r.json(); }).then(function (d) {
     D = d;
     var h = (location.hash || "").slice(1), mm = h.match(/^(.+?)(?:-(\d))?$/);

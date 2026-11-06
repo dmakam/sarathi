@@ -665,3 +665,32 @@ main > .v-sec .sits{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
   .cx-deeper{max-width:none}
 }
 .cx{scroll-margin-top:72px}
+
+/* text size control */
+main{zoom:var(--zoom,1)}
+.nav-size{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;border:0;background:none;color:#CFE3DF;cursor:pointer;font:600 17px/1 var(--ui)}
+.nav-size small{font-size:12px;margin-left:1px}
+.nav-size:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-size.on{background:var(--gold-soft);color:#0B3B40}
+.cx-tl{margin:-2px 0 10px;font:italic 400 15px/1.55 var(--ui);color:var(--muted)}
+.self-mark{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:16px 0 0}
+.self-mark .hint{margin:0}
+
+/* easier reading: larger type and a pronunciation line wherever Sanskrit appears */
+body{font-size:18px}
+.tl{font:400 clamp(19px,2.1vw,23px)/1.65 var(--ui);color:var(--text);opacity:.86;letter-spacing:.005em}
+.tl-k,.cx-tl .tl-k{display:block;font:600 11.5px/1.4 var(--ui);letter-spacing:.14em;text-transform:uppercase;color:var(--cx-acc,var(--field));opacity:1;margin-bottom:4px}
+.vtl{display:block;font:400 16px/1.55 var(--ui);color:var(--muted);margin:2px 0 8px}
+.vrow .vtl{grid-column:2;margin:2px 0 4px}
+.vsa{font-size:22px}
+.ven{font-size:16.5px}
+.fcard .vsa{font-size:24px}
+.sa{font-size:clamp(30px,4.2vw,46px)}
+.pv{font-size:clamp(28px,3.8vw,42px)}
+.hv-tl{font:400 clamp(16px,1.4vw,19px)/1.6 var(--ui);color:#BCD3CF;margin:-8px 0 18px}
+.cx-tl{font:400 18px/1.6 var(--ui);color:var(--text);opacity:.86;margin:0 0 12px}
+.cx-sa{font-size:clamp(26px,3.2vw,34px)}
+.cx-en{font-size:clamp(20px,2.2vw,23px)}
+.cx-notes dd{font-size:18px}
+
+.vrow a>*{min-width:0}.vtl,.vsa,.tl,.cx-tl{overflow-wrap:anywhere}

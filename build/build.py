@@ -258,6 +258,7 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="{fonts}">
 <link rel="stylesheet" href="/assets/app.css">
+<script>try{{var z=JSON.parse(localStorage.getItem("sarathi.textsize")||"1");if(z>1)document.documentElement.style.setProperty("--zoom",z)}}catch(e){{}}</script>
 {ld}
 </head>
 <body class="{bc}">
@@ -268,6 +269,7 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
     {n0}{n1}{n2}{n3}{n4}{n5}
   </nav>
   <a class="nav-search" href="/search/" aria-label="Search the Gita"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></a>
+  <button type="button" class="nav-size" aria-label="Text size: normal. Tap to make text larger."><span aria-hidden="true">A<small>A</small></span></button>
 </header>
 <main id="main">
 {body}
@@ -293,14 +295,17 @@ def verse_url(vid):
 
 
 def sa_html(v, cls="sa"):
-    return '<p class="%s" lang="sa">%s</p>' % (cls, "<br>".join(esc(l) for l in v["sa"]))
+    out = '<p class="%s" lang="sa">%s</p>' % (cls, "<br>".join(esc(l) for l in v["sa"]))
+    if cls == "vsa" and v.get("tl"):
+        out += '<p class="vtl" lang="sa-Latn">%s</p>' % "<br>".join(esc(l) for l in v["tl"])
+    return out
 
 
 def verse_row(vid, extra=""):
     v = V[vid]
     return ('<li class="vrow"><a href="%s"><span class="vnum">%s</span>'
-            '<span class="vsa" lang="sa">%s</span><span class="ven">%s</span>%s</a></li>') % (
-        verse_url(vid), vid, esc(v["sa"][0] if v["sa"] else ""), esc(trim(eng(v), 170)), extra)
+            '<span class="vsa" lang="sa">%s</span><span class="vtl" lang="sa-Latn">%s</span><span class="ven">%s</span>%s</a></li>') % (
+        verse_url(vid), vid, esc(v["sa"][0] if v["sa"] else ""), esc(v["tl"][0] if v["tl"] else ""), esc(trim(eng(v), 170)), extra)
 
 
 # ---------------------------------------------------------------- verse pages
@@ -377,7 +382,7 @@ def build_verse(vid):
   <p class="crumb"><a href="/{c}/">Chapter {c}: {chname}</a>, verse {n}</p>
   {speaker}
   {sa}
-  <p class="tl">{tl}</p>
+  <p class="tl" lang="sa-Latn"><span class="tl-k">Say it</span>{tl}</p>
   {audio}
   <div class="v-actions">
     <button type="button" class="btn ghost mark" data-vid="{vid}">Mark as read</button>
@@ -622,7 +627,7 @@ def build_practice(vid):
   <p class="crumb"><a href="/practice/">Practice</a>, <a href="{vurl}">read verse {vid}</a></p>
   <h1>Recite {vid}</h1>
   <p class="pv" lang="sa">{lines}</p>
-  <p class="tl">{tl}</p>
+  <p class="tl" lang="sa-Latn"><span class="tl-k">Say it</span>{tl}</p>
 </div>
 <div class="psteps">
   <section class="pstep"><h2>Listen</h2><p class="hint">Hear it first. This recording reads the verse slowly, word by word, with the joins between words opened up. Turn on Repeat after me to say it back in the pauses.</p>{player}</section>
@@ -701,7 +706,7 @@ def build_consult():
         for x, _ in vs:
             assert x in V, x
             v = V[x]
-            data["v"][x] = {"sa": v["sa"], "en": eng(v), "url": verse_url(x), "audio": v["audio"],
+            data["v"][x] = {"sa": v["sa"], "tl": v["tl"], "en": eng(v), "url": verse_url(x), "audio": v["audio"],
                             "pr": "/practice/%d/%d/" % (v["c"], v["n"])}
     write_json("data/consult.json", data)
     body = """<section class="cx" data-src="/data/consult.json">
@@ -750,6 +755,7 @@ def build_home():
   </div>
   <figure class="hero-verse" data-src="{audio}">
     <p class="hv-sa" lang="sa">{sa}</p>
+    <p class="hv-tl" lang="sa-Latn">{htl}</p>
     <p class="hv-words">{hwords}</p>
     <p class="hv-meaning" aria-live="polite">&nbsp;</p>
     <figcaption><a href="/2/47/">Chapter 2, verse 47</a><button type="button" class="hv-play" aria-label="Play verse 2.47"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path class="i-play" d="M8 5v14l11-7z" fill="currentColor"/><path class="i-pause" d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg><span>Listen</span></button></figcaption>
@@ -775,7 +781,7 @@ def build_home():
 <section class="band">
   <h2>Ideas that run through it</h2>
   <div class="chips">{concepts}</div>
-</section>""".format(ncore=len(CORE), themes="".join('<a class="tcard" href="/themes/%s/"><span class="tnum">%d</span><span class="tname">%s</span><span class="tmeta">%d shlokas</span></a>' % (t[0], i, esc(t[1]), len(t[2])) for i, t in enumerate(THEMES, 1)), audio=hero_v["audio"] or "", sa="<br>".join(esc(l) for l in hero_v["sa"]), hwords=hwords, sits=sit_cards(),
+</section>""".format(ncore=len(CORE), themes="".join('<a class="tcard" href="/themes/%s/"><span class="tnum">%d</span><span class="tname">%s</span><span class="tmeta">%d shlokas</span></a>' % (t[0], i, esc(t[1]), len(t[2])) for i, t in enumerate(THEMES, 1)), audio=hero_v["audio"] or "", sa="<br>".join(esc(l) for l in hero_v["sa"]), htl="<br>".join(esc(l) for l in hero_v["tl"]), hwords=hwords, sits=sit_cards(),
                      vod=vod, chapters=chapter_rows(),
                      concepts="".join('<a class="chip" href="/concept/%s/"><span lang="sa">%s</span> %s</a>' % (c[0], esc(c[2]), esc(c[1])) for c in CONCEPTS))
     jsonld = {"@context": "https://schema.org", "@type": "WebSite", "name": SITE, "url": BASE_URL + "/",

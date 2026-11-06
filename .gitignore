@@ -3,3 +3,4 @@ src-data/
 __pycache__/
 server/__pycache__/
 .venv/
+tests/last-report.txt
