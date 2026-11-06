@@ -18,7 +18,7 @@ MAX_BYTES = 4 * 1024 * 1024
 MAX_SECONDS = 75
 CLEAR, CLOSE, PASS_SHARE = -1.5, -2.5, 0.85
 JOB = threading.Semaphore(1)
-ORIGINS = set(filter(None, os.environ.get("SARATHI_ORIGINS", "https://gita.dhirajmakam.com").split(",")))
+ORIGINS = set(filter(None, os.environ.get("SARATHI_ORIGINS", "https://sarathi.dhirajmakam.com").split(",")))
 
 
 def mark(g):

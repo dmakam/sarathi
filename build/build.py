@@ -22,7 +22,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "src-data", "data")
 OUT = os.path.join(ROOT, "site")
 ASSETS = os.path.join(ROOT, "assets")
-BASE_URL = os.environ.get("SARATHI_BASE_URL", "https://gita.dhirajmakam.com")
+BASE_URL = os.environ.get("SARATHI_BASE_URL", "https://sarathi.dhirajmakam.com")
 SITE = "Sārathi"
 
 # ---------------------------------------------------------------- helpers

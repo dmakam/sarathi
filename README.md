@@ -38,11 +38,11 @@ Two containers on the shared `signal-desk-app` Caddy network, no host web server
   while running, the image is estimated at 3 to 4 GB, and a 30-second take scores in about 9 seconds
   on 2 cores. Audio is scored in memory and dropped; nothing is written to disk or logged.
 
-1. Add a DNS A record at Bluehost: `gita.dhirajmakam.com` to `50.6.226.244`.
+1. Add a DNS A record at Bluehost: `sarathi.dhirajmakam.com` to `50.6.226.244`.
 2. On the server:
    ```
    git clone git@github.com:dmakam/sarathi.git /home/deploy/sarathi
-   cd /home/deploy/sarathi && sudo ./deploy.sh
+   cd /home/deploy/sarathi && ./deploy.sh
    ```
 3. Re-run `./deploy.sh` after any `git pull` to rebuild and replace the container.
 

@@ -9,7 +9,7 @@ ADD https://github.com/gita/gita/archive/${GITA_COMMIT}.tar.gz /tmp/gita.tar.gz
 RUN mkdir -p src-data && tar -xzf /tmp/gita.tar.gz -C src-data --strip-components=1 && rm /tmp/gita.tar.gz
 COPY build ./build
 COPY assets ./assets
-ARG SARATHI_BASE_URL=https://gita.dhirajmakam.com
+ARG SARATHI_BASE_URL=https://sarathi.dhirajmakam.com
 ENV SARATHI_BASE_URL=${SARATHI_BASE_URL}
 RUN python3 -I build/build.py
 

@@ -2,12 +2,12 @@
 # Deploy Sarathi to the VPS behind the shared signal-desk-app Caddy:
 #   sarathi-web    the static site (pages, data, audio)
 #   sarathi-coach  the recitation scorer, reached at /api/
-# Run on the server from the repo folder:  sudo ./deploy.sh
+# Run on the server from the repo folder:  ./deploy.sh
 # Safe to re-run: it rebuilds both images, replaces both containers, and only
 # appends the Caddy site block if it is not already there.
 set -euo pipefail
 
-DOMAIN="${DOMAIN:-gita.dhirajmakam.com}"
+DOMAIN="${DOMAIN:-sarathi.dhirajmakam.com}"
 WEB="sarathi-web";   WEB_IMAGE="sarathi:latest"
 COACH="sarathi-coach"; COACH_IMAGE="sarathi-coach:latest"
 PROXY="signal-desk-app-caddy-1"
