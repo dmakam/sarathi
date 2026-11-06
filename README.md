@@ -34,9 +34,12 @@ Two containers on the shared `signal-desk-app` Caddy network, no host web server
 
 - `sarathi-web` serves the static site.
 - `sarathi-coach` scores recitations at `/api/score`. It force-aligns the take against
-  the known verse with Meta's MMS aligner (CPU PyTorch). It needs about 1.6 GB of memory
-  while running, the image is estimated at 3 to 4 GB, and a 30-second take scores in about 9 seconds
-  on 2 cores. Audio is scored in memory and dropped; nothing is written to disk or logged.
+  the known verse with Meta's MMS aligner (CPU PyTorch), using an 8-bit copy of the model
+  (`server/model-int8.pt`, made by `server/quantize.py`, not in git). That copy gave the same
+  word marks as the full model in testing and needs about 0.6 GB idle and 1.4 GB while scoring.
+  Audio is scored in memory and dropped; nothing is written to disk or logged.
+
+On a 2 GB server, run `./add-swap.sh` once before deploying so the coach fits.
 
 1. Add a DNS A record at Bluehost: `sarathi.dhirajmakam.com` to `50.6.226.244`.
 2. On the server:

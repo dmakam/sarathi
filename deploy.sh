@@ -25,14 +25,22 @@ echo "Proxy network: $NET"
 AVAIL_MB="$(awk '/MemAvailable/ {print int($2/1024)}' /proc/meminfo)"
 DISK_GB="$(df -BG --output=avail /var/lib/docker 2>/dev/null | tail -1 | tr -dc 0-9)"
 echo "Memory available: ${AVAIL_MB} MB, disk free for Docker: ${DISK_GB:-?} GB"
-# The recitation coach needs about 2.5 GB of memory. Without it the site still works:
-# the practice page hides recording and offers the "I recited it from memory" check.
+# The recitation coach uses the 8-bit model (server/model-int8.pt, copied in separately)
+# and needs about 1.0 to 1.4 GB while scoring. With swap that fits a 2 GB server.
+# Without it the site still works: the practice page hides recording and offers the
+# "I recited it from memory" check instead.
+SWAP_MB="$(awk '/SwapFree/ {print int($2/1024)}' /proc/meminfo)"
 WITH_COACH="${WITH_COACH:-auto}"
 if [ "$WITH_COACH" = auto ]; then
-  if [ "${AVAIL_MB:-0}" -ge 2500 ]; then WITH_COACH=1; else WITH_COACH=0; fi
+  if [ ! -f server/model-int8.pt ]; then
+    WITH_COACH=0; echo "Skipping the recitation coach: server/model-int8.pt is not here yet."
+  elif [ $(( ${AVAIL_MB:-0} + ${SWAP_MB:-0} )) -lt 1800 ]; then
+    WITH_COACH=0; echo "Skipping the recitation coach: ${AVAIL_MB} MB free and ${SWAP_MB} MB swap; it needs about 1,800 together. Run ./add-swap.sh first."
+  else
+    WITH_COACH=1
+  fi
 fi
-[ "$WITH_COACH" = 1 ] || echo "Skipping the recitation coach (only ${AVAIL_MB} MB free; it needs about 2,500). Deploying the site alone. Force it with WITH_COACH=1."
-[ "${DISK_GB:-99}" -ge 6 ] || echo "WARNING: the coach image is estimated at 3 to 4 GB. Free some disk space first."
+[ "${DISK_GB:-99}" -ge 4 ] || echo "WARNING: the coach image is about 2 GB. Free some disk space first."
 
 echo "== 2. Checking DNS for $DOMAIN"
 IP="$(getent hosts "$DOMAIN" | awk '{print $1}' | head -n1 || true)"
@@ -47,7 +55,7 @@ echo "== 4. Replacing containers"
 docker rm -f "$WEB" "$COACH" >/dev/null 2>&1 || true
 docker run -d --name "$WEB" --restart unless-stopped --network "$NET" "$WEB_IMAGE"
 if [ "$WITH_COACH" = 1 ]; then
-  docker run -d --name "$COACH" --restart unless-stopped --network "$NET" --memory 3g \
+  docker run -d --name "$COACH" --restart unless-stopped --network "$NET" --memory 1300m --memory-swap 2600m \
     -e "SARATHI_ORIGINS=https://$DOMAIN" "$COACH_IMAGE"
   echo "Waiting for the coach to load its model..."
   for i in $(seq 1 60); do

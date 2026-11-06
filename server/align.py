@@ -9,6 +9,7 @@ the word's letters along the forced path, compared with the best the model
 could do on those same frames unconstrained. A word that was said scores
 near 0; a skipped or wrong word scores far below it.
 """
+import os
 import re
 import shutil
 import subprocess
@@ -73,11 +74,36 @@ def load_audio(path_or_bytes):
     return np.frombuffer(raw, np.int16).astype(np.float32) / 32768
 
 
+SMALL = os.environ.get("SARATHI_MODEL", "/app/model-int8.pt")
+
+
 def model():
+    """The 8-bit model when it is present (about a quarter of the memory, same marks
+    in testing), otherwise the full-size one."""
     global _model
     if _model is None:
-        _model = BUNDLE.get_model(with_star=False).eval()
+        if os.path.exists(SMALL):
+            _model = torch.jit.load(SMALL).eval()
+        else:
+            _model = BUNDLE.get_model(with_star=False).eval()
     return _model
+
+
+def emissions(audio, chunk=40, ctx=2):
+    """Log-probabilities per 20 ms frame, computed 40 seconds at a time (with 2 seconds of
+    context either side), so a long take cannot run the server out of memory. Most
+    takes are shorter than 40 seconds and go through in one piece, which scores best."""
+    sr, out, n = BUNDLE.sample_rate, [], len(audio)
+    step = chunk * sr
+    for s in range(0, n, step):
+        a, b = max(0, s - ctx * sr), min(n, s + step + ctx * sr)
+        with torch.inference_mode():
+            em, _ = model()(torch.from_numpy(audio[a:b]).unsqueeze(0))
+        lp = torch.log_softmax(em[0], dim=-1)
+        lo = round((s - a) * lp.shape[0] / (b - a))
+        hi = round((min(n, s + step) - a) * lp.shape[0] / (b - a))
+        out.append(lp[lo:hi])
+    return torch.cat(out).numpy()
 
 
 def viterbi(logp, tokens, blank=0):
@@ -114,10 +140,7 @@ def viterbi(logp, tokens, blank=0):
 
 def score(words, audio):
     """words: Devanagari words in order. audio: float32 mono at 16 kHz."""
-    wav = torch.from_numpy(audio).unsqueeze(0)
-    with torch.inference_mode():
-        emission, _ = model()(wav)
-    logp = torch.log_softmax(emission[0], dim=-1).numpy()
+    logp = emissions(audio)
     best = logp.max(1)
     romans = [roman(w) for w in words]
     tokens, owner = [], []

@@ -4,3 +4,4 @@ __pycache__/
 server/__pycache__/
 .venv/
 tests/last-report.txt
+server/model-int8.pt
