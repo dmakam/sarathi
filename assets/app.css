@@ -460,7 +460,7 @@ main > .v-sec .sits{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
 .cx-q{color:#BCD3CF;font-size:18px;margin:0 0 22px;max-width:52ch}
 .cx-q a{color:var(--gold-soft)}
 .cx-tiles{display:grid;gap:12px;margin:0 0 22px}
-.cx-tiles.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.cx-tiles.five{grid-template-columns:repeat(5,minmax(0,1fr))}
 .cx-tiles.six{grid-template-columns:repeat(3,minmax(0,1fr))}
 .cx-tile{display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:22px;min-height:132px;padding:20px;border-radius:var(--r-l);
   background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#EAF4F1;font:500 19px/1.2 var(--ui);text-align:left;cursor:pointer;
@@ -469,10 +469,9 @@ main > .v-sec .sits{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
 .cx-tile svg{color:var(--gold-soft)}
 .cx-tile:hover{transform:translateY(-4px);background:rgba(255,255,255,.09);border-color:rgba(233,213,138,.55);box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 22px 40px -20px rgba(0,0,0,.75)}
 .cx-tile:active{transform:translateY(-1px) scale(.98)}
-.cx-tile.feel{min-height:104px}
-.cx-tile.feel.slim{min-height:0;flex-direction:row;align-items:center;gap:12px;padding:14px 18px}
-.cx-tile.feel i{width:16px;height:16px;border-radius:50%;background:var(--fc);box-shadow:0 0 0 6px color-mix(in srgb,var(--fc) 18%,transparent),0 0 24px var(--fc);transition:box-shadow .35s}
-.cx-tile.feel:hover i{box-shadow:0 0 0 10px color-mix(in srgb,var(--fc) 22%,transparent),0 0 34px var(--fc)}
+.cx-tile.feel{min-height:150px}
+.cx-tile.feel.slim{min-height:0;flex-direction:row;align-items:center;justify-content:flex-start;gap:14px;padding:12px 18px}
+.cx-tile.slim .cx-face{width:40px;height:40px}
 .cx-tile.feel:hover{border-color:color-mix(in srgb,var(--fc) 70%,transparent)}
 .f-angry{--fc:var(--f-angry)}.f-anxious{--fc:var(--f-anxious)}.f-low{--fc:var(--f-low)}.f-hurt{--fc:var(--f-hurt)}.f-stuck{--fc:var(--f-stuck)}.f-afraid{--fc:var(--f-afraid)}
 .cx-sits{display:grid;gap:10px;max-width:640px}
@@ -551,7 +550,9 @@ main > .v-sec .sits{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
 @keyframes cx-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes cx-rise{from{opacity:0;transform:translateY(28px) scale(.985)}to{opacity:1;transform:none}}
 @media (max-width:720px){
-  .cx-tiles.four{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cx-tiles.five{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cx-tiles.five .cx-tile:last-child{grid-column:1/-1;flex-direction:row;align-items:center;justify-content:flex-start;gap:18px;min-height:0}
+  .cx-tiles.five .cx-tile:last-child .cx-scene{width:48px;height:48px}
   .cx-tiles.six{grid-template-columns:repeat(2,minmax(0,1fr))}
   .cx-tile{min-height:104px;padding:16px;font-size:17px}
   .cx-notes div{grid-template-columns:minmax(0,1fr);gap:2px}
@@ -560,3 +561,40 @@ main > .v-sec .sits{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
 @media (prefers-reduced-motion:reduce){
   .cx-step,.cx-tile,.cx-sit,.cx-card,.cx-sa span,.cx-notes div,.cx-deeper,.cx-else,.cx-help{animation:none!important;transition:none!important;opacity:1;transform:none}
 }
+
+/* consult art: scenes and faces */
+:root{--cx-tilefill:#20454A;--cx-feat:#0B3B40;--cx-drop:#CFEFF7}
+.cx-scene{width:64px;height:64px;fill:none;stroke:var(--gold-soft);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
+.cx-scene .k{fill:var(--cx-tilefill);transition:fill .25s}
+.cx-tile:hover .cx-scene .k{fill:#294D52}
+.cx-scene .dot,.cx-scene .heart{fill:var(--gold);stroke:none}
+.cx-scene .heart{transform-box:fill-box;transform-origin:center}
+.cx-tile:hover .cx-scene .heart{animation:cx-beat 1s ease-in-out infinite}
+.cx-scene .glow{opacity:.45;transition:opacity .3s}
+.cx-tile:hover .cx-scene .glow{opacity:1}
+.cx-face{width:64px;height:64px;overflow:visible;filter:drop-shadow(0 6px 14px color-mix(in srgb,var(--fc) 45%,transparent))}
+.cx-face .disc{fill:var(--fc);stroke:none}
+.cx-face path,.cx-face ellipse,.cx-face circle:not(.disc){fill:none;stroke:var(--cx-feat);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.cx-face g.ey circle{fill:var(--cx-feat);stroke:none}
+.f-afraid .cx-face g.ey circle{fill:#F7FAF9;stroke:var(--cx-feat);stroke-width:1.8}
+.f-afraid .cx-face g.ey circle.pu{fill:var(--cx-feat);stroke:none}
+.cx-face ellipse{fill:var(--cx-feat)}
+.cx-face .lid{fill:var(--cx-feat);stroke-width:1.6}
+.cx-face .sweat,.cx-face .tear{fill:var(--cx-drop);stroke-width:1.3}
+.cx-face .ey,.cx-face .br,.cx-face .sweat,.cx-face .tear,.cx-face .loop,.cx-face .pu{transform-box:fill-box;transform-origin:center;transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.cx-face .ey{animation:cx-blink 5.5s calc(var(--i,0)*.7s + 1s) infinite}
+.f-stuck .cx-face .ey{animation:none}
+.cx-tile.f-angry:hover .br{transform:translateY(1.5px)}
+.cx-tile.f-afraid:hover .ey{transform:scale(1.12)}
+.cx-tile.f-afraid:hover .br{transform:translateY(-2px)}
+.cx-tile.f-anxious:hover .sweat{animation:cx-drip 1.2s ease-in infinite}
+.cx-tile.f-anxious:hover .br{transform:translateY(-1px)}
+.cx-tile.f-low:hover .ey,.cx-tile.f-hurt:hover .ey{transform:translateY(1.5px)}
+.cx-tile.f-hurt:hover .tear{animation:cx-drip 1.6s ease-in infinite}
+.cx-tile.f-stuck:hover .loop{animation:cx-spin 2.4s linear infinite}
+.cx-tile.feel:hover .cx-face{transform:rotate(-4deg);transition:transform .3s}
+@keyframes cx-blink{0%,94%,100%{transform:scaleY(1)}96.5%{transform:scaleY(.1)}}
+@keyframes cx-drip{0%{transform:translateY(0);opacity:1}80%{transform:translateY(9px);opacity:0}100%{opacity:0}}
+@keyframes cx-spin{to{transform:rotate(360deg)}}
+@keyframes cx-beat{0%,100%{transform:scale(1)}30%{transform:scale(1.18)}60%{transform:scale(.96)}}
+@media (prefers-reduced-motion:reduce){.cx-face *,.cx-scene *{animation:none!important}}

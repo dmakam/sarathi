@@ -15,13 +15,29 @@
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function byId(list, id) { for (var i = 0; i < list.length; i++) if ((list[i].id || list[i][0]) === id) return list[i]; return null; }
 
-  var ICON = {
-    student: '<path d="M4 6.5C6.5 5 9.5 5 12 6.5 14.5 5 17.5 5 20 6.5V18c-2.5-1.5-5.5-1.5-8 0-2.5-1.5-5.5-1.5-8 0z"/><path d="M12 6.5V18"/>',
-    work: '<rect x="3.5" y="7.5" width="17" height="11" rx="2"/><path d="M9 7.5V6a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 6v1.5M3.5 12.5h17"/>',
-    family: '<path d="M4 11.5 12 5l8 6.5"/><path d="M6 10v8.5h12V10"/><path d="M10 18.5v-4h4v4"/>',
-    me: '<circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.2-3.6 4-5.5 7-5.5s5.8 1.9 7 5.5"/>'
+  /* Scenes for who is asking. Line art, gold stroke; "k" shapes are filled to sit in front. */
+  var SCENE = {
+    student: '<path d="M18 54c2-9 7-14 14-14s12 5 14 14"/><circle cx="32" cy="28" r="7"/><path class="k" d="M19 17l13-6 13 6-13 6z"/><path d="M41 19v6"/><path class="k" d="M16 50l16 4 16-4v9l-16 4-16-4z"/><path d="M32 54v9"/>',
+    work: '<circle cx="32" cy="19" r="7"/><path d="M18 44c2-9 7-14 14-14s12 5 14 14"/><rect class="k" x="16" y="34" width="32" height="19" rx="2"/><path d="M9 56h46"/><circle cx="32" cy="43.5" r="1.4" class="dot"/>',
+    family: '<circle cx="20" cy="18" r="6"/><path d="M8 44c2-8 6-12 12-12s10 4 12 12"/><circle cx="44" cy="18" r="6"/><path d="M32 44c2-8 6-12 12-12s10 4 12 12"/><circle class="k" cx="32" cy="35" r="5"/><path class="k" d="M22 58c1.6-7 5-10.5 10-10.5S40.4 51 42 58z"/>',
+    love: '<path class="heart" d="M32 18c-2.6-4.4-9-3.4-9 1.8 0 4 5.3 7.4 9 10 3.7-2.6 9-6 9-10 0-5.2-6.4-6.2-9-1.8z"/><circle cx="20" cy="34" r="6.5"/><path d="M7 60c2-9 7-13.5 13-13.5S31 51 33 60"/><circle class="k" cx="44" cy="34" r="6.5"/><path class="k" d="M31 60c2-9 7-13.5 13-13.5S55 51 57 60z"/>',
+    me: '<circle cx="32" cy="13" r="6"/><path d="M32 20v14"/><path d="M32 25c-6 1-10 6-11 13M32 25c6 1 10 6 11 13"/><path class="k" d="M13 46c6-5 13-6 19-2 6-4 13-3 19 2-6 6-13 7-19 3-6 4-13 3-19-3z"/>'
   };
-  function icon(id) { return '<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + (ICON[id] || "") + "</svg>"; }
+  function scene(id) { return '<svg class="cx-scene" viewBox="0 0 64 64" width="64" height="64" aria-hidden="true">' + (SCENE[id] || "") + "</svg>"; }
+
+  /* Faces drawn from the facial actions Ekman's FACS links to each emotion:
+     anger = brows lowered and pulled together, narrowed eyes, pressed lips;
+     fear = brows raised and drawn together, widened eyes, lips stretched open;
+     sadness = inner brows raised, lids drooping, lip corners pulled down. */
+  var FACE = {
+    angry: '<path class="br" d="M17 21l10 4M47 21l-10 4"/><g class="ey"><circle cx="24" cy="31" r="2.3"/><circle cx="40" cy="31" r="2.3"/></g><path d="M24 45q8-3.5 16 0"/>',
+    anxious: '<path class="br" d="M17 23q5-4 10-2.5M47 23q-5-4-10-2.5"/><g class="ey"><circle cx="24" cy="30" r="2.4"/><circle cx="40" cy="30" r="2.4"/></g><path d="M22 44q2.5-3 5 0t5 0 5 0 5 0"/><path class="sweat" d="M50 18q3 4.5 0 6.5-3-2 0-6.5z"/>',
+    low: '<path class="br" d="M17 22q5-3.6 10-1M47 22q-5-3.6-10-1"/><path class="ey" d="M21 31q3 2.4 6 0M37 31q3 2.4 6 0"/><path d="M24 46q8-6 16 0"/>',
+    hurt: '<path class="br" d="M18 23q4.5-4 9-2M46 23q-4.5-4-9-2"/><path class="ey" d="M21 30q3 2 6 0M37 30q3 2 6 0"/><path class="tear" d="M41 34q2.6 3.8 0 5.6-2.6-1.8 0-5.6z"/><path d="M26 45q3-2 6 0t6 0"/>',
+    stuck: '<path class="br" d="M18 23h9M37 23h9"/><g class="ey"><path d="M20 29.5h8M36 29.5h8"/><path d="M21 29.5q3 3.4 6 0M37 29.5q3 3.4 6 0" class="lid"/></g><path d="M25 44.5h14"/><path class="loop" d="M50 13c3 0 4 3 1.8 4.4S49 20 52 21"/>',
+    afraid: '<path class="br" d="M17 21q5-5.5 10-2.5M47 21q-5-5.5-10-2.5"/><g class="ey"><circle cx="24" cy="29.5" r="3.6"/><circle cx="40" cy="29.5" r="3.6"/><circle class="pu" cx="24" cy="29.5" r="1.1"/><circle class="pu" cx="40" cy="29.5" r="1.1"/></g><ellipse cx="32" cy="44.5" rx="6.5" ry="3.8"/>'
+  };
+  function face(id) { return '<svg class="cx-face" viewBox="0 0 64 64" width="64" height="64" aria-hidden="true"><circle class="disc" cx="32" cy="32" r="27"/>' + (FACE[id] || "") + "</svg>"; }
 
   function dots() {
     var order = ["who", "feel", "pick", "answer"], at = order.indexOf(S.step);
@@ -44,15 +60,15 @@
   function vWho() {
     var t = "";
     D.aud.forEach(function (a, i) {
-      t += '<button type="button" class="cx-tile big" style="--i:' + i + '" data-act="aud" data-id="' + a[0] + '">' + icon(a[0]) + "<span>" + esc(a[1]) + "</span></button>";
+      t += '<button type="button" class="cx-tile big" style="--i:' + i + '" data-act="aud" data-id="' + a[0] + '">' + scene(a[0]) + "<span>" + esc(a[1]) + "</span></button>";
     });
     return '<p class="cx-kicker">Ask S&#257;rathi</p><h1 class="cx-h">What&rsquo;s on your mind?</h1>' +
-      '<p class="cx-q">Who&rsquo;s asking?</p><div class="cx-tiles four">' + t + "</div>" + writeBox("Or tell me in your own words\u2026") + helpLink();
+      '<p class="cx-q">Who&rsquo;s asking?</p><div class="cx-tiles five">' + t + "</div>" + writeBox("Or tell me in your own words\u2026") + helpLink();
   }
   function vFeel() {
     var t = "";
     D.feel.forEach(function (f, i) {
-      t += '<button type="button" class="cx-tile feel f-' + f[0] + '" style="--i:' + i + '" data-act="feel" data-id="' + f[0] + '"><i aria-hidden="true"></i><span>' + esc(f[1]) + "</span></button>";
+      t += '<button type="button" class="cx-tile feel f-' + f[0] + '" style="--i:' + i + '" data-act="feel" data-id="' + f[0] + '">' + face(f[0]) + '<span>' + esc(f[1]) + "</span></button>";
     });
     return '<p class="cx-kicker">' + esc(byId(D.aud, S.aud)[1]) + '</p><h1 class="cx-h">How does it feel?</h1><div class="cx-tiles six">' + t + "</div>" + helpLink();
   }
@@ -74,7 +90,7 @@
     var h = "";
     list.forEach(function (s, i) { h += sitCard(s, i); });
     if (S.matches && !list.length) {
-      D.feel.forEach(function (f, i) { h += '<button type="button" class="cx-tile feel slim f-' + f[0] + '" style="--i:' + i + '" data-act="feel" data-id="' + f[0] + '"><i aria-hidden="true"></i><span>' + esc(f[1]) + "</span></button>"; });
+      D.feel.forEach(function (f, i) { h += '<button type="button" class="cx-tile feel slim f-' + f[0] + '" style="--i:' + i + '" data-act="feel" data-id="' + f[0] + '">' + face(f[0]) + '<span>' + esc(f[1]) + "</span></button>"; });
       return '<h1 class="cx-h">' + head + "</h1>" + sub + '<div class="cx-tiles six">' + h + "</div>" + writeBox("Try saying it another way\u2026") + helpLink();
     }
     return '<h1 class="cx-h">' + head + '</h1><div class="cx-sits">' + h +
