@@ -28,7 +28,7 @@
   function vurl(id) { var p = id.split("."); return "/" + p[0] + "/" + p[1] + "/"; }
   var cache = {};
   var DIYA_ON = '<svg class="diya on" viewBox="0 0 40 46" aria-hidden="true"><circle cx="20" cy="15" r="13" fill="#FFC86B" opacity=".3"/><path d="M20 4C25 11 25 17 20 21 15 17 15 11 20 4Z" fill="#F5A623"/><path d="M20 10C22.5 13.5 22.5 16.5 20 19 17.5 16.5 17.5 13.5 20 10Z" fill="#FFE7A3"/><path d="M4 24C4 34 12 40 20 40S36 34 36 24Z" fill="#B5653E"/><path d="M3 24H37" stroke="#8C4A2B" stroke-width="2.4" stroke-linecap="round"/><path d="M14 40H26L24 44H16Z" fill="#8C4A2B"/></svg>';
-  var DIYA_OFF = '<svg class="diya off" viewBox="0 0 40 46" aria-hidden="true"><path d="M20 19V15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".55"/><path d="M4 24C4 34 12 40 20 40S36 34 36 24Z" fill="currentColor" opacity=".28"/><path d="M3 24H37" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" opacity=".4"/><path d="M14 40H26L24 44H16Z" fill="currentColor" opacity=".4"/></svg>';
+  var DIYA_OFF = '<svg class="diya off" viewBox="0 0 40 46" aria-hidden="true"><circle class="fl" cx="20" cy="15" r="13" fill="#FFC86B" opacity=".3"/><path class="fl" d="M20 4C25 11 25 17 20 21 15 17 15 11 20 4Z" fill="#F5A623"/><path class="fl" d="M20 10C22.5 13.5 22.5 16.5 20 19 17.5 16.5 17.5 13.5 20 10Z" fill="#FFE7A3"/><path class="wick" d="M20 19V15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path class="b" d="M4 24C4 34 12 40 20 40S36 34 36 24Z"/><path class="r" d="M3 24H37" stroke-width="2.4" stroke-linecap="round"/><path class="b2" d="M14 40H26L24 44H16Z"/></svg>';
   function learnedSet() {
     var r = store.get("recite", {}), out = [];
     for (var k in r) if (r[k] && r[k].learned != null) out.push(k);
@@ -39,7 +39,7 @@
     vs.forEach(function (v) { if (learned.indexOf(v) !== -1) l++; if (read.indexOf(v) !== -1 || learned.indexOf(v) !== -1) n++; });
     return { n: n, l: l, of: vs.length, done: l === vs.length, started: n > 0 };
   }
-  function lamps(vs, learned) { return vs.map(function (v) { return learned.indexOf(v) !== -1 ? DIYA_ON : DIYA_OFF; }).join(""); }
+  function lamps(vs, learned) { var k = 0; return vs.map(function (v) { return learned.indexOf(v) !== -1 ? DIYA_ON : DIYA_OFF.replace('class="diya off"', 'class="diya off" style="--k:' + (k++) + '"'); }).join(""); }
   var READ = store.get("read", []), LEARNED = learnedSet();
   (function themeCards() {
     Array.prototype.forEach.call(document.querySelectorAll(".tc3[data-v]"), function (c) {

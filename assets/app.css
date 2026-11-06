@@ -956,3 +956,46 @@ html[data-sky="evening"] .sky,html[data-sky="night"] .sky{--acc-k:#F2DFA0}
 .tc3.done .tc3-st{color:#8A5A2B}
 @media (prefers-color-scheme: dark){.tc3.done{background:linear-gradient(170deg,#24261E,var(--paper) 70%);border-color:#4A4230}.tc3.done .tc3-st{color:#E9C98A}}
 .th-head .lede{font-family:var(--verse);font-size:21px}
+
+/* home cards: the whole card is the link, and hovering lights the lamps */
+.sky-card{position:relative;transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s,background .35s}
+.sky-hit::after{content:"";position:absolute;inset:0;border-radius:22px}
+.sky-hit:focus-visible{outline:none}
+.sky-card:has(.sky-hit:focus-visible){box-shadow:0 0 0 3px var(--acc)}
+.sky-card:hover{transform:translateY(-5px);background:var(--gb);box-shadow:0 0 0 1.5px rgba(233,190,90,.75),0 26px 60px -24px rgba(240,160,60,.65)}
+.diya.off .b,.diya.off .b2{fill:currentColor;opacity:.28;transition:fill .4s,opacity .4s}
+.diya.off .r{stroke:currentColor;opacity:.4;transition:stroke .4s,opacity .4s}
+.diya.off .wick{opacity:.55}
+.diya.off .fl{opacity:0;transform-box:fill-box;transform-origin:50% 100%;transform:scale(.2);transition:opacity .35s,transform .45s cubic-bezier(.2,1.6,.4,1)}
+.diya.off circle.fl{transform-origin:50% 50%}
+.sky-learn:hover .diya.off .fl,.tc3:hover .diya.off .fl{opacity:1;transform:none;transition-delay:calc(var(--k,0) * 110ms)}
+.sky-learn:hover .diya.off circle.fl,.tc3:hover .diya.off circle.fl{opacity:.3}
+.sky-learn:hover .diya.off .b,.sky-learn:hover .diya.off .b2,.tc3:hover .diya.off .b,.tc3:hover .diya.off .b2{fill:#B5653E;opacity:1;transition-delay:calc(var(--k,0) * 110ms)}
+.sky-learn:hover .diya.off .r,.tc3:hover .diya.off .r{stroke:#8C4A2B;opacity:1;transition-delay:calc(var(--k,0) * 110ms)}
+.sky-learn:hover .sky-go{text-decoration:underline;text-underline-offset:4px}
+.sky-tod:hover .feather{animation:feather-sway 1.6s ease-in-out infinite;transform-origin:50% 100%}
+@keyframes feather-sway{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+@media (prefers-reduced-motion:reduce){.sky-card,.diya *{transition:none!important}.sky-tod:hover .feather{animation:none}}
+
+/* wide screens: theme, chapter, verse and practice pages use more of the width, with larger type */
+@media (min-width:1200px){
+  .ch-head,.vlist,.flist,.verse{max-width:1040px}
+  .ch-head h1{font-size:clamp(44px,4.4vw,64px)}
+  .ch-head .lede{font-size:22px}
+  .flist .fcard .vsa{font-size:34px;line-height:1.5}
+  .flist .fcard .vtl{font-size:19px}
+  .flist .fcard .ven{font-size:24px;line-height:1.55}
+  .flist .fcard .vnum,.flist .fcard .vid{font-size:17px}
+  .vrow .vsa{font-size:26px}.vrow .vtl{font-size:17.5px}.vrow .ven{font-size:20px}
+  .pg-verse .sa{font-size:clamp(42px,3.6vw,56px)}
+  .pg-verse .tl{font-size:24px}
+  .tr-text{font-size:24px;line-height:1.6}
+}
+@media (min-width:1200px){
+  .ch-head,.vlist,.flist,.verse{max-width:1120px}
+  .ch-head .lede{font-size:23px}
+  .flist .fcard .vsa{font-size:38px}
+  .flist .fcard .vtl{font-size:20px;line-height:1.6}
+  .flist .fcard .ven{font-size:26px}
+  .flist .fcard .vnum{font-size:18px}
+}

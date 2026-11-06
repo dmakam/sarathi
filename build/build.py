@@ -781,9 +781,9 @@ def build_home():
     <div class="sky-chips"><span class="vh">Or start with</span>{chips}</div>
   </div>
   <div class="sky-cards">
-    <article class="sky-card sky-tod"><p class="sky-k">{feather}<span>Krishna says</span></p><p class="sky-q"></p><p class="sky-ref"><a href="/2/47/">Read it in full</a></p></article>
+    <article class="sky-card sky-tod"><p class="sky-k">{feather}<span>Krishna says</span></p><p class="sky-q"></p><p class="sky-ref"><a class="sky-hit" href="/2/47/">Read it in full</a></p></article>
     <article class="sky-card sky-learn"><p class="sky-k"><span>Begin your journey</span></p><p class="sky-t">Theme 1: Exploring inner potential</p>
-      <div class="sky-prog"><span class="sky-lamps" aria-hidden="true"></span><span class="sky-note"></span><a class="sky-go" href="/themes/">Begin</a></div></article>
+      <div class="sky-prog"><span class="sky-lamps" aria-hidden="true"></span><span class="sky-note"></span><a class="sky-go sky-hit" href="/themes/">Begin</a></div></article>
   </div>
 </section>""".format(tod=esc(json.dumps(tod, ensure_ascii=True)), themes=esc(json.dumps(themes, ensure_ascii=True)), chips=chips, stars=stars,
            wheel=SA.wheel(1150, 640, 220), feather=SA.FEATHER)
