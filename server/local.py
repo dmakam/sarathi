@@ -42,7 +42,12 @@ if __name__ == "__main__":
     if not os.path.isdir(SITE):
         sys.exit("No site yet. Run ./run-local.sh, which builds it first.")
     port = int(os.environ.get("PORT", "8080"))
+    try:
+        srv = ThreadingHTTPServer(("127.0.0.1", port), Local)
+    except OSError:
+        sys.exit("Port %d is already in use, so Sarathi is probably still running in another Terminal window.\n"
+                 "Close that window, or stop it with:  lsof -ti tcp:%d | xargs kill   then run this again." % (port, port))
     print("Loading the coach (the first run downloads a 1.2 GB model, then it is cached)...", flush=True)
     align.model()
-    print("Ready: http://localhost:%d/practice/2/47/  (Ctrl+C to stop)" % port, flush=True)
-    ThreadingHTTPServer(("127.0.0.1", port), Local).serve_forever()
+    print("Ready: http://localhost:%d/  (Ctrl+C to stop)" % port, flush=True)
+    srv.serve_forever()
