@@ -866,6 +866,7 @@ def main():
     for x in ORDER:
         build_practice(x)
     build_practice_index()
+    os.makedirs(os.path.join(ROOT, "server"), exist_ok=True)
     with open(os.path.join(ROOT, "server", "practice-words.json"), "w", encoding="ascii") as f:
         json.dump({x: practice_words(V[x]) for x in ORDER}, f, ensure_ascii=True)
     build_consult()
