@@ -25,7 +25,13 @@ echo "Proxy network: $NET"
 AVAIL_MB="$(awk '/MemAvailable/ {print int($2/1024)}' /proc/meminfo)"
 DISK_GB="$(df -BG --output=avail /var/lib/docker 2>/dev/null | tail -1 | tr -dc 0-9)"
 echo "Memory available: ${AVAIL_MB} MB, disk free for Docker: ${DISK_GB:-?} GB"
-[ "${AVAIL_MB:-0}" -ge 2500 ] || echo "WARNING: the coach needs about 2.5 GB of free memory while scoring. It may be killed on this server."
+# The recitation coach needs about 2.5 GB of memory. Without it the site still works:
+# the practice page hides recording and offers the "I recited it from memory" check.
+WITH_COACH="${WITH_COACH:-auto}"
+if [ "$WITH_COACH" = auto ]; then
+  if [ "${AVAIL_MB:-0}" -ge 2500 ]; then WITH_COACH=1; else WITH_COACH=0; fi
+fi
+[ "$WITH_COACH" = 1 ] || echo "Skipping the recitation coach (only ${AVAIL_MB} MB free; it needs about 2,500). Deploying the site alone. Force it with WITH_COACH=1."
 [ "${DISK_GB:-99}" -ge 6 ] || echo "WARNING: the coach image is estimated at 3 to 4 GB. Free some disk space first."
 
 echo "== 2. Checking DNS for $DOMAIN"
@@ -35,21 +41,25 @@ echo "$DOMAIN resolves to: ${IP:-nothing yet}"
 
 echo "== 3. Building images (site: pinned dataset, about 2,200 pages; coach: CPU PyTorch and the 1.2 GB aligner)"
 docker build --build-arg "SARATHI_BASE_URL=https://$DOMAIN" -t "$WEB_IMAGE" .
-docker build -t "$COACH_IMAGE" server
+if [ "$WITH_COACH" = 1 ]; then docker build -t "$COACH_IMAGE" server; fi
 
 echo "== 4. Replacing containers"
 docker rm -f "$WEB" "$COACH" >/dev/null 2>&1 || true
 docker run -d --name "$WEB" --restart unless-stopped --network "$NET" "$WEB_IMAGE"
-docker run -d --name "$COACH" --restart unless-stopped --network "$NET" --memory 3g \
-  -e "SARATHI_ORIGINS=https://$DOMAIN" "$COACH_IMAGE"
-echo "Waiting for the coach to load its model..."
-for i in $(seq 1 60); do
-  docker exec "$PROXY" wget -q -O /dev/null "http://$COACH:8000/api/health" 2>/dev/null && break
-  sleep 2
-done
+if [ "$WITH_COACH" = 1 ]; then
+  docker run -d --name "$COACH" --restart unless-stopped --network "$NET" --memory 3g \
+    -e "SARATHI_ORIGINS=https://$DOMAIN" "$COACH_IMAGE"
+  echo "Waiting for the coach to load its model..."
+  for i in $(seq 1 60); do
+    docker exec "$PROXY" wget -q -O /dev/null "http://$COACH:8000/api/health" 2>/dev/null && break
+    sleep 2
+  done
+fi
 docker exec "$PROXY" wget -q -O /dev/null "http://$WEB/2/47/" && echo "Site answers on the proxy network."
-docker exec "$PROXY" wget -q -O /dev/null "http://$COACH:8000/api/health" && echo "Coach answers on the proxy network." \
-  || echo "WARNING: the coach is not answering yet. Check: docker logs $COACH"
+if [ "$WITH_COACH" = 1 ]; then
+  docker exec "$PROXY" wget -q -O /dev/null "http://$COACH:8000/api/health" && echo "Coach answers on the proxy network." \
+    || echo "WARNING: the coach is not answering yet. Check: docker logs $COACH"
+fi
 
 echo "== 5. Caddy site block"
 if grep -q "^$DOMAIN" "$CADDYFILE"; then

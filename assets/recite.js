@@ -55,6 +55,12 @@
     var spans = $$(".pw", page);
     var micBtn = $(".mic", page), micLbl = $(".mic-label", page), live = $(".live", page), result = $(".result", page);
     var consentDlg = $(".consent");
+    // Without the recitation coach running, hide recording and point to the self check.
+    fetch(api.replace(/score$/, "health")).then(function (r) { if (!r.ok) throw 0; }).catch(function () {
+      var sec = $(".pstep.rec", page); if (!sec) return;
+      micBtn.hidden = true; micLbl.hidden = true;
+      var h = $(".hint", sec); if (h) h.textContent = "Recite it aloud from memory, then tap \u201cI recited it from memory\u201d under Your progress. An automatic check of your recitation is coming soon.";
+    });
 
     function renderProgress() {
       var rec = getRec(vid), st = status(rec);
