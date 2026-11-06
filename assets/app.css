@@ -644,3 +644,24 @@ main > .v-sec .sits{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
   .cx-tile.feel .cx-face{width:58px;height:58px}
   .cx-tiles.six:has(.slim){grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+/* wide screens: use the width, keep each text column at a reading measure */
+@media (min-width:1000px){
+  .cx-stage{max-width:1200px}
+  .cx-saved h2,.cx-savelist{max-width:1200px}
+  .cx{padding-top:clamp(20px,3vw,40px)}
+  .cx-tile.art{min-height:250px}
+  .cx-sits{max-width:none;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cx-sits .cx-else{grid-column:1/-1}
+  .cx-write{max-width:760px}
+  .cx-card{max-width:none;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);padding:0;overflow:hidden}
+  .cx-l{padding:44px 48px;background:var(--tint);border-right:1px solid var(--line)}
+  .cx-r{padding:36px 44px 32px;align-self:start}
+  .cx-l .cx-en{margin-bottom:0}
+  .cx-sa{font-size:clamp(26px,2.3vw,32px)}
+  .cx-notes{border-top:0}
+  .cx-notes div{grid-template-columns:110px minmax(0,1fr)}
+  .cx-notes div:first-child{padding-top:4px}
+  .cx-deeper{max-width:none}
+}
+.cx{scroll-margin-top:72px}

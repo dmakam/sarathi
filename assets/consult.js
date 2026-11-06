@@ -161,11 +161,11 @@
     var fb = store.get("fb", {})[s.id + "@" + vid];
     var lines = v.sa.map(function (l, i) { return '<span style="--i:' + i + '">' + esc(l) + "</span>"; }).join("");
     var c = vid.split(".");
-    return '<article class="cx-card">' +
+    return '<article class="cx-card"><div class="cx-l">' +
       '<p class="cx-for">' + esc(s.t) + "</p>" +
       '<p class="cx-sa" lang="sa">' + lines + "</p>" +
       '<p class="cx-ref"><a href="' + v.url + '">Bhagavad Gita ' + c[0] + "." + c[1] + "</a></p>" +
-      '<blockquote class="cx-en">' + esc(v.en) + "<cite>Swami Sivananda</cite></blockquote>" +
+      '<blockquote class="cx-en">' + esc(v.en) + "<cite>Swami Sivananda</cite></blockquote></div>" + '<div class="cx-r">' +
       '<dl class="cx-notes"><div style="--i:0"><dt>For you</dt><dd>' + esc(pair[1]) + "</dd></div>" +
       '<div style="--i:1"><dt>Try today</dt><dd>' + esc(s.do) + "</dd></div>" +
       '<div style="--i:2"><dt>Sit with</dt><dd>' + esc(s.ask) + "</dd></div></dl>" +
@@ -177,7 +177,7 @@
       '<div class="cx-fb">' + (fb ? '<p class="cx-thanks">' + (fb === "yes" ? "Glad it helped. It&rsquo;s here whenever you need it." : "Thanks for telling me. Try another verse, or tell me more:") + "</p>" + (fb === "no" ? writeBox("What\u2019s really going on?") : "") :
         '<span>Did this help?</span><button type="button" class="cx-pill" data-act="fb" data-v="yes">Yes</button><button type="button" class="cx-pill" data-act="fb" data-v="no">Not quite</button>') + "</div>" +
       '<p class="cx-note">The shloka and translation are from the Gita text. The three notes are S&#257;rathi&rsquo;s, written to help you apply it.</p>' +
-      "</article>" +
+      "</div></article>" +
       '<nav class="cx-deeper" aria-label="Go deeper"><a href="' + v.pr + '">Learn to recite it</a><a href="' + v.url + '">Read the commentaries</a><a href="' + v.url + '#h-map">See what it connects to</a><button type="button" class="cx-link" data-act="restart">Ask about something else</button></nav>';
   }
   function vHelp() {
