@@ -394,12 +394,16 @@ def build_verse(vid):
     <a class="btn ghost" href="/practice/{c}/{n}/">Practice reciting</a>
   </div>
 </div>
-<section class="v-sec" aria-labelledby="h-words">
+<aside class="v-rail" aria-label="Words and links">
+<section class="v-sec v-words" aria-labelledby="h-words">
   <h2 id="h-words">Word by word</h2>
   <p class="hint">Tap a word to see every verse that uses it.</p>
   <div class="words">{words}</div>
   <div class="word-pop" hidden></div>
 </section>
+{related}
+{nav}
+</aside>
 <section class="v-sec" aria-labelledby="h-tr">
   <h2 id="h-tr">Translation</h2>
   <div class="tabs" role="tablist" aria-label="Translators">{tabs}</div>
@@ -413,8 +417,6 @@ def build_verse(vid):
   </div>
 </details>
 {vmap}
-{related}
-{nav}
 </article>
 <dialog class="card-dlg"><div class="card-wrap"><canvas width="1080" height="1350"></canvas></div>
 <div class="card-act"><button type="button" class="btn dl">Download image</button><button type="button" class="btn ghost sh" hidden>Share</button><button type="button" class="btn ghost close">Close</button></div></dialog>
@@ -690,21 +692,30 @@ def build_themes():
          desc="The Bhagavad Gita in 20 themes and %d shlokas, from inner potential to equanimity, with recitation and practice." % len(CORE))
     for i, (tid, name, vids) in enumerate(THEMES, 1):
         items = []
+        rail = []
         for x in vids:
             v = V[x]
-            items.append('<li class="fcard"><a href="%s"><span class="vnum">%s</span>%s<span class="ven">%s</span></a>'
+            rail.append('<li data-v="%s"><a href="#v-%s"><span class="tr-lamp"></span><span class="tr-n">%s</span><span class="tr-t">%s</span></a></li>'
+                        % (x, x.replace(".", "-"), x, esc(trim(eng(v), 54))))
+            items.append('<li class="fcard" id="v-%s"><a href="%s"><span class="vnum">%s</span>%s<span class="ven">%s</span></a>'
                          '<div class="v-actions"><a class="btn ghost sm" href="/practice/%s/%s/">Practice reciting</a></div></li>'
-                         % (verse_url(x), x, sa_html(v, "vsa"), esc(trim(eng(v), 320)), v["c"], v["n"]))
+                         % (x.replace(".", "-"), verse_url(x), x, sa_html(v, "vsa"), esc(trim(eng(v), 320)), v["c"], v["n"]))
         prev_t = THEMES[i - 2] if i > 1 else None
         next_t = THEMES[i] if i < len(THEMES) else None
         nav = '<nav class="vnav">%s<a href="/themes/">All themes</a>%s</nav>' % (
             '<a rel="prev" href="/themes/%s/">Theme %d: %s</a>' % (prev_t[0], i - 1, esc(prev_t[1])) if prev_t else "<span></span>",
             '<a rel="next" href="/themes/%s/">Theme %d: %s</a>' % (next_t[0], i + 1, esc(next_t[1])) if next_t else "<span></span>")
-        body = """<section class="ch-head"><p class="crumb"><a href="/themes/">Themes</a>, {i} of 20</p><h1>{name}</h1>
-<p class="lede">{n} shlokas. Read them in this order, then practise reciting each one.</p>
-<div class="v-actions"><a class="btn" href="/practice/{pc}/{pn}/">Start practising</a></div></section>
-<ol class="flist">{items}</ol>
-{nav}""".format(i=i, name=esc(name), n=len(vids), pc=V[vids[0]]["c"], pn=V[vids[0]]["n"], items="".join(items), nav=nav)
+        body = """<div class="tp">
+<aside class="tp-rail">
+  <p class="crumb"><a href="/themes/">Themes</a>, {i} of 20</p>
+  <h1>{name}</h1>
+  <p class="lede">Read them in this order, then learn each one by heart.</p>
+  <ol class="tp-list">{rail}</ol>
+  <div class="v-actions"><a class="btn" href="/practice/{pc}/{pn}/">Start practising</a></div>
+  {nav}
+</aside>
+<ol class="flist tp-main">{items}</ol>
+</div>""".format(i=i, name=esc(name), pc=V[vids[0]]["c"], pn=V[vids[0]]["n"], items="".join(items), rail="".join(rail), nav=nav)
         page("themes/%s/index.html" % tid, "%s: Bhagavad Gita theme %d" % (name, i), body, nav="themes", body_class="pg-list",
              desc=trim("%s: %d Bhagavad Gita shlokas (%s) with word meanings, translation and recitation practice." % (name, len(vids), ", ".join(vids)), 155))
 

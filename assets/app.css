@@ -999,3 +999,33 @@ html[data-sky="evening"] .sky,html[data-sky="night"] .sky{--acc-k:#F2DFA0}
   .flist .fcard .ven{font-size:26px}
   .flist .fcard .vnum{font-size:18px}
 }
+
+/* wide screens: two columns that give the space a job */
+.tp-list{list-style:none;margin:20px 0 22px;padding:0;display:flex;flex-direction:column;gap:2px}
+.tp-list a{display:grid;grid-template-columns:28px 48px minmax(0,1fr);align-items:center;gap:10px;padding:10px 12px;border-radius:12px;text-decoration:none;color:var(--text)}
+.tp-list a:hover{background:var(--tint)}
+.tp-list .diya{width:24px;height:28px;color:var(--muted)}
+.tp-list .tr-n{font-weight:700;font-variant-numeric:tabular-nums;color:var(--cx-acc)}
+.tp-list .tr-t{font-family:var(--verse);font-size:16.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp-list li.learned .tr-t{color:var(--text)}
+.tp-list a:hover .diya.off .fl{opacity:1;transform:none}.tp-list a:hover .diya.off circle.fl{opacity:.3}
+.tp-list a:hover .diya.off .b,.tp-list a:hover .diya.off .b2{fill:#B5653E;opacity:1}.tp-list a:hover .diya.off .r{stroke:#8C4A2B;opacity:1}
+.tp-rail{max-width:1120px;margin:0 auto;padding:40px clamp(16px,4vw,32px) 8px}
+.tp-rail h1{font-size:clamp(36px,4vw,52px);margin:6px 0 10px}
+.tp-rail .lede{color:var(--muted);margin:0}
+.tp-rail .vnav{margin:22px 0 0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:15.5px}
+@media (min-width:1100px){
+  .tp{display:grid;grid-template-columns:380px minmax(0,1fr);gap:56px;max-width:1440px;margin:0 auto;padding:0 clamp(24px,4vw,64px)}
+  .tp-rail{position:sticky;top:76px;align-self:start;max-height:calc(100vh - 92px);overflow:auto;margin:0;padding:40px 0 24px}
+  .tp-rail h1{font-size:clamp(34px,2.6vw,44px)}
+  .tp-main{max-width:none;margin:28px 0 0;padding:0}
+  .tp-main .fcard:first-child{padding-top:12px}
+  .tp-rail .vnav a[rel]{display:block}
+}
+@media (min-width:1200px){
+  .pg-verse:not(.pg-practice) .verse{display:grid;grid-template-columns:minmax(0,1fr) 400px;column-gap:56px;max-width:1440px;padding:0 clamp(24px,4vw,64px)}
+  .pg-verse:not(.pg-practice) .verse>*{grid-column:1;min-width:0}
+  .pg-verse:not(.pg-practice) .verse>.v-rail{grid-column:2;grid-row:1 / span 30;align-self:start;position:sticky;top:76px;max-height:calc(100vh - 92px);overflow:auto;padding:24px 4px 24px 0}
+  .v-rail .v-sec{margin-top:16px}
+  .v-rail .vnav{flex-direction:column;align-items:stretch;gap:8px}
+}

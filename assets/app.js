@@ -49,6 +49,13 @@
       else el.textContent = "Begin";
     });
   })();
+  (function themeRail() {
+    Array.prototype.forEach.call(document.querySelectorAll(".tp-list li[data-v]"), function (li) {
+      var v = li.getAttribute("data-v"), on = LEARNED.indexOf(v) !== -1;
+      li.querySelector(".tr-lamp").innerHTML = on ? DIYA_ON : DIYA_OFF;
+      if (on) li.classList.add("learned"); else if (READ.indexOf(v) !== -1) li.classList.add("read");
+    });
+  })();
   (function sky() {
     var sk = document.querySelector(".sky"); if (!sk) return;
     var t = document.documentElement.getAttribute("data-sky") || "day";
