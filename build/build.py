@@ -224,10 +224,11 @@ WORD_PAGE_MIN = 3
 import graph_build as GB  # noqa: E402
 import graph_data as GD  # noqa: E402
 import consult_data as CD  # noqa: E402
+import sacred_art as SA  # noqa: E402
 
 # ---------------------------------------------------------------- layout
 
-FONTS = ("https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700"
+FONTS = ("https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500"
          "&family=Tiro+Devanagari+Sanskrit:ital@0;1&display=swap")
 
 
@@ -680,7 +681,7 @@ def theme_cards():
 def build_themes():
     body = """<section class="th-stage">
 <div class="th-head"><div><h1>Learn the Gita in 20 themes</h1>
-<p class="lede">One theme a week. Read it, understand it, learn it by heart.</p></div>
+<p class="lede">Light a lamp for every verse you learn by heart.</p></div>
 <div class="v-actions"><a class="btn th-go" href="/themes/{first}/">Begin with theme 1</a><a class="btn ghost" href="/practice/">Practice</a><a class="btn ghost" href="/plans/">Plans</a></div></div>
 {cards}
 <p class="credit">Themes and shloka selection follow the <a href="{src}">{srcname}</a>.</p></section>""".format(
@@ -765,13 +766,12 @@ def build_home():
     body = """<section class="sky" data-tod='{tod}' data-themes='{themes}'>
   <svg class="sky-art" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
     <g class="sky-stars">{stars}</g>
-    <g class="sky-sun"><circle class="halo" cx="1120" cy="640" r="150"/><circle class="disc" cx="1120" cy="640" r="92"/></g>
-    <g class="sky-moon"><circle class="halo" cx="1150" cy="330" r="70"/><circle class="disc" cx="1150" cy="330" r="34"/><circle class="bite" cx="1165" cy="320" r="30"/></g>
+    {wheel}
     <path class="hill1" d="M0 720 C 240 660, 420 690, 640 700 S 1080 640, 1440 690 L 1440 900 L 0 900 Z"/>
     <path class="hill2" d="M0 790 C 300 740, 560 770, 820 780 S 1220 740, 1440 770 L 1440 900 L 0 900 Z"/>
   </svg>
   <div class="sky-in">
-    <p class="sky-greet">Welcome.</p>
+    <p class="sky-greet">Namaste.</p>
     <h1>What&rsquo;s on your mind?</h1>
     <form class="sky-ask" action="/consult/" method="get">
       <label class="vh" for="sky-q">Tell S&#257;rathi what is going on</label>
@@ -781,11 +781,12 @@ def build_home():
     <div class="sky-chips"><span class="vh">Or start with</span>{chips}</div>
   </div>
   <div class="sky-cards">
-    <article class="sky-card sky-tod"><p class="sky-k">Today&rsquo;s verse</p><p class="sky-q"></p><p class="sky-ref"><a href="/2/47/">Read it in full</a></p></article>
-    <article class="sky-card sky-learn"><p class="sky-k">Keep learning</p><p class="sky-t">Theme 1: Exploring inner potential</p>
-      <div class="sky-prog"><span class="sky-bar"><i></i></span><a class="sky-go" href="/themes/">Start</a></div></article>
+    <article class="sky-card sky-tod"><p class="sky-k">{feather}<span>Krishna says</span></p><p class="sky-q"></p><p class="sky-ref"><a href="/2/47/">Read it in full</a></p></article>
+    <article class="sky-card sky-learn"><p class="sky-k"><span>Begin your journey</span></p><p class="sky-t">Theme 1: Exploring inner potential</p>
+      <div class="sky-prog"><span class="sky-lamps" aria-hidden="true"></span><span class="sky-note"></span><a class="sky-go" href="/themes/">Begin</a></div></article>
   </div>
-</section>""".format(tod=esc(json.dumps(tod, ensure_ascii=True)), themes=esc(json.dumps(themes, ensure_ascii=True)), chips=chips, stars=stars)
+</section>""".format(tod=esc(json.dumps(tod, ensure_ascii=True)), themes=esc(json.dumps(themes, ensure_ascii=True)), chips=chips, stars=stars,
+           wheel=SA.wheel(1150, 640, 220), feather=SA.FEATHER)
     jsonld = {"@context": "https://schema.org", "@type": "WebSite", "name": SITE, "url": BASE_URL + "/",
               "potentialAction": {"@type": "SearchAction", "target": BASE_URL + "/search/?q={q}", "query-input": "required name=q"}}
     page("index.html", "%s: guidance from the Bhagavad Gita" % SITE, body, jsonld=jsonld, body_class="pg-home", nav="",

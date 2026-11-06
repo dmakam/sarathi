@@ -163,10 +163,11 @@
     var c = vid.split(".");
     return '<article class="cx-card"><div class="cx-l">' +
       '<p class="cx-for">' + esc(s.t) + "</p>" +
+      '<p class="cx-ks">' + FEATHER + '<span>Krishna says</span></p><span class="cx-rule" aria-hidden="true"></span>' +
       '<blockquote class="cx-en">\u201c' + esc(v.en) + "\u201d</blockquote>" +
       '<p class="cx-ref"><a href="' + v.url + '">Bhagavad Gita ' + c[0] + "." + c[1] + "</a> &middot; Swami Sivananda</p>" +
       '<details class="cx-sk"><summary>Show the Sanskrit</summary><p class="cx-sa" lang="sa">' + lines + "</p>" +
-      '<p class="cx-tl" lang="sa-Latn"><span class="tl-k">Say it</span>' + (v.tl || []).map(esc).join("<br>") + "</p></details></div>" + '<div class="cx-r">' +
+      '<p class="cx-tl" lang="sa-Latn"><span class="tl-k">Say it</span>' + (v.tl || []).map(esc).join("<br>") + "</p></details></div>" + '<div class="cx-r"><p class="cx-nl">S&#257;rathi&rsquo;s notes for you</p>' +
       '<dl class="cx-notes"><div style="--i:0"><dt>For you</dt><dd>' + esc(pair[1]) + "</dd></div>" +
       '<div style="--i:1"><dt>Try today</dt><dd>' + esc(s.do) + "</dd></div>" +
       '<div style="--i:2"><dt>Sit with</dt><dd>' + esc(s.ask) + "</dd></div></dl>" +
@@ -200,12 +201,16 @@
       '<button type="button" class="cx-link" data-act="restart">Back to S&#257;rathi</button></div>';
   }
 
-  var VIEWS = { who: vWho, feel: vFeel, pick: vPick, answer: vAnswer, help: vHelp };
+  function vBreath() {
+    return '<div class="cx-breath"><div class="cx-rings"><i></i><i></i><i></i><span class="cx-bdiya">' + DIYA + '</span></div>' +
+      '<h1 class="cx-h">Take one slow breath.</h1><p class="cx-bq">Krishna&rsquo;s answer is coming.</p></div>';
+  }
+  var VIEWS = { who: vWho, feel: vFeel, pick: vPick, answer: vAnswer, help: vHelp, breath: vBreath };
   function render(dir) {
     stopAudio();
     var el = document.createElement("div");
     el.className = "cx-step s-" + S.step + (dir === "back" ? " from-left" : "");
-    el.innerHTML = (S.step === "help" ? "" : topbar()) + VIEWS[S.step]();
+    el.innerHTML = (S.step === "help" || S.step === "breath" ? "" : topbar()) + VIEWS[S.step]();
     var old = stage.querySelector(".cx-step");
     stage.innerHTML = "";
     stage.appendChild(el);
@@ -218,6 +223,16 @@
     }
     try { history.replaceState(null, "", S.step === "answer" ? "#" + S.sit + (S.vi ? "-" + (S.vi + 1) : "") : location.pathname); } catch (e) {}
     renderSaved();
+  }
+  var FEATHER = '<svg class="feather" width="18" height="28" viewBox="0 0 26 40" aria-hidden="true"><path d="M13 39 C13 30 13 22 13 14" stroke="#8A6A1E" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M13 1 C22 6 24 18 13 27 C2 18 4 6 13 1 Z" fill="#1F7A72"/><ellipse cx="13" cy="13" rx="5.6" ry="7" fill="#C9A227"/><ellipse cx="13" cy="13.5" rx="3.2" ry="4.2" fill="#24306E"/></svg>';
+  var DIYA = '<svg viewBox="0 0 40 46" width="110" height="126" aria-hidden="true"><circle class="glow" cx="20" cy="15" r="13" fill="#FFC86B" opacity=".3"/><path class="fl" d="M20 4C25 11 25 17 20 21 15 17 15 11 20 4Z" fill="#F5A623"/><path class="fl" d="M20 10C22.5 13.5 22.5 16.5 20 19 17.5 16.5 17.5 13.5 20 10Z" fill="#FFE7A3"/><path d="M4 24C4 34 12 40 20 40S36 34 36 24Z" fill="#B5653E"/><path d="M3 24H37" stroke="#8C4A2B" stroke-width="2.4" stroke-linecap="round"/><path d="M14 40H26L24 44H16Z" fill="#8C4A2B"/></svg>';
+  var breathTimer = null;
+  function breathThenAnswer() {
+    var calm = false; try { calm = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
+    if (calm) { go("answer"); return; }
+    go("breath");
+    clearTimeout(breathTimer);
+    breathTimer = setTimeout(function () { if (S.step === "breath") { S.step = "answer"; render(); } }, 2200);
   }
   function go(step) { S.hist.push({ step: S.step, matches: S.matches, vi: S.vi }); S.step = step; render(); }
 
@@ -266,7 +281,7 @@
     var act = b.getAttribute("data-act"), id = b.getAttribute("data-id");
     if (act === "aud") { S.aud = id; S.matches = null; go("feel"); }
     else if (act === "feel") { S.feel = id; S.matches = null; if (!S.aud) S.aud = "me"; go("pick"); }
-    else if (act === "sit" || act === "open") { S.sit = id; S.vi = +(b.getAttribute("data-vi") || 0); go("answer"); if (act === "open") root.scrollIntoView({ behavior: "smooth" }); }
+    else if (act === "sit" || act === "open") { S.sit = id; S.vi = +(b.getAttribute("data-vi") || 0); breathThenAnswer(); if (act === "open") root.scrollIntoView({ behavior: "smooth" }); }
     else if (act === "back") { var p = S.hist.pop(); if (p) { S.step = p.step; S.matches = p.matches; S.vi = p.vi; render("back"); } }
     else if (act === "next") { var s = byId(D.sit, S.sit); S.vi = (S.vi + 1) % s.v.length; render("same"); }
     else if (act === "restart") { S = { step: "who", aud: null, feel: null, sit: null, vi: 0, matches: null, text: "", help: null, hist: [] }; render(); }

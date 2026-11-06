@@ -27,33 +27,50 @@
   function escH(s) { return String(s || "").replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function vurl(id) { var p = id.split("."); return "/" + p[0] + "/" + p[1] + "/"; }
   var cache = {};
-  function themeState(vs, read) {
-    var n = vs.filter(function (v) { return read.indexOf(v) !== -1; }).length;
-    return { n: n, of: vs.length, done: n === vs.length, started: n > 0 };
+  var DIYA_ON = '<svg class="diya on" viewBox="0 0 40 46" aria-hidden="true"><circle cx="20" cy="15" r="13" fill="#FFC86B" opacity=".3"/><path d="M20 4C25 11 25 17 20 21 15 17 15 11 20 4Z" fill="#F5A623"/><path d="M20 10C22.5 13.5 22.5 16.5 20 19 17.5 16.5 17.5 13.5 20 10Z" fill="#FFE7A3"/><path d="M4 24C4 34 12 40 20 40S36 34 36 24Z" fill="#B5653E"/><path d="M3 24H37" stroke="#8C4A2B" stroke-width="2.4" stroke-linecap="round"/><path d="M14 40H26L24 44H16Z" fill="#8C4A2B"/></svg>';
+  var DIYA_OFF = '<svg class="diya off" viewBox="0 0 40 46" aria-hidden="true"><path d="M20 19V15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".55"/><path d="M4 24C4 34 12 40 20 40S36 34 36 24Z" fill="currentColor" opacity=".28"/><path d="M3 24H37" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" opacity=".4"/><path d="M14 40H26L24 44H16Z" fill="currentColor" opacity=".4"/></svg>';
+  function learnedSet() {
+    var r = store.get("recite", {}), out = [];
+    for (var k in r) if (r[k] && r[k].learned != null) out.push(k);
+    return out;
   }
+  function themeState(vs, read, learned) {
+    var n = 0, l = 0;
+    vs.forEach(function (v) { if (learned.indexOf(v) !== -1) l++; if (read.indexOf(v) !== -1 || learned.indexOf(v) !== -1) n++; });
+    return { n: n, l: l, of: vs.length, done: l === vs.length, started: n > 0 };
+  }
+  function lamps(vs, learned) { return vs.map(function (v) { return learned.indexOf(v) !== -1 ? DIYA_ON : DIYA_OFF; }).join(""); }
+  var READ = store.get("read", []), LEARNED = learnedSet();
   (function themeCards() {
-    var read = store.get("read", []);
     Array.prototype.forEach.call(document.querySelectorAll(".tc3[data-v]"), function (c) {
-      var st = themeState(c.getAttribute("data-v").split(","), read), el = c.querySelector(".tc3-st");
-      if (st.done) { c.classList.add("done"); el.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Done'; }
-      else if (st.started) { c.classList.add("started"); el.innerHTML = '<span class="tc3-bar"><i style="width:' + Math.round(100 * st.n / st.of) + '%"></i></span>' + st.n + " of " + st.of + " read"; }
+      var vs = c.getAttribute("data-v").split(","), st = themeState(vs, READ, LEARNED), el = c.querySelector(".tc3-st");
+      if (st.done) { c.classList.add("done"); el.innerHTML = DIYA_ON + "Learned by heart"; }
+      else if (st.started) { c.classList.add("started"); el.innerHTML = '<span class="lamps">' + lamps(vs, LEARNED) + '</span><span class="vh">' + st.l + " of " + st.of + " learned</span>"; }
+      else el.textContent = "Begin";
     });
   })();
   (function sky() {
     var sk = document.querySelector(".sky"); if (!sk) return;
     var t = document.documentElement.getAttribute("data-sky") || "day";
-    var greet = { morning: "Good morning.", day: "Good afternoon.", evening: "Good evening.", night: "Can\u2019t sleep? You\u2019re not alone." }[t];
+    var greet = { morning: "Namaste. Good morning.", day: "Namaste. Good afternoon.", evening: "Namaste. Good evening.", night: "Namaste. Can\u2019t sleep? You\u2019re not alone." }[t];
     sk.querySelector(".sky-greet").textContent = greet;
     var tod = JSON.parse(sk.getAttribute("data-tod")), d = Math.floor(Date.now() / 86400000), v = tod[d % tod.length];
-    sk.querySelector(".sky-tod .sky-k").textContent = "Today\u2019s verse \u00b7 " + v[0];
+    sk.querySelector(".sky-tod .sky-k span").textContent = "Krishna says \u00b7 " + v[0];
     sk.querySelector(".sky-q").textContent = "\u201c" + v[1] + "\u201d";
     var p = v[0].split("."); sk.querySelector(".sky-ref a").setAttribute("href", "/" + p[0] + "/" + p[1] + "/");
-    var themes = JSON.parse(sk.getAttribute("data-themes")), read = store.get("read", []), pick = 0, st = null;
-    for (var i = 0; i < themes.length; i++) { st = themeState(themes[i][2], read); if (!st.done) { pick = i; break; } }
-    st = themeState(themes[pick][2], read);
-    sk.querySelector(".sky-t").textContent = "Theme " + (pick + 1) + ": " + themes[pick][1];
-    sk.querySelector(".sky-bar i").style.width = Math.round(100 * st.n / st.of) + "%";
-    var go = sk.querySelector(".sky-go"); go.setAttribute("href", "/themes/" + themes[pick][0] + "/"); go.textContent = st.started ? "Continue" : "Start";
+    var themes = JSON.parse(sk.getAttribute("data-themes")), pick = 0, st, any = false;
+    var states = themes.map(function (t) { return themeState(t[2], READ, LEARNED); }), firstOpen = -1;
+    states.forEach(function (x, k) { if (x.started) any = true; if (firstOpen < 0 && !x.done) firstOpen = k; });
+    pick = -1; states.forEach(function (x, k) { if (pick < 0 && x.started && !x.done) pick = k; });
+    if (pick < 0) pick = firstOpen < 0 ? 0 : firstOpen;
+    st = themeState(themes[pick][2], READ, LEARNED);
+    var card = sk.querySelector(".sky-learn");
+    card.querySelector(".sky-k span").textContent = any ? "Continue your journey" : "Begin your journey";
+    card.querySelector(".sky-t").textContent = "Theme " + (pick + 1) + ": " + themes[pick][1];
+    card.querySelector(".sky-lamps").innerHTML = lamps(themes[pick][2], LEARNED);
+    card.querySelector(".sky-note").textContent = st.l ? st.l + " of " + st.of + " learned by heart" : (st.n ? st.n + " of " + st.of + " read" : "Light a lamp for every verse you learn");
+    var go = card.querySelector(".sky-go"); go.setAttribute("href", "/themes/" + themes[pick][0] + "/"); go.textContent = any ? "Continue" : "Begin";
+    if (any) sk.classList.add("journey");
   })();
   (function textSize() {
     var b = document.querySelector(".nav-size"); if (!b) return;

@@ -898,3 +898,61 @@ html[data-sky="morning"] .sky-ask button,html[data-sky="day"] .sky-ask button{ba
 .cm-sum-t{font:600 20px/1.3 var(--ui);color:var(--text)}
 .cm-sum-d{font-size:15.5px;color:var(--muted)}
 .cm-fold .cm-body{padding-bottom:24px}
+
+/* =========================================================
+   The sacred layer: the chariot wheel, Krishna's words in serif,
+   a breath before the answer, a lamp for each verse learned.
+   ========================================================= */
+:root{--verse:"Newsreader", Georgia, "Times New Roman", serif;--saffron:#C98A2E;--ks:#8A6A1E}
+@media (prefers-color-scheme: dark){:root{--ks:#E9D58A}}
+/* the wheel rising as the sun */
+.wheel .wd{fill:var(--wd)}.wheel .wk{fill:var(--wk)}.wheel .ws{fill:var(--ws)}.wheel .wr{fill:none;stroke:var(--wk)}
+.wheel .wg{fill:var(--wg)}.wheel .wg1{opacity:.28}.wheel .wg2{opacity:.35}
+.wheel{opacity:var(--wo,1)}
+.sky{--wd:#FFC978;--wk:#D98A3A;--ws:#FBE3B4;--wg:#FFD9A0}
+html[data-sky="day"] .sky{--wd:#FFE7AE;--wk:#E0A64E;--ws:#FFF3D6;--wg:#FFF3D6}
+html[data-sky="evening"] .sky{--wd:#FFB27A;--wk:#C0663A;--ws:#FFD9B3;--wg:#FFC9A0}
+html[data-sky="night"] .sky{--wd:#22356A;--wk:#DCD5BC;--ws:#F4ECD2;--wg:#2F4478;--wo:.72}
+.wspin{animation:wheel-turn 240s linear infinite}
+@keyframes wheel-turn{to{transform:rotate(360deg)}}
+.wheel{animation:sky-rise 2.6s cubic-bezier(.2,.8,.2,1) both}
+@media (prefers-reduced-motion:reduce){.wspin,.wheel{animation:none!important}}
+/* home cards */
+.sky-k{display:flex;align-items:center;gap:10px}
+.sky-tod .sky-k span{color:var(--acc-k,#8A6A1E)}
+html[data-sky="evening"] .sky,html[data-sky="night"] .sky{--acc-k:#F2DFA0}
+.sky-q{font-family:var(--verse);font-size:20.5px;font-weight:400}
+.sky-lamps{display:flex;align-items:flex-end;gap:3px;color:var(--ink2)}
+.sky-lamps .diya{width:26px;height:30px}
+.sky-note{flex:1;font-size:15px;color:var(--sub)}
+.sky-bar{display:none}
+.sky.journey .sky-cards .sky-learn{order:-1}
+/* Krishna says */
+.feather{flex:none}
+.cx-ks{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-size:13.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ks)}
+.cx-rule{display:block;width:64px;height:2px;background:#C9A227;margin:0 0 18px}
+.cx-en{font-family:var(--verse);font-weight:400;font-size:clamp(23px,2.4vw,31px);line-height:1.4;letter-spacing:0}
+@media (min-width:1000px){.cx-l{background:linear-gradient(165deg,#FFF7EC 0%,#FDF0E3 55%,var(--paper) 100%)}}
+@media (min-width:1000px) and (prefers-color-scheme: dark){.cx-l{background:linear-gradient(165deg,#1F2A2A 0%,#182826 60%,var(--paper) 100%)}}
+.cx-for{margin-bottom:16px}
+.cx-nl{margin:0 0 4px;font-size:15px;font-weight:600;color:var(--muted)}
+/* Krishna's words in serif wherever they appear */
+.tr-text,.fcard .ven,.vrow .ven,.ven{font-family:var(--verse)}
+/* the breath before an answer */
+.cx-breath{display:flex;flex-direction:column;align-items:center;text-align:center;gap:18px;padding:40px 0 60px}
+.cx-rings{position:relative;width:300px;height:300px;display:grid;place-items:center}
+.cx-rings i{position:absolute;border-radius:50%;border:1.5px solid rgba(201,162,39,.28);animation:breathe 4s ease-in-out infinite}
+.cx-rings i:nth-child(1){inset:0}.cx-rings i:nth-child(2){inset:42px;animation-delay:.25s}.cx-rings i:nth-child(3){inset:84px;background:rgba(255,200,107,.18);border:0;animation-delay:.5s}
+.cx-bdiya{position:relative}
+.cx-bdiya .fl{transform-box:fill-box;transform-origin:50% 100%;animation:flame 1.6s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(.92);opacity:.55}50%{transform:scale(1.04);opacity:1}}
+@keyframes flame{0%,100%{transform:scaleY(1) skewX(0)}50%{transform:scaleY(1.08) skewX(-3deg)}}
+.cx-breath .cx-h{font-size:clamp(30px,3.4vw,44px);margin:0}
+.cx-bq{margin:0;font-family:var(--verse);font-size:22px;color:var(--muted)}
+/* a lamp for each verse */
+.diya{width:22px;height:26px;flex:none}
+.tc3-st .lamps{display:flex;align-items:flex-end;gap:2px;color:var(--muted)}
+.tc3.done{background:linear-gradient(170deg,#FFF8EE,var(--paper) 70%);border-color:#E8D7BE}
+.tc3.done .tc3-st{color:#8A5A2B}
+@media (prefers-color-scheme: dark){.tc3.done{background:linear-gradient(170deg,#24261E,var(--paper) 70%);border-color:#4A4230}.tc3.done .tc3-st{color:#E9C98A}}
+.th-head .lede{font-family:var(--verse);font-size:21px}
