@@ -885,3 +885,6 @@ html[data-sky="morning"] .sky-ask button,html[data-sky="day"] .sky-ask button{ba
 .cx-sk[open] summary::after{transform:rotate(-135deg)}
 .cx-sk[open] summary{margin-bottom:16px}
 .cx-sk .cx-sa{color:var(--cx-sa)}
+/* choices read best as one list: no orphaned card, whatever the count */
+@media (min-width:1000px){.cx-sits{grid-template-columns:minmax(0,1fr)!important;max-width:760px}}
+.cx-step.s-pick{max-width:760px;margin-inline:auto}
