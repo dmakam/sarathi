@@ -10,6 +10,7 @@ import graph_data as G
 E = {}  # filled by init(): V, ORDER, CORE, THEMES, THEME, SITUATIONS, CONCEPT, page, esc, trim, eng, verse_url, sa_html, write_json
 
 STATE = {s[0]: s for s in G.STATES}
+CHEV = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>'
 SIT = {}
 # Relation phrases, forward (a -> b) and backward (seen from b).
 REL = {
@@ -54,54 +55,70 @@ def state_chip(sid, extra=""):
         "a" if s[3] == "afflictive" else "h", sid, E["esc"](s[4]), E["esc"](s[2]), E["esc"](s[1]), extra)
 
 
+def _lc(x):
+    return x[:1].lower() + x[1:] if x and not (len(x) > 1 and x[1].isupper()) else x
+
+
 def verse_map_html(vid):
+    """The verse's connections as a thread: the verse at the top, one line down through
+    plain-worded stops. Tap a word and its "why" opens under that stop (app.js)."""
     t = G.TAGS.get(vid)
     if not t:
         return ""
     esc = E["esc"]
-    speaks = [s for s in t["s"] if STATE[s][3] == "afflictive"]
-    cult = [s for s in t["s"] if STATE[s][3] == "healing"]
-    left = []
-    if speaks:
-        left.append('<div class="vm-group"><h3>Speaks to</h3>%s</div>' % "".join(state_chip(s) for s in speaks))
-    if cult:
-        left.append('<div class="vm-group"><h3>Cultivates</h3>%s</div>' % "".join(state_chip(s) for s in cult))
-    if t["h"]:
-        left.append('<div class="vm-group"><h3>Helps when</h3>%s</div>' % "".join(
-            '<a class="vm-node sit" href="/facing/%s/" data-why="%s">%s</a>' % (h, esc(SIT[h][1]), esc(SIT[h][1])) for h in t["h"]))
+    C = E["CONCEPT"]
+
+    def chip(kind, label, why, href, go):
+        return ('<button type="button" class="vt-chip k-%s" aria-expanded="false" data-why="%s" data-href="%s" data-go="%s">'
+                '<span class="vt-dot" aria-hidden="true"></span>%s</button>') % (kind, esc(why), href, esc(go), label)
+
+    def stop(kind, title, inner, sid):
+        return ('<div class="vt-stop k-%s"><span class="vt-node" aria-hidden="true"></span><h3>%s</h3>%s'
+                '<p class="vt-why" data-stop="%s" aria-live="polite" hidden></p></div>') % (kind, title, inner, sid)
+
+    stops = []
+    feel = []
+    for sid in t["s"]:
+        st = STATE[sid]
+        if st[3] == "afflictive":
+            feel.append(chip("speaks", esc(st[1]), "It speaks to %s: %s." % (_lc(st[1]), _lc(st[4])), "/state/%s/" % sid, "See every verse on %s" % _lc(st[1])))
+    for h in t["h"]:
+        lab = SIT[h][1]
+        feel.append(chip("helps", esc(lab), "Ask brings you here when you say: \u201c%s.\u201d" % lab.rstrip("."), "/facing/%s/" % h, "See verses for this"))
+    if feel:
+        stops.append(stop("speaks", "Reach for it when", '<div class="vt-chips">%s</div>' % "".join(feel), "feel"))
+    grow = [chip("cultivates", esc(STATE[sid][1]), "It builds %s: %s." % (_lc(STATE[sid][1]), _lc(STATE[sid][4])), "/state/%s/" % sid, "See every verse on %s" % _lc(STATE[sid][1]))
+            for sid in t["s"] if STATE[sid][3] == "healing"]
+    if grow:
+        stops.append(stop("cultivates", "What it grows in you", '<div class="vt-chips">%s</div>' % "".join(grow), "grow"))
+    if t["c"]:
+        ideas = [chip("idea", '<span lang="sa">%s</span> %s' % (esc(C[c][2]), esc(C[c][1])), "%s, %s." % (C[c][1], _lc(C[c][3])), "/concept/%s/" % c, "Every verse with %s" % C[c][1])
+                 for c in t["c"]]
+        stops.append(stop("idea", "Ideas inside it", '<div class="vt-chips">%s</div>' % "".join(ideas), "idea"))
     rel = []
     for a, typ, b, note in G.LINKS:
         if a == vid:
-            rel.append((REL[typ][0], b, note, typ))
+            rel.append((REL[typ][0], b, note))
         elif b == vid:
-            rel.append((REL[typ][1], a, note, typ))
-    right = []
+            rel.append((REL[typ][1], a, note))
     if rel:
-        right.append('<div class="vm-group"><h3>Connected verses</h3>%s</div>' % "".join(
-            '<a class="vm-node vv rel-%s" href="%s" data-why="%s"><span class="rel">%s</span> %s</a>' % (typ, E["verse_url"](o), esc(note), esc(r), o)
-            for r, o, note, typ in rel))
-    if t["c"]:
-        C = E["CONCEPT"]
-        right.append('<div class="vm-group"><h3>Ideas</h3>%s</div>' % "".join(
-            '<a class="vm-node idea" href="/concept/%s/" data-why="%s"><span lang="sa">%s</span> %s</a>' % (c, esc(C[c][3]), esc(C[c][2]), esc(C[c][1])) for c in t["c"]))
-    ch = chains_of(vid)
-    if ch:
-        right.append('<div class="vm-group"><h3>Part of a chain</h3>%s</div>' % "".join(
-            '<a class="vm-node chain" href="/map/#chain-%s" data-why="%s">%s</a>' % (c[0], esc(c[2]), esc(c[1])) for c in ch))
-    themes = [x for x in E["THEMES"] if vid in x[2]]
-    hub_sub = esc("Theme %d: %s" % (E["THEMES"].index(themes[0]) + 1, themes[0][1])) if themes else ""
-    return """<section class="v-sec vmap-sec" aria-labelledby="h-map">
-  <h2 id="h-map">Verse map</h2>
-  <p class="hint">How this verse connects to feelings, situations, ideas and other verses. Hover or tap to see why; these links are drafts awaiting review.</p>
-  <div class="vm" data-vid="{vid}">
-    <svg class="vm-lines" aria-hidden="true"></svg>
-    <div class="vm-col vm-left">{left}</div>
-    <div class="vm-center"><div class="vm-hub"><span class="vm-num">{vid}</span><span class="vm-sub">{sub}</span></div></div>
-    <div class="vm-col vm-right">{right}</div>
-  </div>
-  <p class="vm-why" aria-live="polite">&nbsp;</p>
-  <p class="vm-more"><a href="/map/">Open the Gita map</a></p>
-</section>""".format(vid=vid, left="".join(left), right="".join(right), sub=hub_sub)
+        cards = "".join('<a class="vt-verse" href="%s"><span class="vt-vn">%s</span><span class="vt-vt"><span class="vt-rel">%s</span>%s</span>%s</a>'
+                        % (E["verse_url"](o), o, esc(r[:1].upper() + r[1:]), esc(note), CHEV) for r, o, note in rel)
+        stops.append(stop("verse", "Where it leads" if all(r in ("leads to", "arrives at") for r, _, _ in rel) else "Verses it talks to", cards, "rel"))
+    for c in chains_of(vid):
+        steps = []
+        for i, (label, v) in enumerate(c[4]):
+            steps.append('<a class="vt-step%s" href="%s">%s</a>' % (" here" if v == vid else "", E["verse_url"](v), esc(label)))
+        last = c[4][-1][1]
+        note = "Lit steps are this verse." + (" The last step is %s." % last if last != vid else "")
+        stops.append(stop("chain", "Part of a chain",
+                          '<div class="vt-chain"><span class="vt-ct">%s</span><span class="vt-cd">%s</span><div class="vt-steps">%s</div><span class="vt-cn">%s</span></div>'
+                          % (esc(c[1]), esc(c[2]), '<span aria-hidden="true">&#8250;</span>'.join(steps), note), "chain"))
+    return """<section class="v-sec vt" aria-labelledby="h-map" data-tab="links">
+  <div class="vt-head"><span class="vt-hub" aria-hidden="true">{vid}</span><span><span class="vt-k">Verse map</span><span class="vt-h" id="h-map">Where this verse connects</span><span class="vt-s">Tap a word to see why.</span></span></div>
+  <div class="vt-thread">{stops}</div>
+  <a class="vt-all" href="/map/">See the whole map{chev}</a>
+</section>""".format(vid=vid, stops="".join(stops), chev=CHEV)
 
 
 def graph_json():
@@ -222,7 +239,8 @@ def build_map_page():
             "verses": {v: [E["trim"](E["eng"](V[v]), 150), " ".join(V[v]["sa"][:1])] for v in G.TAGS}}
     E["write_json"]("data/map.json", data)
     E["write_json"]("data/graph.json", graph_json())
-    body = """<section class="map-hero">
+    body = """<header class="mtop"><a class="vtop-back" href="/explore/" aria-label="Back to Explore"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></a><span>The Gita map</span></header>
+<section class="map-hero">
   <div class="mh-copy">
     <h1>Where are you right now?</h1>
     <p class="lede">Pick a feeling. The map draws your path through the Gita: how it works, what answers it, and the verses to practise.</p>
@@ -247,6 +265,6 @@ def build_map_page():
 <ol class="pf-out" aria-live="polite"></ol></section>
 <p class="credit">The map links the {n} core shlokas of the twenty themes. Its links are drafts made from the text and translations, waiting for review.</p>""".format(
         pick=pick, pick_h=pick_h, chains="".join(chains), rows="".join(rows), n=len(G.TAGS))
-    E["page"]("map/index.html", "The Gita map: from what troubles you to what heals it", body, nav="map", body_class="pg-map",
+    E["page"]("map/index.html", "The Gita map: from what troubles you to what heals it", body, nav="map", body_class="pg-map ph-bare",
               desc="Pick a feeling and follow a path through the Bhagavad Gita: the verses that explain it, what answers it, and verses to practise.",
               scripts='<script src="/assets/map.js" defer></script>')

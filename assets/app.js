@@ -49,6 +49,104 @@
       else el.textContent = "Begin";
     });
   })();
+  // which theme the learner is on: the first one started and not finished, else the first not finished
+  function journey(themes) {
+    var states = themes.map(function (t) { return themeState(t[2], READ, LEARNED); }), pick = -1, firstOpen = -1;
+    states.forEach(function (x, k) { if (firstOpen < 0 && !x.done) firstOpen = k; if (pick < 0 && x.started && !x.done) pick = k; });
+    if (pick < 0) pick = firstOpen < 0 ? 0 : firstOpen;
+    var vs = themes[pick][2], nextV = vs.filter(function (x) { return LEARNED.indexOf(x) === -1; })[0] || vs[0];
+    return { pick: pick, vs: vs, nextV: nextV, st: states[pick], states: states };
+  }
+  function lampRow(vs, nextV) {
+    var k = 0, marked = false;
+    return vs.map(function (x) {
+      if (LEARNED.indexOf(x) !== -1) return DIYA_ON;
+      var off = DIYA_OFF.replace('class="diya off"', 'class="diya off" style="--k:' + (k++) + '"');
+      if (!marked && x === nextV) { marked = true; return '<span class="lamp-next">' + off + "</span>"; }
+      return off;
+    }).join("");
+  }
+  (function learnPage() {
+    var ln = document.querySelector(".ln[data-themes]"); if (!ln) return;
+    var themes = JSON.parse(ln.getAttribute("data-themes")), j = journey(themes);
+    var nx = ln.querySelector(".ln-next");
+    nx.setAttribute("href", vurl(j.nextV));
+    nx.querySelector(".ln-nk").textContent = "Next up \u00b7 verse " + j.nextV;
+    nx.querySelector(".ln-nt").textContent = themes[j.pick][1];
+    nx.querySelector(".ln-lamps").innerHTML = lampRow(j.vs, j.nextV);
+    Array.prototype.forEach.call(ln.querySelectorAll(".ln-row"), function (a, k) {
+      var vs = a.getAttribute("data-v").split(","), st = j.states[k], el = a.querySelector(".ln-st");
+      var next = vs.filter(function (x) { return LEARNED.indexOf(x) === -1; })[0] || vs[0];
+      a.setAttribute("href", vurl(next));
+      if (k === j.pick) a.classList.add("on");
+      if (st.done) { a.classList.add("done"); el.textContent = "All " + st.of + " lit"; }
+      else if (k === j.pick && !st.l) el.textContent = (k === 0 ? "Start here \u00b7 " : "Next \u00b7 ") + st.of + " verses";
+      else el.textContent = st.l + " of " + st.of + " lit";
+    });
+  })();
+  (function practiceFocus() {
+    var pr = document.querySelector("article.practice"); if (!pr) return;
+    var bar = pr.querySelector(".ptop .vtop-lamps");
+    if (bar) bar.innerHTML = lampRow(bar.getAttribute("data-v").split(","), bar.getAttribute("data-here"));
+    var say = pr.querySelector(".say-toggle");
+    if (say) {
+      var setSay = function (hide) {
+        pr.classList.toggle("no-say", hide);
+        say.setAttribute("aria-pressed", hide ? "true" : "false");
+        say.textContent = hide ? "Show how to say it" : "Hide how to say it";
+      };
+      setSay(store.get("hideSay", false));
+      say.addEventListener("click", function () { var h = !pr.classList.contains("no-say"); store.set("hideSay", h); setSay(h); });
+    }
+    var ob = pr.querySelector(".p-opts-btn"), dock = pr.querySelector(".psteps");
+    if (ob && dock) ob.addEventListener("click", function () {
+      var open = !dock.classList.contains("opts-open");
+      dock.classList.toggle("opts-open", open); ob.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+  })();
+  (function versePage() {
+    var art = document.querySelector("article.verse"); if (!art) return;
+    // lamps: the theme bar at the top and the In Theme card
+    var bar = art.querySelector(".vtop-lamps");
+    if (bar) bar.innerHTML = lampRow(bar.getAttribute("data-v").split(","), bar.getAttribute("data-here"));
+    Array.prototype.forEach.call(art.querySelectorAll(".tl-cell[data-v]"), function (a) {
+      var on = LEARNED.indexOf(a.getAttribute("data-v")) !== -1;
+      a.querySelector(".tr-lamp").innerHTML = on ? DIYA_ON : DIYA_OFF;
+      if (on) a.classList.add("learned");
+    });
+    // Words / Explained / Connected: on phones one panel at a time; wide screens show them all
+    var tabs = Array.prototype.slice.call(art.querySelectorAll(".v-tabs [data-tab]"));
+    if (tabs.length) {
+      art.classList.add("tabbed");
+      var pick = function (id, focus) {
+        tabs.forEach(function (b) { var on = b.getAttribute("data-tab") === id; b.setAttribute("aria-selected", on ? "true" : "false"); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); });
+        Array.prototype.forEach.call(art.querySelectorAll("[data-tab]:not([role=tab])"), function (p) { p.classList.toggle("tab-off", p.getAttribute("data-tab") !== id); });
+        try { sessionStorage.setItem("sarathi.vtab", id); } catch (e) {}
+      };
+      tabs.forEach(function (b, k) {
+        b.addEventListener("click", function () { pick(b.getAttribute("data-tab")); });
+        b.addEventListener("keydown", function (e) {
+          var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0; if (!d) return;
+          e.preventDefault(); var n = tabs[(k + d + tabs.length) % tabs.length]; pick(n.getAttribute("data-tab"), true);
+        });
+      });
+      var start = "words"; try { start = sessionStorage.getItem("sarathi.vtab") || "words"; } catch (e) {}
+      if (!tabs.some(function (b) { return b.getAttribute("data-tab") === start; })) start = "words";
+      pick(start);
+    }
+    // verse map: tap a word, its "why" opens under that stop; tap again to close
+    Array.prototype.forEach.call(art.querySelectorAll(".vt-chip"), function (c) {
+      c.addEventListener("click", function () {
+        var stop = c.closest(".vt-stop"), why = stop.querySelector(".vt-why"), open = c.getAttribute("aria-expanded") === "true";
+        Array.prototype.forEach.call(art.querySelectorAll(".vt-chip"), function (x) { x.setAttribute("aria-expanded", "false"); });
+        Array.prototype.forEach.call(art.querySelectorAll(".vt-why"), function (w) { w.hidden = true; });
+        if (open) return;
+        c.setAttribute("aria-expanded", "true");
+        why.innerHTML = escH(c.getAttribute("data-why")) + ' <a href="' + escH(c.getAttribute("data-href")) + '">' + escH(c.getAttribute("data-go")) + " \u203a</a>";
+        why.hidden = false;
+      });
+    });
+  })();
   (function themeRail() {
     Array.prototype.forEach.call(document.querySelectorAll(".tp-list li[data-v], .p-theme li[data-v], .ppath li[data-v]"), function (li) {
       var v = li.getAttribute("data-v"), on = LEARNED.indexOf(v) !== -1;
@@ -101,7 +199,7 @@
     var greet = { morning: "Namaste. Good morning.", day: "Namaste. Good afternoon.", evening: "Namaste. Good evening.", night: "Namaste. Can\u2019t sleep? You\u2019re not alone." }[t];
     sk.querySelector(".sky-greet").textContent = greet;
     var tod = JSON.parse(sk.getAttribute("data-tod")), d = Math.floor(Date.now() / 86400000), v = tod[d % tod.length];
-    sk.querySelector(".sky-tod .sky-kt").innerHTML = "Krishna says<span class=\"sky-kn\"> \u00b7 " + v[0] + "</span>";
+    sk.querySelector(".sky-tod .sky-kt").innerHTML = "<span class=\"sky-kl\">Krishna says</span><span class=\"sky-kp\">Today\u2019s verse</span><span class=\"sky-kn\"> \u00b7 " + v[0] + "</span>";
     sk.querySelector(".sky-ref a").textContent = "Read " + v[0] + " in full";
     var qEn = sk.querySelector(".sky-q:not(.sky-qsa)"), qSa = sk.querySelector(".sky-qsa");
     qEn.textContent = "\u201c" + v[1] + "\u201d";
@@ -139,7 +237,7 @@
     }).join("");
     var go = card.querySelector(".sky-hit");
     go.textContent = title;
-    go.setAttribute("href", "/themes/" + themes[pick][0] + "/#v-" + nextV.replace(".", "-"));
+    go.setAttribute("href", vurl(nextV));
     go.setAttribute("aria-label", title + ": verse " + nextV + ", theme " + (pick + 1) + ", " + themes[pick][1]);
     if (any) sk.classList.add("journey");
   })();
@@ -156,6 +254,24 @@
     b.addEventListener("click", function () {
       var i = steps.indexOf(store.get("textsize", 1)); var z = steps[(i + 1) % steps.length];
       store.set("textsize", z); apply(z);
+    });
+  })();
+  (function themeSwitch() {
+    // Dark is the default; Light is remembered per device (read before paint in the page head).
+    var b = document.querySelector(".nav-theme"); if (!b) return;
+    var root = document.documentElement, meta = document.querySelector('meta[name="theme-color"]');
+    function apply(t) {
+      root.setAttribute("data-theme", t);
+      var other = t === "dark" ? "Light" : "Dark";
+      b.setAttribute("aria-label", "Switch to " + other.toLowerCase() + " colours");
+      b.querySelector(".nt-l").textContent = other;
+      if (meta) meta.setAttribute("content", t === "dark" ? "#071E22" : "#F4F7F6");
+    }
+    apply(root.getAttribute("data-theme") === "light" ? "light" : "dark");
+    b.addEventListener("click", function () {
+      var t = root.getAttribute("data-theme") === "light" ? "dark" : "light";
+      try { localStorage.setItem("sarathi.theme", t); } catch (e) {}
+      apply(t);
     });
   })();
   function getJSON(u) {

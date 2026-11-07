@@ -290,13 +290,13 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
 <meta property="og:description" content="{desc}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="{base}{canon}">
-<meta name="theme-color" content="#0B3B40">
+<meta name="theme-color" content="#071E22">
 <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="{fonts}">
 <link rel="stylesheet" href="/assets/app.css">
-<script>(function(){{var h=new Date().getHours();document.documentElement.setAttribute("data-sky",h>=5&&h<11?"morning":h<17?"day":h<20?"evening":"night")}})();try{{var z=JSON.parse(localStorage.getItem("sarathi.textsize")||"1");if(z>1)document.documentElement.style.setProperty("--zoom",z)}}catch(e){{}}</script>
+<script>(function(){{var t="dark";try{{t=localStorage.getItem("sarathi.theme")||"dark"}}catch(e){{}}document.documentElement.setAttribute("data-theme",t==="light"?"light":"dark")}})();(function(){{var h=new Date().getHours();document.documentElement.setAttribute("data-sky",h>=5&&h<11?"morning":h<17?"day":h<20?"evening":"night")}})();try{{var z=JSON.parse(localStorage.getItem("sarathi.textsize")||"1");if(z>1)document.documentElement.style.setProperty("--zoom",z)}}catch(e){{}}</script>
 {ld}
 </head>
 <body class="{bc}">
@@ -304,7 +304,7 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
 <header class="top">
   <a class="brand" href="/"><img src="/assets/icon.svg" alt="" width="28" height="28"><span>{site}</span></a>
   <nav class="nav" aria-label="Main">
-    {n2}{n1}{n3}
+    {n2}{n1}{n3}<button type="button" class="nav-theme" aria-label="Switch to light colours"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><g class="i-sun"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></g><path class="i-moon" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span class="nt-l">Light</span></button>
   </nav>
   <a class="nav-search" href="/search/" aria-label="Search the Gita"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></a>
   <button type="button" class="nav-size" aria-label="Text size: normal. Tap to make text larger."><span aria-hidden="true">A<small>A</small></span></button>
@@ -347,6 +347,21 @@ def verse_row(vid, extra=""):
 
 
 # ---------------------------------------------------------------- verse pages
+
+MAP_ART = ('<svg class="ex-mapart" width="92" height="84" viewBox="0 0 92 84" aria-hidden="true">'
+           '<g fill="none" stroke-width="1.3" opacity="0.7"><path d="M46 42 Q30 20 14 16" stroke="#E59A84"/><path d="M46 42 Q64 18 80 14" stroke="#E9C77A"/>'
+           '<path d="M46 42 Q24 44 10 52" stroke="#7FCFC4"/><path d="M46 42 Q70 46 84 50" stroke="#86CDC2"/><path d="M46 42 Q40 62 26 74" stroke="#AEB8F0"/>'
+           '<path d="M46 42 Q56 64 66 74" stroke="#AEB8F0"/><path d="M14 16 Q12 34 10 52" stroke="#9DB6B3" stroke-dasharray="3 3"/></g>'
+           '<circle cx="14" cy="16" r="4.5" fill="#E59A84"/><circle cx="80" cy="14" r="4.5" fill="#E9C77A"/><circle cx="10" cy="52" r="4" fill="#7FCFC4"/>'
+           '<circle cx="84" cy="50" r="4" fill="#86CDC2"/><circle cx="26" cy="74" r="3.5" fill="#AEB8F0"/><circle cx="66" cy="74" r="3.5" fill="#AEB8F0"/>'
+           '<circle cx="46" cy="42" r="15" fill="rgba(233,168,69,0.18)"/><circle cx="46" cy="42" r="9" fill="#F6C46A"/></svg>')
+CHEV_R = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>'
+ARROW_I = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg>'
+CHEV_L = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>'
+MIC_I = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>'
+X_I = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+SEARCH_I = '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>'
+
 
 TR_TABS = [(a, l, f) for a, l, f in TRANSLATIONS]
 TRAD = {t[0]: t for t in TRADITIONS}
@@ -415,21 +430,61 @@ def build_verse(vid):
         v["c"], v["c"],
         '<a rel="next" href="%s">Next %s</a>' % (verse_url(next_id), next_id) if next_id else "<span></span>")
 
+    tids = THEME_OF.get(vid, [])
+    if tids:
+        tid = tids[0]
+        ti = [x[0] for x in THEMES].index(tid)
+        tv = THEMES[ti][2]
+        k = tv.index(vid)
+        top = ('<a class="vtop-back" href="/themes/" aria-label="Back to Learn">%s</a><span class="vtop-t"><span class="vtop-k">Theme %d &middot; %d of %d</span>'
+               '<span class="vtop-n">%s</span></span><span class="vtop-lamps" data-v="%s" data-here="%s" aria-hidden="true"></span>') % (CHEV_L, ti + 1, k + 1, len(tv), esc(THEMES[ti][1]), ",".join(tv), vid)
+        cells = "".join('<a class="tl-cell%s" href="%s" data-v="%s" aria-label="Verse %s%s"%s><span class="tr-lamp"></span>%s</a>'
+                        % (" here" if x == vid else "", verse_url(x), x, x, ", this verse" if x == vid else "", ' aria-current="page"' if x == vid else "", x) for x in tv)
+        also = "".join('<a class="tl-also" href="/themes/%s/"><span><span class="tl-am">Also in</span> <b>Theme %d &middot; %s</b></span>%s</a>'
+                       % (t2, [x[0] for x in THEMES].index(t2) + 1, esc(THEME[t2][1]), CHEV_R) for t2 in tids[1:])
+        theme_card = ('<section class="tl-card" aria-label="Verses in theme %d"><div class="tl-h"><span class="tl-k">In Theme %d &middot; %d verses</span>'
+                      '<a href="/themes/%s/">See theme</a></div><div class="tl-row" style="--n:%d">%s</div>%s</section>') % (ti + 1, ti + 1, len(tv), tid, len(tv), cells, also)
+        if k < len(tv) - 1:
+            nxt_v, nxt_l = tv[k + 1], "Next verse in this theme, %s" % tv[k + 1]
+        elif ti < len(THEMES) - 1:
+            nxt_v, nxt_l = THEMES[ti + 1][2][0], "First verse of the next theme, %s" % THEMES[ti + 1][2][0]
+        else:
+            nxt_v, nxt_l = next_id, "Next verse, %s" % next_id
+    else:
+        top = ('<a class="vtop-back" href="/%d/" aria-label="Back to chapter %d">%s</a><span class="vtop-t"><span class="vtop-k">Chapter %d &middot; verse %d</span>'
+               '<span class="vtop-n">%s</span></span>') % (v["c"], v["c"], CHEV_L, v["c"], v["n"], esc(ch["tr"]))
+        theme_card = ""
+        nxt_v, nxt_l = next_id, "Next verse, %s" % next_id
+    cta = ('<div class="v-cta"><a class="v-learn" href="/practice/%d/%d/">%sLearn it by heart</a>%s</div>'
+           % (v["c"], v["n"], MIC_I, ('<a class="v-next" href="%s" aria-label="%s"><span>Next</span><b>%s &#8250;</b></a>' % (verse_url(nxt_v), nxt_l, nxt_v)) if nxt_v else ""))
+    vmap = GB.verse_map_html(vid)
+    has_links = bool(vmap) or bool(THEME_OF.get(vid) or v["concepts"] or SIT_OF.get(vid))
+    vtabs = ('<div class="v-tabs" role="tablist" aria-label="Go deeper">'
+             '<button type="button" role="tab" aria-selected="true" data-tab="words">Words</button>'
+             '<button type="button" role="tab" aria-selected="false" data-tab="explain">Explained</button>%s</div>'
+             % ('<button type="button" role="tab" aria-selected="false" data-tab="links">Connected</button>' if has_links else ""))
+    meaning = '<div class="v-mean"><span class="v-k">Meaning</span><p>%s</p></div>' % esc(card_text(v))
+
     body = """<article class="verse" data-vid="{vid}" data-card="{card}">
+<header class="vtop">{top}</header>
 <div class="v-head">
   <p class="crumb"><a href="/{c}/">Chapter {c}: {chname}</a>, verse {n}</p>
+  <p class="v-label">Bhagavad Gita {vid}</p>
   {speaker}
   {sa}
-  <p class="tl" lang="sa-Latn"><span class="tl-k">Say it</span>{tl}</p>
   {audio}
+  <p class="tl" lang="sa-Latn"><span class="tl-k">Say it</span>{tl}</p>
+  {meaning}
   <div class="v-actions">
     <button type="button" class="btn ghost mark" data-vid="{vid}">Mark as read</button>
     <button type="button" class="btn ghost share">Make a share card</button>
     <a class="btn ghost" href="/practice/{c}/{n}/">Practice reciting</a>
   </div>
 </div>
+{theme_card}
+{vtabs}
 <aside class="v-rail" aria-label="Words and links">
-<section class="v-sec v-words" aria-labelledby="h-words">
+<section class="v-sec v-words" aria-labelledby="h-words" data-tab="words">
   <h2 id="h-words">Word by word</h2>
   <p class="hint">Tap a word to see every verse that uses it.</p>
   <div class="words">{words}</div>
@@ -438,12 +493,12 @@ def build_verse(vid):
 {related}
 {nav}
 </aside>
-<section class="v-sec" aria-labelledby="h-tr">
+<section class="v-sec" aria-labelledby="h-tr" data-tab="explain">
   <h2 id="h-tr">Translation</h2>
   <div class="tabs" role="tablist" aria-label="Translators">{tabs}</div>
   {panels}
 </section>
-<details class="v-sec cm-fold">
+<details class="v-sec cm-fold" data-tab="explain">
   <summary><span class="cm-sum-t" id="h-cm">Classical commentaries</span><span class="cm-sum-d">For deeper study. Most are in the original Sanskrit.</span></summary>
   <div class="cm-body">
   {cm}
@@ -451,14 +506,15 @@ def build_verse(vid):
   </div>
 </details>
 {vmap}
+{cta}
 </article>
 <dialog class="card-dlg"><div class="card-wrap"><canvas width="1080" height="1350"></canvas></div>
 <div class="card-act"><button type="button" class="btn dl">Download image</button><button type="button" class="btn ghost sh" hidden>Share</button><button type="button" class="btn ghost close">Close</button></div></dialog>
 """.format(vid=vid, card=esc(json.dumps({"sa": v["sa"], "tl": v["tl"], "en": card_text(v), "id": vid}, ensure_ascii=False)),
            c=v["c"], chname=esc(ch["tr"]), n=v["n"], speaker=speaker, sa=sa_html(v), tl="<br>".join(esc(l) for l in v["tl"]),
            audio=audio, words="".join(words), tabs="".join(tabs), panels="".join(panels), cm="".join(cm_html),
-           related=('<section class="v-sec"><h2>In this verse</h2><div class="chips">%s%s%s</div></section>' % (themes, concepts, sits)) if (themes or concepts or sits) else "",
-           nav=nav, vmap=GB.verse_map_html(vid))
+           related=('<section class="v-sec v-related%s" data-tab="links"><h2>In this verse</h2>' % (" dup" if vmap else "") + '<div class="chips">%s%s%s</div></section>' % (themes, concepts, sits)) if (themes or concepts or sits) else "",
+           nav=nav, vmap=vmap, top=top, theme_card=theme_card, vtabs=vtabs, meaning=meaning, cta=cta)
 
     en = eng(v)
     jsonld = {
@@ -472,8 +528,8 @@ def build_verse(vid):
         "description": trim(en, 300),
     }
     page("%d/%d/index.html" % (v["c"], v["n"]), "Bhagavad Gita %s: %s" % (vid, trim(en, 60)), body,
-         desc=trim("Bhagavad Gita chapter %d verse %d: %s" % (v["c"], v["n"], en), 155), jsonld=jsonld, body_class="pg-verse",
-         scripts='<script src="/assets/map.js" defer></script>' if vid in GD.TAGS else "")
+         desc=trim("Bhagavad Gita chapter %d verse %d: %s" % (v["c"], v["n"], en), 155), jsonld=jsonld, body_class="pg-verse ph-bare", nav="themes" if THEME_OF.get(vid) else "read",
+         )
 
     write_json("data/c/%s.json" % vid, v["cm"])
 
@@ -688,21 +744,28 @@ def build_practice(vid):
                           % (ti, ti, k + 1, len(tv), tid, esc(tname), stops,
                              ('<a class="btn ghost pp-prev" href="%s"><span aria-hidden="true">&lsaquo; </span>%s</a>' % (purl(prev), prev)) if prev else "", nlink))
             break
+    tv_all = next((t[2] for t in THEMES if vid in t[2]), None)
+    ptop = ('<header class="ptop"><a class="ptop-x" href="%s" aria-label="Close, back to verse %s">%s</a><span class="ptop-t">Recite %s</span>%s</header>'
+            % (verse_url(vid), vid, X_I, vid, ('<span class="vtop-lamps" data-v="%s" data-here="%s" aria-hidden="true"></span>' % (",".join(tv_all), vid)) if tv_all else ""))
     body = """<article class="practice{haspath}" data-vid="{vid}">
+{ptop}
 {theme_rail}
 <div class="p-head">
   <p class="crumb"><a href="/practice/">Practice</a>, <a href="{vurl}">read verse {vid}</a></p>
   <h1>Recite {vid}</h1>
   <p class="pv" lang="sa">{lines}</p>
   <p class="tl" lang="sa-Latn"><span class="tl-k">Say it</span>{tl}</p>
+  <button type="button" class="say-toggle" aria-pressed="false">Hide how to say it</button>
   <p class="p-en">{en}</p>
   <p class="p-how">Listen first, then tap the mic and say the whole verse. Recording stops by itself when you finish.</p>
 </div>
 <div class="psteps">
+  <p class="dock-hint">Listen once, then say the whole verse from memory.</p>
   <section class="pstep"><h2>Listen</h2><p class="hint">Hear it first. In Chant, a teacher chants each line and a group repeats it: chant along with the group. Word by word reads the verse slowly with the joins between words opened up; turn on Repeat after me to say it back in the pauses.</p>{player}</section>
   <section class="pstep rec"><h2>Recite</h2><p class="hint">Say the whole verse at your own pace. Recording stops by itself a few seconds after you finish.</p>
     <button type="button" class="mic" aria-pressed="false" aria-label="Start reciting"><svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></button>
     <p class="mic-label">Tap and recite</p>
+    <button type="button" class="p-opts-btn" aria-expanded="false" aria-label="Listening options"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
     <p class="live" aria-live="polite"></p>
   </section>
 </div>
@@ -717,11 +780,11 @@ def build_practice(vid):
   <p>Your recording is sent to the S\u0101rathi coach, scored against the verse, and thrown away straight after. Nothing is stored on the server. Your score is kept in this browser, and your take stays on this device for playback until you leave the page.</p>
   <div class="card-act"><button type="button" class="btn ok">Start recording</button><button type="button" class="btn ghost cancel">Not now</button></div>
 </dialog>""".format(vid=vid, words=esc(json.dumps(words, ensure_ascii=False)), vurl=verse_url(vid), lines="<br>".join(lines),
-                    tl="<br>".join(esc(l) for l in v["tl"]), player=player, en=esc(eng(v)), theme_rail=theme_rail, haspath=" has-path" if theme_rail else "",
+                    tl="<br>".join(esc(l) for l in v["tl"]), player=player, en=esc(eng(v)), theme_rail=theme_rail, ptop=ptop, haspath=" has-path" if theme_rail else "",
                     next=('<p><a class="btn ghost" href="/practice/%s/%s/">Next verse, %s</a></p>' % (nxt.split(".")[0], nxt.split(".")[1], nxt)) if nxt else "")
     page("practice/%d/%d/index.html" % (v["c"], v["n"]), "Recite Bhagavad Gita %s" % vid, body, canonical=verse_url(vid),
          desc=trim("Practise reciting Bhagavad Gita %s: listen, recite, and see which words came through clearly." % vid, 155),
-         body_class="pg-verse pg-practice", nav="practice", scripts='<script src="/assets/recite.js" defer></script>')
+         body_class="pg-verse pg-practice ph-focus", nav="practice", scripts='<script src="/assets/recite.js" defer></script>')
 
 
 def build_practice_index():
@@ -743,14 +806,20 @@ def theme_cards():
 
 
 def build_themes():
-    body = """<section class="th-stage">
-<div class="th-head"><div><h1>Learn the Gita in 20 themes</h1>
-<p class="lede">Light a lamp for every verse you learn by heart.</p></div>
-<div class="v-actions"><a class="btn th-go" href="/themes/{first}/">Begin with theme 1</a><a class="btn ghost" href="/practice/">Practice</a><a class="btn ghost" href="/plans/">Plans</a></div></div>
-{cards}
-<p class="credit">Themes and shloka selection follow the <a href="{src}">{srcname}</a>.</p></section>""".format(
-        first=THEMES[0][0], cards=theme_cards(), src=THEMES_SOURCE[1], srcname=esc(THEMES_SOURCE[0]))
-    page("themes/index.html", "Learn the Gita in 20 themes", body, nav="themes", body_class="pg-themes",
+    rows = "".join('<li><a class="ln-row" href="/themes/%s/" data-v="%s"><span class="ln-n">%d</span>'
+                   '<span class="ln-tx"><span class="ln-name">%s</span><span class="ln-st">%d verses</span></span>%s</a></li>'
+                   % (tid, ",".join(vids), i, esc(name), len(vids), CHEV_R) for i, (tid, name, vids) in enumerate(THEMES, 1))
+    first = THEMES[0][2][0]
+    body = """<section class="ln" data-themes='{themes}'>
+<div class="ln-head"><h1 class="rd-h1">Learn by heart</h1><p>20 themes, a few verses each. A lamp lights for every verse you can recite.</p></div>
+<a class="ln-next" href="{furl}"><span class="edge" aria-hidden="true"></span><span class="ln-nb"><span class="ln-nk">Next up &middot; verse {first}</span><span class="ln-nt">{fname}</span><span class="ln-lamps" aria-hidden="true"></span></span><span class="go-saff" aria-hidden="true">{arrow}</span></a>
+<h2 class="ln-k">All themes</h2>
+<ol class="ln-list">{rows}</ol>
+<p class="ln-more"><a href="/practice/">Your practice</a> &middot; <a href="/plans/">Reading plans</a></p>
+<p class="credit">Themes and shloka selection follow the <a href="{src}">{srcname}</a>.</p>
+</section>""".format(themes=esc(json.dumps([[t[0], t[1], t[2]] for t in THEMES])), furl=verse_url(first), first=first, fname=esc(THEMES[0][1]),
+                     arrow=ARROW_I, rows=rows, src=THEMES_SOURCE[1], srcname=esc(THEMES_SOURCE[0]))
+    page("themes/index.html", "Learn the Gita in 20 themes", body, nav="themes", body_class="pg-learn ph-bare",
          desc="The Bhagavad Gita in 20 themes and %d shlokas, from inner potential to equanimity, with recitation and practice." % len(CORE))
     for i, (tid, name, vids) in enumerate(THEMES, 1):
         items = []
@@ -809,7 +878,7 @@ def build_consult():
   <h2>Saved for you</h2>
   <ul class="cx-savelist"></ul>
 </section>"""
-    page("consult/index.html", "Ask S\u0101rathi", body, nav="consult", body_class="pg-consult",
+    page("consult/index.html", "Ask S\u0101rathi", body, nav="consult", body_class="pg-consult ph-bare",
          desc="Say what you're going through and get one shloka from the Gita, what it means for you, and one thing to try today.",
          scripts='<script src="/assets/consult.js" defer></script>\n')
 
@@ -859,6 +928,9 @@ def build_home():
     </form>
     <div class="sky-chips"><span class="vh">Or start with</span>{chips}</div>
   </div>
+  <div class="sky-rise" aria-hidden="true"><svg viewBox="-200 -175 400 190" preserveAspectRatio="xMidYMax meet">{wheel_ph}
+    <path class="hill1" d="M-200 -12 C -120 -32, -50 -20, 10 -16 S 130 -36, 200 -26 L 200 20 L -200 20 Z"/>
+    <path class="hill2" d="M-200 10 C -100 -8, -10 2, 60 6 S 150 -6, 200 0 L 200 20 L -200 20 Z"/></svg></div>
   <div class="sky-cards">
     <article class="sky-card sky-tod"><div class="sky-k">{feather}<span class="sky-kt">Krishna says</span><div class="sky-lang" role="group" aria-label="Show the verse in"><button type="button" data-l="sa" aria-pressed="false" lang="sa">&#2360;&#2306;&#2360;&#2381;&#2325;&#2371;&#2340;</button><button type="button" data-l="en" aria-pressed="true">English</button></div></div><p class="sky-q"></p><p class="sky-q sky-qsa" lang="sa" hidden></p><p class="sky-ref"><a class="sky-hit" href="/2/47/">Read it in full</a></p></article>
     <article class="sky-card sky-learn"><span class="sky-edge" aria-hidden="true"></span>
@@ -869,7 +941,7 @@ def build_home():
       <span class="sky-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></article>
   </div>
 </section>""".format(tod=esc(json.dumps(tod, ensure_ascii=True)), themes=esc(json.dumps(themes, ensure_ascii=True)), chips=chips, stars=stars,
-           wheel=SA.wheel(1150, 640, 220), feather=SA.FEATHER)
+           wheel=SA.wheel(1150, 640, 220), wheel_ph=SA.wheel(0, 0, 150), feather=SA.FEATHER)
     jsonld = {"@context": "https://schema.org", "@type": "WebSite", "name": SITE, "url": BASE_URL + "/",
               "potentialAction": {"@type": "SearchAction", "target": BASE_URL + "/search/?q={q}", "query-input": "required name=q"}}
     page("index.html", "%s: guidance from the Bhagavad Gita" % SITE, body, jsonld=jsonld, body_class="pg-home", nav="",
@@ -877,15 +949,30 @@ def build_home():
 
 
 def build_explore():
-    cards = [("/map/", "The map", "See how feelings, verses and ideas connect, and find a path from one to another."),
-             ("/chapters/", "Read all 18 chapters", "Every one of the 701 verses, word by word, with recitation and commentaries."),
-             ("/facing/", "Verses for what you face", "Short lists of verses for common struggles."),
-             ("/concepts/", "Key ideas", "Dharma, karma, yoga and the other ideas that run through the Gita."),
-             ("/search/", "Search", "Find a verse by its words, its number or a Sanskrit term.")]
-    body = """<section class="ex-head"><h1>Explore the whole Gita</h1>
-<p class="lede">Everything beyond the 20 themes, for when you want to go deeper.</p></section>
-<div class="ex-grid">{c}</div>""".format(c="".join('<a class="ex-card" href="%s"><span class="ex-t">%s</span><span class="ex-d">%s</span></a>' % c for c in cards))
-    page("explore/index.html", "Explore the Bhagavad Gita", body, nav="explore", body_class="pg-list",
+    def tile(kind, href, title, sub, chips, more):
+        ch = "".join('<a class="xt-chip" href="%s">%s</a>' % (h, l) for h, l in chips)
+        if more:
+            ch += '<a class="xt-chip" href="%s">+%d</a>' % (href, more)
+        return ('<section class="xt xt-%s"><a class="xt-head" href="%s"><span class="xt-t">%s</span>%s</a>'
+                '<p class="xt-d">%s</p><div class="xt-chips">%s</div></section>' % (kind, href, title, CHEV_R, sub, ch))
+    chs = [("/1/", "1 Arjuna&#8217;s dilemma"), ("/2/", "2 Knowledge"), ("/3/", "3 Selfless action")]
+    ideas = [("/concept/%s/" % c[0], esc(c[1])) for c in CONCEPTS[:4]]
+    feels = [("/facing/%s/" % sid, label) for sid, label in (("anger", "Anger"), ("fear", "Fear"), ("grief", "Grief"), ("doubt", "Doubt"))]
+    body = """<section class="xp">
+<h1 class="xp-h">Explore</h1>
+<form class="xp-search" action="/search/" method="get" role="search"><label for="xs" class="vh">Search the Gita</label>{search}<input id="xs" name="q" placeholder="Search a word, a verse, a feeling" autocomplete="off"></form>
+<a class="xp-map" href="/map/">{art}<span class="xp-mt"><span class="xp-mh">See the map</span><span class="xp-md">How feelings, verses and ideas connect. Find a path from one to another.</span></span><span class="xp-mc">{chev}</span></a>
+<div class="xp-grid">
+{t1}
+{t2}
+{t3}
+</div>
+<p class="xp-more"><a href="/plans/">Reading plans</a> &middot; <a href="/sources/">Sources and credits</a></p>
+</section>""".format(search=SEARCH_I, art=MAP_ART, chev=CHEV_R,
+                     t1=tile("ch", "/chapters/", "18 chapters", "Read the Gita in order, verse by verse.", chs, 15),
+                     t2=tile("idea", "/concepts/", "Big ideas", "Words like dharma and karma, and every verse they appear in.", ideas, len(CONCEPTS) - 4),
+                     t3=tile("feel", "/facing/", "Feelings", "What the Gita says when you feel angry, afraid or low.", feels, len(SITUATIONS) - 4))
+    page("explore/index.html", "Explore the Bhagavad Gita", body, nav="explore", body_class="pg-explore ph-bare",
          desc="Explore all 701 verses of the Bhagavad Gita: the map of ideas, every chapter, key concepts and search.")
 
 

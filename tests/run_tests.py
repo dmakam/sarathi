@@ -171,7 +171,7 @@ def run():
             page.wait_for_timeout(200)
         check("Verse 2.47: translation tabs switch", n > 1 and tabs.nth(1).get_attribute("aria-selected") == "true", "%d tabs" % n)
         check("Verse 2.47: romanised Sanskrit is shown", page.locator('.tl[lang="sa-Latn"]').count() >= 1)
-        check("Verse 2.47: verse map is drawn", page.locator(".vm-hub").count() >= 1)
+        check("Verse 2.47: verse map is drawn", page.locator(".vt-hub").count() >= 1 and page.locator(".vt-chip").count() >= 1)
 
         # 8. map: feeling journey and path finder
         page.goto(BASE + "/map/")
