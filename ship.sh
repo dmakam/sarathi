@@ -25,7 +25,11 @@ echo "== 2. Running the tests"
 ./run-tests.sh || { echo "Tests failed; see tests/last-report.txt. Nothing was deployed." >&2; exit 1; }
 
 echo "== 3. Pushing $BRANCH to GitHub"
-git push origin "$BRANCH"
+if [ "${SKIP_PUSH:-0}" = 1 ]; then
+  echo "Skipped (SKIP_PUSH=1). Push it yourself later:  git push origin $BRANCH"
+else
+  git push origin "$BRANCH"
+fi
 COMMIT="$(git rev-parse --short HEAD)"
 
 echo "== 4. Copying $COMMIT to the server and deploying"
