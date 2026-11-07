@@ -1283,3 +1283,49 @@ html[data-sky="morning"] .pg-home .nav a[aria-current="page"],html[data-sky="day
   .sky-cards{margin-top:18px}
 }
 @media (max-width:760px){.sky-chips{align-self:stretch;width:auto;max-width:none}}
+
+/* ---------- home on phones: one screen, nothing to scroll ----------
+   The sky fills exactly the space between the top of the screen and the tab bar;
+   sizes follow the screen's height (dvh) so short and tall phones both fit. */
+@media (max-width:760px) and (orientation:portrait){
+  .pg-home .foot{display:none}
+  .pg-home main{min-height:0}
+  .pg-home .sky{box-sizing:border-box;height:calc(100dvh - var(--tabh));min-height:0;display:flex;flex-direction:column;
+    padding:calc(56px + env(safe-area-inset-top,0px)) 16px 12px;overflow:hidden}
+  .pg-home .sky-in{padding-top:clamp(4px,2dvh,24px);gap:clamp(8px,1.9dvh,18px);flex:none}
+  .pg-home .sky-greet{font-size:clamp(13.5px,2dvh,16px)}
+  .pg-home .sky h1{font-size:clamp(29px,min(9.4vw,5.6dvh),42px);line-height:1.05}
+  .pg-home .sky-ask{height:clamp(50px,7dvh,60px)}
+  .pg-home .sky-chip{min-height:44px;padding-block:0;display:inline-flex;align-items:center;font-size:clamp(14.5px,2.1dvh,16.5px)}
+  .pg-home .sky-cards{margin-top:auto;gap:clamp(8px,1.4dvh,12px);padding-top:clamp(8px,1.6dvh,16px);flex:none}
+  .pg-home .sky-card{padding:clamp(12px,1.9dvh,18px) 16px}
+  .pg-home .sky-learn{gap:12px}
+  .pg-home .sky-lb{gap:clamp(4px,.9dvh,8px)}
+  .pg-home .sky-k{font-size:12px}
+  .pg-home .sky-t{font-size:clamp(19px,2.9dvh,23px)}
+  .pg-home .sky-sub{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pg-home .sky-arrow{width:48px;height:48px}
+  .pg-home .sky-learn .sky-lamps .diya{width:22px;height:26px}
+  .pg-home .lamp-next{width:34px;height:34px}
+  .pg-home .sky-tod{gap:6px}
+  .pg-home .sky-q{font-size:clamp(16.5px,2.5dvh,19px);line-height:1.4;-webkit-line-clamp:3}
+  .pg-home .sky-qsa{font-size:clamp(17px,2.6dvh,20px);-webkit-line-clamp:2}
+  .pg-home .sky-ref{font-size:14px;margin:0}
+}
+/* shorter phones (iPhone SE, small Androids): trim the extras */
+@media (max-width:760px) and (orientation:portrait) and (max-height:700px){
+  .pg-home .sky-q{-webkit-line-clamp:2}
+  .pg-home .sky-ref{display:none}
+}
+@media (max-width:760px) and (orientation:portrait) and (max-height:600px){
+  .pg-home .sky-greet{display:none}
+  .pg-home .sky-sub{display:none}
+  .pg-home .sky-q{-webkit-line-clamp:2;font-size:16px}
+}
+@media (max-width:760px) and (orientation:portrait){
+  .pg-home .sky-in{padding-inline:0;padding-bottom:0}
+  .pg-home .sky-ask{margin-top:0}
+  .pg-home .sky-cards{padding:clamp(8px,1.6dvh,16px) 0 0;width:100%}
+  .pg-home .sky-tod .sky-k{min-height:0}
+  .pg-home .sky-lang button{padding-block:6px}
+}
