@@ -1342,3 +1342,6 @@ html[data-sky="morning"] .pg-home .nav a[aria-current="page"],html[data-sky="day
   .tp.focus .tp-rail .tp-list li.on a{background:none;box-shadow:inset 0 0 0 1.5px #D9962F;background:rgba(217,150,47,.1)}
   .tp.focus .tp-rail > p,.tp.focus .tp-rail .tp-lead{font-size:16px}
 }
+/* home menu on a light sky: hover and focus stay light even when the device is in dark mode */
+html[data-sky="morning"] .pg-home .nav a:hover,html[data-sky="day"] .pg-home .nav a:hover,
+html[data-sky="morning"] .pg-home .nav a:focus-visible,html[data-sky="day"] .pg-home .nav a:focus-visible{background:#FFFFFF;color:#1E2B3A}
