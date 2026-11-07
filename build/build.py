@@ -8,6 +8,7 @@ pure ASCII (non-ASCII becomes HTML entities or \\u escapes).
 """
 import collections
 import html
+import hashlib
 import json
 import os
 import re
@@ -37,7 +38,27 @@ def norm(s):
     return re.sub(r"[^a-z]", "", s)
 
 
+_VER = {}
+
+
+def asset_version(m):
+    """Add a short fingerprint of the file to each /assets/*.css|js link, so phones
+    fetch the new file after every deploy instead of keeping last week's copy."""
+    name = m.group(1)
+    if name not in _VER:
+        src = os.path.join(ROOT, "assets", name)
+        try:
+            with open(src, "rb") as f:
+                _VER[name] = hashlib.md5(f.read()).hexdigest()[:10]
+        except OSError:
+            _VER[name] = ""
+    v = _VER[name]
+    return '"/assets/%s%s"' % (name, "?v=" + v if v else "")
+
+
 def write(rel, text):
+    if rel.endswith(".html"):
+        text = re.sub(r'"/assets/([A-Za-z0-9_-]+\.(?:css|js))"', asset_version, text)
     path = os.path.join(OUT, rel)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "wb") as f:

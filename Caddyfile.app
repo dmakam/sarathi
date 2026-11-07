@@ -8,9 +8,12 @@
 	root * /srv
 	encode zstd gzip
 
+	# Pages are re-checked on every visit (cheap: the browser gets "not modified" when
+	# nothing changed), so a deploy shows up at once. CSS and JS links carry a
+	# fingerprint (?v=...), so those files can be kept for a long time.
 	@assets path /assets/* /data/* /audio/* /chant/*
 	header @assets Cache-Control "public, max-age=604800"
-	header ?Cache-Control "public, max-age=3600"
+	header ?Cache-Control "no-cache"
 	header {
 		X-Content-Type-Options nosniff
 		Referrer-Policy strict-origin-when-cross-origin
