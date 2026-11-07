@@ -233,8 +233,10 @@ import sacred_art as SA  # noqa: E402
 
 # ---------------------------------------------------------------- layout
 
-FONTS = ("https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500"
-         "&family=Tiro+Devanagari+Sanskrit:ital@0;1&display=swap")
+# Phones first: Newsreader without its optical-size axis (a quarter of the download) and
+# Sanskrit in upright only. Google serves only the character ranges a page uses.
+FONTS = ("https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Newsreader:wght@400;500"
+         "&family=Tiro+Devanagari+Sanskrit&display=swap")
 
 
 def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", nav="read", scripts=""):
