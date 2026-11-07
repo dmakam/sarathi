@@ -1086,3 +1086,19 @@ html[data-sky="evening"] .sky,html[data-sky="night"] .sky{--acc-k:#F2DFA0}
   .practice .psteps .no-coach .hint{display:block;grid-area:live;margin:6px 0 0;font-size:14px}
   .practice .p-theme{margin-top:28px}
 }
+
+/* recording switch: Chant (Aarsha Vidya Varshini) or the slow word-by-word reading */
+.p-src{display:inline-flex;padding:3px;border-radius:999px;background:var(--tint);gap:2px;flex:none}
+.p-src button{border:0;background:none;color:var(--text);font:600 14px/1 var(--ui);padding:8px 12px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.p-src button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.player.is-chant .p-opt{display:none}
+.p-credit{margin:8px 2px 0;font-size:13.5px;color:var(--muted)}
+.p-credit a{color:inherit}
+@media (max-width:1099px){
+  .practice .psteps{grid-template-areas:"pl mic" "pl lab" "cr cr" "live live"}
+  .practice .psteps .p-credit{grid-area:cr;margin:6px 0 0;font-size:12.5px}
+  .practice .psteps .p-src button{padding:7px 9px;font-size:13px}
+  .practice .psteps .player .p-speed{padding-inline:4px}
+  .practice .psteps .player .p-src{order:5}
+  .practice .psteps .player .p-opt{order:6}
+}

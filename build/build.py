@@ -157,10 +157,15 @@ for c in commentary_raw:
 assert len(V) == 701, len(V)
 
 # audio
+CHANT_SKIP = {(13, 1)}
+CHANT_CREDIT = ("Aarsha Vidya Varshini", "https://www.aarshavidyavarshini.org/bgchanting.html")
 AUDIO_SRC = os.path.join(SRC, "verse_recitation")
 for vid, v in V.items():
     p = os.path.join(AUDIO_SRC, str(v["c"]), "%d.mp3" % v["n"])
     v["audio"] = "/audio/%d/%d.mp3" % (v["c"], v["n"]) if os.path.exists(p) else None
+    # Chanting by Aarsha Vidya Varshini, one clip per verse cut from their chapter
+    # recordings (served from /chant on the server). Their chapter 13 has no 13.1.
+    v["chant"] = None if (v["c"], v["n"]) in CHANT_SKIP else "/chant/%d/%d.mp3" % (v["c"], v["n"])
 
 
 def eng(v, author="Swami Sivananda"):
@@ -279,7 +284,7 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
 {body}
 </main>
 <footer class="foot">
-  <p>{site} is a free reader for the Bhagavad Gita. Text, translations, commentaries and recitations come from the public-domain <a href="https://github.com/gita/gita">gita/gita</a> dataset. What you read and mark stays in your browser. Practice recordings are scored on our server and thrown away straight after.</p>
+  <p>{site} is a free reader for the Bhagavad Gita. Text, translations, commentaries and word-by-word recitations come from the public-domain <a href="https://github.com/gita/gita">gita/gita</a> dataset; verse chanting is by <a href="https://www.aarshavidyavarshini.org/bgchanting.html">Aarsha Vidya Varshini</a>, used with permission. What you read and mark stays in your browser. Practice recordings are scored on our server and thrown away straight after.</p>
   <p><a href="/sources/">Sources and credits</a></p>
 </footer>
 {scripts}<script src="/assets/app.js" defer></script>
@@ -368,12 +373,12 @@ def build_verse(vid):
 
     audio = ""
     if v["audio"]:
-        audio = """<div class="player" data-src="{src}">
+        audio = """<div class="player" data-src="{src}"{chant}>
   <button type="button" class="play" aria-label="Play recitation"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path class="i-play" d="M8 5v14l11-7z" fill="currentColor"/><path class="i-pause" d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg></button>
   <div class="p-track"><div class="p-bar"></div></div>
   <label class="p-opt"><input type="checkbox" class="repeat"> Repeat after me</label>
   <select class="p-speed" aria-label="Playback speed"><option value="0.75">0.75x</option><option value="1" selected>1x</option><option value="1.25">1.25x</option></select>
-</div>""".format(src=v["audio"])
+</div>""".format(src=v["audio"], chant=chant_attr(v))
 
     speaker = '<p class="speaker"><span lang="sa">%s</span> %s</p>' % (esc(v["speaker"]), esc(v["t_speaker"] or "")) if v["speaker"] else ""
     nav = '<nav class="vnav" aria-label="Verses">%s<a href="/%d/">Chapter %d</a>%s</nav>' % (
@@ -624,9 +629,9 @@ def build_practice(vid):
             else:
                 parts.append('<span class="pd">%s</span>' % esc(tok))
         lines.append(" ".join(parts))
-    player = ('<div class="player" data-src="%s"><button type="button" class="play" aria-label="Play recitation"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path class="i-play" d="M8 5v14l11-7z" fill="currentColor"/><path class="i-pause" d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg></button>'
+    player = ('<div class="player" data-src="%s"%s><button type="button" class="play" aria-label="Play recitation"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path class="i-play" d="M8 5v14l11-7z" fill="currentColor"/><path class="i-pause" d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg></button>'
               '<div class="p-track"><div class="p-bar"></div></div><label class="p-opt"><input type="checkbox" class="repeat"> Repeat after me</label>'
-              '<select class="p-speed" aria-label="Playback speed"><option value="0.75">0.75x</option><option value="1" selected>1x</option><option value="1.25">1.25x</option></select></div>' % v["audio"]) if v["audio"] else ""
+              '<select class="p-speed" aria-label="Playback speed"><option value="0.75">0.75x</option><option value="1" selected>1x</option><option value="1.25">1.25x</option></select></div>' % (v["audio"], chant_attr(v))) if v["audio"] else ""
     i = ORDER.index(vid)
     nxt = ORDER[i + 1] if i < len(ORDER) - 1 else None
     theme_rail = ""
@@ -648,7 +653,7 @@ def build_practice(vid):
   <p class="p-how">Listen first, then tap the mic and say the whole verse. Recording stops by itself when you finish.</p>
 </div>
 <div class="psteps">
-  <section class="pstep"><h2>Listen</h2><p class="hint">Hear it first. This recording reads the verse slowly, word by word, with the joins between words opened up. Turn on Repeat after me to say it back in the pauses.</p>{player}</section>
+  <section class="pstep"><h2>Listen</h2><p class="hint">Hear it first. In Chant, a teacher chants each line and a group repeats it: chant along with the group. Word by word reads the verse slowly with the joins between words opened up; turn on Repeat after me to say it back in the pauses.</p>{player}</section>
   <section class="pstep rec"><h2>Recite</h2><p class="hint">Say the whole verse at your own pace. Recording stops by itself a few seconds after you finish.</p>
     <button type="button" class="mic" aria-pressed="false" aria-label="Start reciting"><svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></button>
     <p class="mic-label">Tap and recite</p>
@@ -763,18 +768,23 @@ def build_consult():
          scripts='<script src="/assets/consult.js" defer></script>\n')
 
 
+def chant_attr(v):
+    return ' data-chant="%s" data-credit="%s" data-credit-url="%s"' % (v["chant"], esc(CHANT_CREDIT[0]), CHANT_CREDIT[1]) if v.get("chant") else ""
+
+
 def build_sources():
     tr = "".join("<li>%s (%s)%s</li>" % (esc(a), l.title(), ", following %s" % esc(f) if f else "") for a, l, f in TRANSLATIONS)
     cm = "".join("<li><strong>%s:</strong> %s</li>" % (esc(TRAD[t][1]), esc(", ".join(a for a, tt in COMMENTATORS.items() if tt == t))) for t in TRAD)
     body = """<section class="ch-head"><h1>Sources and credits</h1></section>
 <div class="prose">
-<p>The Sanskrit text, transliteration, word meanings, translations, commentaries and recitations come from the <a href="https://github.com/gita/gita">gita/gita</a> open dataset, released into the public domain under the Unlicense. Thank you to everyone who built it.</p>
+<p>The Sanskrit text, transliteration, word meanings, translations, commentaries and the slow word-by-word recitations come from the <a href="https://github.com/gita/gita">gita/gita</a> open dataset, released into the public domain under the Unlicense. Thank you to everyone who built it.</p>
+<h2>Chanting</h2><p>The chanted recitation of each verse is by <a href="{csrc}">{cname}</a>, used with their permission. Their recordings follow the traditional teaching style: the teacher chants each line and the students repeat it. S&#257;rathi cuts each chapter recording into one clip per verse. Their chapter 13 begins at <em>idam &#347;ar&#299;ra&#7747;</em>, so verse 13.1, found in some editions only, has no chanted clip. Thank you to Aarsha Vidya Varshini for allowing their chanting to be used here.</p>
 <h2>Themes</h2><p>The twenty themes and their shloka selection follow the <a href="{tsrc}">{tname}</a>.</p>
 <h2>Translations</h2><ul>{tr}</ul>
 <h2>Commentaries, by tradition</h2><ul>{cm}</ul>
 <h2>How concepts are found</h2><p>A verse is linked to a concept when the Sanskrit word for it, or a form of it, appears in the verse's word-by-word breakdown. This is literal, not interpretive: a verse about desire that never says <em>k&#257;ma</em> will not appear under it.</p>
 <h2>Privacy</h2><p>There are no accounts, no tracking scripts and no ads. Plan progress and preferences are stored in your own browser.</p>
-</div>""".format(tr=tr, cm=cm, tsrc=THEMES_SOURCE[1], tname=esc(THEMES_SOURCE[0]))
+</div>""".format(tr=tr, cm=cm, tsrc=THEMES_SOURCE[1], tname=esc(THEMES_SOURCE[0]), csrc=CHANT_CREDIT[1], cname=esc(CHANT_CREDIT[0]))
     page("sources/index.html", "Sources and credits", body, nav="", body_class="pg-list")
 
 

@@ -8,7 +8,7 @@
 	root * /srv
 	encode zstd gzip
 
-	@assets path /assets/* /data/* /audio/*
+	@assets path /assets/* /data/* /audio/* /chant/*
 	header @assets Cache-Control "public, max-age=604800"
 	header ?Cache-Control "public, max-age=3600"
 	header {

@@ -134,16 +134,45 @@
   var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // ---------- audio player with "repeat after me" ----------
+  // Two recordings where we have both: "Chant" (Aarsha Vidya Varshini, teacher chants a
+  // line and students repeat it) and "Word by word" (slow reading from the dataset).
   function Player(root) {
-    var a = new Audio(), src = root.getAttribute("data-src");
+    var a = new Audio(), slow = root.getAttribute("data-src"), chant = root.getAttribute("data-chant"), src = slow;
     a.preload = "none";
     var btn = $(".play", root), bar = $(".p-bar", root), rep = $(".repeat", root), spd = $(".p-speed", root);
     var rounds = 0, waitT = null;
     function ui() { root.classList.toggle("playing", !a.paused || !!waitT); }
     function stop() { a.pause(); clearTimeout(waitT); waitT = null; root.classList.remove("wait"); rounds = 0; ui(); }
+    if (chant) {
+      var mode = "chant";
+      try { mode = localStorage.getItem("sarathi.listen") || "chant"; } catch (e) {}
+      var sw = document.createElement("div");
+      sw.className = "p-src"; sw.setAttribute("role", "group"); sw.setAttribute("aria-label", "Recording");
+      sw.innerHTML = '<button type="button" data-m="chant">Chant</button><button type="button" data-m="slow">Word by word</button>';
+      root.insertBefore(sw, rep ? rep.parentNode : spd);
+      var cr = document.createElement("p");
+      cr.className = "p-credit";
+      cr.innerHTML = 'Chanting by <a href="' + root.getAttribute("data-credit-url") + '" target="_blank" rel="noopener">' + root.getAttribute("data-credit") + "</a>, used with permission.";
+      root.parentNode.insertBefore(cr, root.nextSibling);
+      var setMode = function (m) {
+        mode = m; src = m === "chant" ? chant : slow;
+        $$("button", sw).forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-m") === m ? "true" : "false"); });
+        root.classList.toggle("is-chant", m === "chant");
+        cr.hidden = m !== "chant";
+        if (rep && m === "chant") rep.checked = false;
+        if (a.src) { stop(); a.removeAttribute("src"); a.load(); bar.style.width = "0"; }
+      };
+      $$("button", sw).forEach(function (b) {
+        b.addEventListener("click", function () {
+          setMode(b.getAttribute("data-m"));
+          try { localStorage.setItem("sarathi.listen", mode); } catch (e) {}
+        });
+      });
+      setMode(mode === "slow" ? "slow" : "chant");
+    }
     btn.addEventListener("click", function () {
       if (!a.paused || waitT) { stop(); return; }
-      if (!a.src) a.src = src;
+      if (!a.getAttribute("src")) a.src = src;
       a.playbackRate = parseFloat(spd.value) || 1;
       rounds = 0;
       a.play();

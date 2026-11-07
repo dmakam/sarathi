@@ -53,7 +53,17 @@ if [ "$WITH_COACH" = 1 ]; then docker build -t "$COACH_IMAGE" server; fi
 
 echo "== 4. Replacing containers"
 docker rm -f "$WEB" "$COACH" >/dev/null 2>&1 || true
-docker run -d --name "$WEB" --restart unless-stopped --network "$NET" "$WEB_IMAGE"
+# Verse chanting clips (Aarsha Vidya Varshini) live outside the image so rebuilds stay
+# small: /home/deploy/sarathi-chant/<chapter>/<verse>.mp3, served at /chant/.
+CHANT_DIR="${CHANT_DIR:-/home/deploy/sarathi-chant}"
+CHANT_MOUNT=""
+if [ -d "$CHANT_DIR" ]; then
+  CHANT_MOUNT="-v $CHANT_DIR:/srv/chant:ro"
+  echo "Chanting clips: $(find "$CHANT_DIR" -name '*.mp3' | wc -l) found in $CHANT_DIR"
+else
+  echo "Note: no $CHANT_DIR folder, so the Chant option will have nothing to play."
+fi
+docker run -d --name "$WEB" --restart unless-stopped --network "$NET" $CHANT_MOUNT "$WEB_IMAGE"
 if [ "$WITH_COACH" = 1 ]; then
   docker run -d --name "$COACH" --restart unless-stopped --network "$NET" --memory 1300m --memory-swap 2600m \
     -e "SARATHI_ORIGINS=https://$DOMAIN" "$COACH_IMAGE"
