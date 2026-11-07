@@ -80,6 +80,13 @@
     }
     function top() { if (innerWidth >= 1100) requestAnimationFrame(function () { scrollTo(0, 0); }); }
     show((location.hash || "").slice(1), false); top();
+    // arriving with a verse in the address (from the home page's journey card): start at the
+    // top of the page, on every screen size, rather than wherever the browser jumped to
+    if (location.hash) {
+      if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+      var up = function () { scrollTo(0, 0); };
+      requestAnimationFrame(up); addEventListener("load", function () { setTimeout(up, 0); });
+    }
     addEventListener("hashchange", function () { show(location.hash.slice(1), true); top(); });
     document.addEventListener("keydown", function (e) {
       if (e.target.closest && e.target.closest("input,textarea,select")) return;
