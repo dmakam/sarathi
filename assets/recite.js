@@ -185,7 +185,9 @@
       result.innerHTML = '<p class="verdict">' + (r.good ? '<span class="big-check" aria-hidden="true">' + CHECK + "</span> Good" : "Needs work") + "</p>" +
         '<p class="detail">' + escH(detail) + " " + pct + "% of words clear. Tap any word in the verse to hear how you said it.</p>" +
         (r.good ? '<p class="detail strong">' + escH(st.label === "Almost learned" ? st.text : st.label + ". " + st.text) + "</p>" : "") +
-        '<div class="v-actions"><button type="button" class="btn again">Try again</button><button type="button" class="btn ghost play-take">Play your take</button></div>';
+        '<div class="v-actions"><button type="button" class="btn again">Try again</button><button type="button" class="btn ghost play-take">Play your take</button>' +
+        (function () { var nx = $(".pp-next", page); return nx ? '<a class="btn pp-next" href="' + nx.getAttribute("href") + '">' + escH(r.good ? "Move on: " : "Skip to ") + escH(nx.textContent.replace(/^Next:\s*/, "").replace(/\u203a/g, "").trim()) + " \u203a</a>" : ""; })() +
+        "</div>";
       $(".again", result).addEventListener("click", function () { start(); });
       $(".play-take", result).addEventListener("click", function () { if (takeAudio) { takeAudio.currentTime = 0; takeAudio.play(); } });
       renderProgress();

@@ -970,10 +970,10 @@ html[data-sky="evening"] .sky,html[data-sky="night"] .sky{--acc-k:#F2DFA0}
 .diya.off .wick{opacity:.55}
 .diya.off .fl{opacity:0;transform-box:fill-box;transform-origin:50% 100%;transform:scale(.2);transition:opacity .35s,transform .45s cubic-bezier(.2,1.6,.4,1)}
 .diya.off circle.fl{transform-origin:50% 50%}
-.sky-learn:hover .diya.off .fl,.tc3:hover .diya.off .fl{opacity:1;transform:none;transition-delay:calc(var(--k,0) * 110ms)}
-.sky-learn:hover .diya.off circle.fl,.tc3:hover .diya.off circle.fl{opacity:.3}
-.sky-learn:hover .diya.off .b,.sky-learn:hover .diya.off .b2,.tc3:hover .diya.off .b,.tc3:hover .diya.off .b2{fill:#B5653E;opacity:1;transition-delay:calc(var(--k,0) * 110ms)}
-.sky-learn:hover .diya.off .r,.tc3:hover .diya.off .r{stroke:#8C4A2B;opacity:1;transition-delay:calc(var(--k,0) * 110ms)}
+.tc3:hover .diya.off .fl{opacity:1;transform:none;transition-delay:calc(var(--k,0) * 110ms)}
+.tc3:hover .diya.off circle.fl{opacity:.3}
+.tc3:hover .diya.off .b,.tc3:hover .diya.off .b2{fill:#B5653E;opacity:1;transition-delay:calc(var(--k,0) * 110ms)}
+.tc3:hover .diya.off .r{stroke:#8C4A2B;opacity:1;transition-delay:calc(var(--k,0) * 110ms)}
 .sky-learn:hover .sky-go{text-decoration:underline;text-underline-offset:4px}
 .sky-tod:hover .feather{animation:feather-sway 1.6s ease-in-out infinite;transform-origin:50% 100%}
 @keyframes feather-sway{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
@@ -1138,4 +1138,110 @@ html[data-sky="evening"] .sky,html[data-sky="night"] .sky{--acc-k:#F2DFA0}
   .verse .vnav{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:15.5px}
   .verse .vnav a,.verse .vnav span{display:flex;align-items:center;justify-content:center;min-height:48px;padding:8px 10px;border-radius:var(--r-m);background:var(--paper);border:1px solid var(--line);text-align:center;line-height:1.25}
   .verse .vnav span:empty{visibility:hidden}
+}
+
+
+/* ---------- home: "Light your next lamp" journey card ---------- */
+.sky-learn{flex-direction:row;align-items:center;gap:20px;overflow:hidden;
+  background:linear-gradient(135deg,rgba(242,163,58,.24),var(--glass) 58%);border-color:rgba(232,170,80,.75);
+  box-shadow:0 0 0 4px rgba(242,163,58,.09),0 24px 60px -22px rgba(242,163,58,.55)}
+.sky-learn:hover{background:linear-gradient(135deg,rgba(242,163,58,.32),var(--gb) 60%)}
+.sky-lb{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.sky-learn .sky-k{justify-content:space-between}
+.sky-learn .sky-k span:first-child{color:var(--acc-k,#8A6A1E)}
+.sky-cnt{font-weight:700;letter-spacing:.08em;color:var(--sub)}
+.sky-t{font-size:24px;line-height:1.2}
+.sky-t a{color:inherit;text-decoration:none}
+.sky-sub{margin:0;font-size:15.5px;line-height:1.4;color:var(--sub)}
+.sky-learn .sky-lamps{display:flex;align-items:center;gap:6px;margin-top:4px;color:var(--sub)}
+.sky-learn .sky-lamps .diya{width:28px;height:32px}
+.lamp-next{display:grid;place-items:center;width:42px;height:42px;border-radius:999px;flex:none;
+  background:radial-gradient(circle,rgba(242,163,58,.32),rgba(242,163,58,.06) 70%);box-shadow:inset 0 0 0 1.5px #E9A845;animation:lamp-pulse 2.6s ease-in-out infinite}
+.sky-learn .lamp-next .diya{width:24px;height:28px}
+@keyframes lamp-pulse{0%,100%{box-shadow:inset 0 0 0 1.5px #E9A845,0 0 0 0 rgba(242,163,58,.55)}50%{box-shadow:inset 0 0 0 1.5px #E9A845,0 0 0 10px rgba(242,163,58,0)}}
+.sky-edge{position:absolute;left:0;right:0;top:0;height:1.5px;pointer-events:none;
+  background:linear-gradient(100deg,rgba(242,180,90,0) 30%,rgba(255,226,170,.85) 50%,rgba(242,180,90,0) 70%);background-size:200% 100%;animation:edge-sheen 6s linear infinite}
+@keyframes edge-sheen{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.sky-arrow{flex:none;width:58px;height:58px;border-radius:999px;display:grid;place-items:center;
+  background:linear-gradient(180deg,#F6C46A,#E39A35);color:#1C1204;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 12px 26px -8px rgba(227,154,53,.75);transition:transform .3s}
+.sky-learn:hover .sky-arrow{transform:translateX(4px)}
+/* today's verse: Sanskrit or English */
+.sky-tod .sky-k{margin:0}
+.sky-kt{flex:1;min-width:0}
+.sky-lang{position:relative;z-index:2;display:flex;padding:3px;border-radius:999px;background:var(--chip);border:1px solid var(--chipb);flex:none}
+.sky-lang button{border:0;background:none;color:var(--ink2);font:600 13.5px/1 var(--ui);letter-spacing:0;text-transform:none;padding:8px 11px;border-radius:999px;cursor:pointer}
+.sky-lang button[lang="sa"]{font-family:var(--sa);font-size:15px;padding-block:6px}
+.sky-lang button[aria-pressed="true"]{background:var(--ink2);color:var(--s1)}
+.sky-qsa{font-family:var(--sa);font-size:21px;line-height:1.6;-webkit-line-clamp:4}
+@media (prefers-reduced-motion:reduce){.lamp-next,.sky-edge{animation:none}.sky-edge{opacity:.5}}
+@media (max-width:760px){.sky-learn{gap:14px;padding:18px 16px 18px 18px}.sky-t{font-size:21px}.sky-arrow{width:50px;height:50px}.sky-learn .sky-lamps .diya{width:24px;height:28px}.lamp-next{width:36px;height:36px}}
+
+/* ---------- main menu: one clear pill group with icons, centred ---------- */
+.nav{margin:0 auto;gap:4px;padding:5px;border-radius:999px;background:var(--tint);border:1px solid var(--line);flex-wrap:nowrap}
+.nav a{display:inline-flex;align-items:center;gap:8px;min-height:44px;box-sizing:border-box;padding:0 20px;font-size:17px;font-weight:600;color:var(--text);border-radius:999px}
+.nav a svg{flex:none;opacity:.8}
+.nav a:hover{background:var(--paper);color:var(--text)}
+.nav a[aria-current="page"]{background:var(--cx-acc);color:var(--paper);box-shadow:0 6px 16px -8px rgba(0,0,0,.45)}
+.nav a[aria-current="page"] svg{opacity:1}
+.pg-home .nav{background:var(--tint);border-color:var(--chipb,rgba(255,255,255,.3));backdrop-filter:blur(10px)}
+html[data-sky="evening"] .pg-home .nav,html[data-sky="night"] .pg-home .nav{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28)}
+html[data-sky="evening"] .pg-home .nav a:hover,html[data-sky="night"] .pg-home .nav a:hover{background:rgba(255,255,255,.18)}
+html[data-sky="morning"] .pg-home .nav,html[data-sky="day"] .pg-home .nav{background:rgba(255,255,255,.7);border-color:rgba(30,43,58,.12)}
+@media (max-width:760px){
+  .nav{order:3;width:100%;display:grid;grid-template-columns:repeat(3,1fr);overflow:visible}
+  .nav a{justify-content:center;padding:0 8px;font-size:16px;gap:6px}
+}
+html[data-sky="evening"] .pg-home .nav a[aria-current="page"],html[data-sky="night"] .pg-home .nav a[aria-current="page"]{background:#FFFFFF;color:#142352}
+html[data-sky="morning"] .pg-home .nav a[aria-current="page"],html[data-sky="day"] .pg-home .nav a[aria-current="page"]{background:#0F5257;color:#FFFFFF}
+.sky-q[hidden]{display:none}
+.sky-cards .sky-learn{order:-1}
+.sky-kt{white-space:nowrap}
+@media (max-width:760px){.sky-lang button{padding:7px 9px;font-size:12.5px}.sky-lang button[lang="sa"]{font-size:14px;padding-block:5px}.sky-tod .sky-k{gap:8px;letter-spacing:.1em}}
+@media (max-width:420px){.sky-kn{display:none}}
+.sky-tod .sky-kt{flex:1 0 auto}@media (max-width:760px){.sky-tod{padding:18px 18px}}
+
+/* ---------- practice: the theme's verses as a path of lamps across the top ---------- */
+.ppath{display:flex;align-items:center;gap:24px;margin:16px 0 4px;padding:14px 20px;border-radius:var(--r-l,22px);background:var(--paper);border:1px solid var(--line)}
+.pp-t{display:flex;flex-direction:column;gap:2px;flex:none;min-width:0;max-width:260px}
+.pp-k{font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--acc-fg)}
+.pp-t a{font-size:18px;font-weight:700;color:var(--text);text-decoration:none;line-height:1.25}
+.pp-t a:hover{text-decoration:underline}
+.pp-l{list-style:none;margin:0;padding:0;flex:1;min-width:0;display:flex;justify-content:space-between;gap:4px;position:relative}
+.pp-l::before{content:"";position:absolute;left:24px;right:24px;top:22px;height:2px;background:var(--line)}
+.pp-l li{position:relative;flex:1;display:flex;justify-content:center}
+.pp-l a{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:48px;padding:4px 2px;border-radius:14px;text-decoration:none;color:var(--muted);font-size:14.5px;font-weight:600}
+.pp-l .tr-lamp{display:grid;place-items:center;width:40px;height:40px;border-radius:999px;background:var(--paper)}
+.pp-l .diya{width:26px;height:30px;color:var(--muted)}
+.pp-l a:hover{color:var(--text)}
+.pp-l li.on a{color:var(--text)}
+.pp-l li.on .tr-lamp{box-shadow:inset 0 0 0 2px #D9962F,0 0 0 5px rgba(217,150,47,.16);background:rgba(217,150,47,.1)}
+.pp-l li.learned a{color:var(--text)}
+.pp-nav{display:flex;gap:8px;flex:none}
+.pp-nav .btn{display:inline-flex;align-items:center;min-height:46px;padding:0 18px;border-radius:999px;font-size:15.5px;font-weight:700;white-space:nowrap;text-decoration:none}
+.pp-next{background:#E9A845;color:#1C1204;border:0}
+.pp-next:hover{background:#F2B95C;color:#1C1204}
+@media (min-width:1100px){
+  .practice.has-path>.ppath{grid-column:1 / -1;grid-row:1}
+  .practice.has-path>.p-head{grid-row:2 / span 10;top:76px}
+}
+@media (max-width:1099px){
+  .ppath{flex-wrap:wrap;gap:10px 12px;padding:12px 14px;margin-top:12px}
+  .pp-t{flex:1 1 auto;max-width:none}
+  .pp-t a{font-size:16.5px}
+  .pp-nav{order:2}
+  .pp-nav .btn{min-height:42px;padding:0 14px;font-size:14.5px}
+  .pp-l{order:3;flex-basis:100%}
+  .pp-l a{min-width:0;font-size:13px}
+  .pp-l .tr-lamp{width:36px;height:36px}
+  .pp-l .diya{width:22px;height:26px}
+  .pp-l::before{top:20px}
+  .pp-prev{display:none}
+}
+@media (max-width:1099px){
+  .pp-t{flex:1 1 0}
+  .pp-nav .pp-prev{display:none}
+  .pp-k{font-size:12px}
+  .practice.has-path .crumb{display:none}
+  .practice.has-path .p-head{padding-top:4px}
+  .practice.has-path .p-head h1{margin-top:6px}
 }

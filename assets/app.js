@@ -50,7 +50,7 @@
     });
   })();
   (function themeRail() {
-    Array.prototype.forEach.call(document.querySelectorAll(".tp-list li[data-v], .p-theme li[data-v]"), function (li) {
+    Array.prototype.forEach.call(document.querySelectorAll(".tp-list li[data-v], .p-theme li[data-v], .ppath li[data-v]"), function (li) {
       var v = li.getAttribute("data-v"), on = LEARNED.indexOf(v) !== -1;
       li.querySelector(".tr-lamp").innerHTML = on ? DIYA_ON : DIYA_OFF;
       if (on) li.classList.add("learned"); else if (READ.indexOf(v) !== -1) li.classList.add("read");
@@ -94,8 +94,21 @@
     var greet = { morning: "Namaste. Good morning.", day: "Namaste. Good afternoon.", evening: "Namaste. Good evening.", night: "Namaste. Can\u2019t sleep? You\u2019re not alone." }[t];
     sk.querySelector(".sky-greet").textContent = greet;
     var tod = JSON.parse(sk.getAttribute("data-tod")), d = Math.floor(Date.now() / 86400000), v = tod[d % tod.length];
-    sk.querySelector(".sky-tod .sky-k span").textContent = "Krishna says \u00b7 " + v[0];
-    sk.querySelector(".sky-q").textContent = "\u201c" + v[1] + "\u201d";
+    sk.querySelector(".sky-tod .sky-kt").innerHTML = "Krishna says<span class=\"sky-kn\"> \u00b7 " + v[0] + "</span>";
+    sk.querySelector(".sky-ref a").textContent = "Read " + v[0] + " in full";
+    var qEn = sk.querySelector(".sky-q:not(.sky-qsa)"), qSa = sk.querySelector(".sky-qsa");
+    qEn.textContent = "\u201c" + v[1] + "\u201d";
+    qSa.innerHTML = (v[3] || []).map(function (l) { return String(l).replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }).join("<br>");
+    // Sanskrit or English for today's verse; the choice is remembered on this device
+    function lang(l) {
+      if (!v[3] || !v[3].length) l = "en";
+      qEn.hidden = l !== "en"; qSa.hidden = l !== "sa";
+      Array.prototype.forEach.call(sk.querySelectorAll(".sky-lang button"), function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-l") === l ? "true" : "false"); });
+    }
+    lang(store.get("todlang", "en"));
+    Array.prototype.forEach.call(sk.querySelectorAll(".sky-lang button"), function (b) {
+      b.addEventListener("click", function () { var l = b.getAttribute("data-l"); store.set("todlang", l); lang(l); });
+    });
     var p = v[0].split("."); sk.querySelector(".sky-ref a").setAttribute("href", "/" + p[0] + "/" + p[1] + "/");
     var themes = JSON.parse(sk.getAttribute("data-themes")), pick = 0, st, any = false;
     var states = themes.map(function (t) { return themeState(t[2], READ, LEARNED); }), firstOpen = -1;
@@ -103,12 +116,24 @@
     pick = -1; states.forEach(function (x, k) { if (pick < 0 && x.started && !x.done) pick = k; });
     if (pick < 0) pick = firstOpen < 0 ? 0 : firstOpen;
     st = themeState(themes[pick][2], READ, LEARNED);
-    var card = sk.querySelector(".sky-learn");
-    card.querySelector(".sky-k span").textContent = any ? "Continue your journey" : "Begin your journey";
-    card.querySelector(".sky-t").textContent = "Theme " + (pick + 1) + ": " + themes[pick][1];
-    card.querySelector(".sky-lamps").innerHTML = lamps(themes[pick][2], LEARNED);
-    card.querySelector(".sky-note").textContent = st.l ? st.l + " of " + st.of + " learned by heart" : (st.n ? st.n + " of " + st.of + " read" : "Light a lamp for every verse you learn");
-    var go = card.querySelector(".sky-go"); go.setAttribute("href", "/themes/" + themes[pick][0] + "/"); go.textContent = any ? "Continue" : "Begin";
+    var card = sk.querySelector(".sky-learn"), vs = themes[pick][2];
+    var nextV = vs.filter(function (x) { return LEARNED.indexOf(x) === -1; })[0] || vs[0];
+    var ORD = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth"];
+    var title = "Light your " + (ORD[st.l] || ("next")) + " lamp";
+    card.querySelector(".sky-cnt").textContent = st.l + " of " + st.of + " lit";
+    card.querySelector(".sky-sub").textContent = "Theme " + (pick + 1) + " \u00b7 " + themes[pick][1] + (st.l ? "" : " \u00b7 " + st.of + " verses");
+    // lit lamps for verses learned by heart; the next one glows, ready to be lit
+    var k = 0, marked = false;
+    card.querySelector(".sky-lamps").innerHTML = vs.map(function (x) {
+      if (LEARNED.indexOf(x) !== -1) return DIYA_ON;
+      var off = DIYA_OFF.replace('class="diya off"', 'class="diya off" style="--k:' + (k++) + '"');
+      if (!marked && x === nextV) { marked = true; return '<span class="lamp-next">' + off + "</span>"; }
+      return off;
+    }).join("");
+    var go = card.querySelector(".sky-hit");
+    go.textContent = title;
+    go.setAttribute("href", "/themes/" + themes[pick][0] + "/#v-" + nextV.replace(".", "-"));
+    go.setAttribute("aria-label", title + ": verse " + nextV + ", theme " + (pick + 1) + ", " + themes[pick][1]);
     if (any) sk.classList.add("journey");
   })();
   (function textSize() {

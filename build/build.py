@@ -245,9 +245,15 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
     group = {"themes": "learn", "plans": "learn", "practice": "learn", "read": "explore", "map": "explore",
              "facing": "explore", "concepts": "explore", "explore": "explore", "consult": "consult"}.get(nav, nav)
 
+    NAV_ICON = {
+        "consult": '<path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+        "learn": '<path d="M12 3c2.6 3.3 2.6 6.2 0 8.4-2.6-2.2-2.6-5.1 0-8.4z" fill="currentColor"/><path d="M4 13h16c0 4.4-3.6 7-8 7s-8-2.6-8-7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+        "explore": '<circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 8.5l-2 5-5 2 2-5z" fill="currentColor"/>',
+    }
+
     def nl(key, href, label):
         cur = ' aria-current="page"' if key == group else ""
-        return '<a href="%s"%s>%s</a>' % (href, cur, label)
+        return '<a href="%s"%s><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">%s</svg><span>%s</span></a>' % (href, cur, NAV_ICON[key], label)
 
     doc = """<!doctype html>
 <html lang="en">
@@ -641,9 +647,26 @@ def build_practice(vid):
             nxt = tv[k + 1] if k < len(tv) - 1 else (THEMES[ti][2][0] if ti < len(THEMES) else nxt)
             lis = "".join('<li data-v="%s"%s><a href="/practice/%s/%s/"%s><span class="tr-lamp"></span><span class="tr-n">%s</span><span class="tr-t">%s</span></a></li>'
                           % (x, ' class="on"' if x == vid else "", V[x]["c"], V[x]["n"], ' aria-current="page"' if x == vid else "", x, esc(trim(eng(V[x]), 54))) for x in tv)
-            theme_rail = '<nav class="p-theme" aria-label="Verses in this theme"><p class="p-tk"><a href="/themes/%s/">Theme %d: %s</a></p><ol class="tp-list">%s</ol></nav>' % (tid, ti, esc(tname), lis)
+            # the theme's verses as a path of lamps across the top, with previous and next
+            def purl(x):
+                return "/practice/%s/%s/" % tuple(x.split("."))
+            stops = "".join('<li data-v="%s"%s><a href="%s"%s aria-label="Verse %s%s"><span class="tr-lamp"></span><span class="pp-n">%s</span></a></li>'
+                            % (x, ' class="on"' if x == vid else "", purl(x), ' aria-current="step"' if x == vid else "", x,
+                               ", the one you are on" if x == vid else "", x) for x in tv)
+            prev = tv[k - 1] if k else None
+            if k < len(tv) - 1:
+                nlink = '<a class="btn pp-next" href="%s">Next: %s<span aria-hidden="true"> &rsaquo;</span></a>' % (purl(tv[k + 1]), tv[k + 1])
+            elif ti < len(THEMES):
+                nlink = '<a class="btn pp-next" href="%s">Next theme<span aria-hidden="true"> &rsaquo;</span></a>' % purl(THEMES[ti][2][0])
+            else:
+                nlink = '<a class="btn pp-next" href="/themes/">All themes</a>'
+            theme_rail = ('<nav class="ppath" aria-label="Theme %d verses"><div class="pp-t"><span class="pp-k">Theme %d &middot; verse %d of %d</span>'
+                          '<a href="/themes/%s/">%s</a></div><ol class="pp-l">%s</ol><div class="pp-nav">%s%s</div></nav>'
+                          % (ti, ti, k + 1, len(tv), tid, esc(tname), stops,
+                             ('<a class="btn ghost pp-prev" href="%s"><span aria-hidden="true">&lsaquo; </span>%s</a>' % (purl(prev), prev)) if prev else "", nlink))
             break
-    body = """<article class="practice" data-vid="{vid}">
+    body = """<article class="practice{haspath}" data-vid="{vid}">
+{theme_rail}
 <div class="p-head">
   <p class="crumb"><a href="/practice/">Practice</a>, <a href="{vurl}">read verse {vid}</a></p>
   <h1>Recite {vid}</h1>
@@ -665,14 +688,13 @@ def build_practice(vid):
   <p class="hint">A Good earns a check mark. Two Goods on different days mark the verse learned, then reviews come back after 1, 3, 7 and 21 days.</p>
   {next}
 </section>
-{theme_rail}
 </article>
 <dialog class="consent card-dlg">
   <h2>Before you record</h2>
   <p>Your recording is sent to the S\u0101rathi coach, scored against the verse, and thrown away straight after. Nothing is stored on the server. Your score is kept in this browser, and your take stays on this device for playback until you leave the page.</p>
   <div class="card-act"><button type="button" class="btn ok">Start recording</button><button type="button" class="btn ghost cancel">Not now</button></div>
 </dialog>""".format(vid=vid, words=esc(json.dumps(words, ensure_ascii=False)), vurl=verse_url(vid), lines="<br>".join(lines),
-                    tl="<br>".join(esc(l) for l in v["tl"]), player=player, en=esc(eng(v)), theme_rail=theme_rail,
+                    tl="<br>".join(esc(l) for l in v["tl"]), player=player, en=esc(eng(v)), theme_rail=theme_rail, haspath=" has-path" if theme_rail else "",
                     next=('<p><a class="btn ghost" href="/practice/%s/%s/">Next verse, %s</a></p>' % (nxt.split(".")[0], nxt.split(".")[1], nxt)) if nxt else "")
     page("practice/%d/%d/index.html" % (v["c"], v["n"]), "Recite Bhagavad Gita %s" % vid, body, canonical=verse_url(vid),
          desc=trim("Practise reciting Bhagavad Gita %s: listen, recite, and see which words came through clearly." % vid, 155),
@@ -790,7 +812,7 @@ def build_sources():
 
 
 def build_home():
-    tod = [[x, eng(V[x]), V[x]["audio"] or ""] for x in CORE]
+    tod = [[x, eng(V[x]), V[x]["audio"] or "", V[x]["sa"]] for x in CORE]
     themes = [[t[0], t[1], t[2]] for t in THEMES]
     chips = "".join('<a class="sky-chip" href="/consult/#a-%s">%s</a>' % (a, l) for a, l in
                     (("student", "Studies"), ("work", "Work"), ("family", "Family"), ("love", "Relationships"), ("me", "Just me")))
@@ -815,9 +837,13 @@ def build_home():
     <div class="sky-chips"><span class="vh">Or start with</span>{chips}</div>
   </div>
   <div class="sky-cards">
-    <article class="sky-card sky-tod"><p class="sky-k">{feather}<span>Krishna says</span></p><p class="sky-q"></p><p class="sky-ref"><a class="sky-hit" href="/2/47/">Read it in full</a></p></article>
-    <article class="sky-card sky-learn"><p class="sky-k"><span>Begin your journey</span></p><p class="sky-t">Theme 1: Exploring inner potential</p>
-      <div class="sky-prog"><span class="sky-lamps" aria-hidden="true"></span><span class="sky-note"></span><a class="sky-go sky-hit" href="/themes/">Begin</a></div></article>
+    <article class="sky-card sky-tod"><div class="sky-k">{feather}<span class="sky-kt">Krishna says</span><div class="sky-lang" role="group" aria-label="Show the verse in"><button type="button" data-l="sa" aria-pressed="false" lang="sa">&#2360;&#2306;&#2360;&#2381;&#2325;&#2371;&#2340;</button><button type="button" data-l="en" aria-pressed="true">English</button></div></div><p class="sky-q"></p><p class="sky-q sky-qsa" lang="sa" hidden></p><p class="sky-ref"><a class="sky-hit" href="/2/47/">Read it in full</a></p></article>
+    <article class="sky-card sky-learn"><span class="sky-edge" aria-hidden="true"></span>
+      <div class="sky-lb"><p class="sky-k"><span>Your journey</span><span class="sky-cnt"></span></p>
+      <p class="sky-t"><a class="sky-hit" href="/themes/">Light your first lamp</a></p>
+      <p class="sky-sub">Theme 1 &middot; Exploring inner potential</p>
+      <span class="sky-lamps" aria-hidden="true"></span></div>
+      <span class="sky-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></article>
   </div>
 </section>""".format(tod=esc(json.dumps(tod, ensure_ascii=True)), themes=esc(json.dumps(themes, ensure_ascii=True)), chips=chips, stars=stars,
            wheel=SA.wheel(1150, 640, 220), feather=SA.FEATHER)
