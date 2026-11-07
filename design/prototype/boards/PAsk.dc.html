@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ask</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&amp;family=Newsreader:wght@400;500&amp;family=Tiro+Devanagari+Sanskrit&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#0F5257}a:hover{color:#0B3F43}
+@keyframes lampPulse{0%,100%{box-shadow:inset 0 0 0 1.5px #E9A845,0 0 0 0 rgba(233,168,69,.55)}50%{box-shadow:inset 0 0 0 1.5px #E9A845,0 0 0 9px rgba(233,168,69,0)}}
+.lamp-next{animation:lampPulse 2.6s ease-in-out infinite}
+@keyframes sheen{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.edge{background:linear-gradient(100deg,rgba(233,168,69,0) 30%,rgba(255,226,170,.9) 50%,rgba(233,168,69,0) 70%);background-size:200% 100%;animation:sheen 6s linear infinite}
+@keyframes ring{0%{transform:scale(1);opacity:.55}100%{transform:scale(1.9);opacity:0}}
+.ring{animation:ring 1.6s ease-out infinite}
+.ring2{animation:ring 1.6s ease-out .8s infinite}
+main>*{flex-shrink:0}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #F2F6F7; color: #1E2B3A; font-family: Figtree, system-ui, sans-serif;">
+  <header style="height: 56px; box-sizing: border-box; padding: 0 8px; display: flex; align-items: center; gap: 4px;">
+    <sc-if value="{{atStart}}" hint-placeholder-val="{{true}}"><a href="PHome.dc.html" aria-label="Back to home" style="width: 44px; height: 44px; display: grid; place-items: center; color: #1E2B3A;"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg></a></sc-if>
+    <sc-if value="{{notStart}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{back}}" aria-label="Back" style="width: 44px; height: 44px; border: 0; background: none; display: grid; place-items: center; color: #1E2B3A;"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg></button></sc-if>
+    <span style="flex-grow: 1; font-size: 15px; font-weight: 700; color: #5D6B70;">{{stepLabel}}</span>
+    <span style="display: flex; gap: 6px; padding-right: 12px;"><span style="width: 22px; height: 5px; border-radius: 9px; background: {{d1}};"></span><span style="width: 22px; height: 5px; border-radius: 9px; background: {{d2}};"></span><span style="width: 22px; height: 5px; border-radius: 9px; background: {{d3}};"></span></span>
+  </header>
+  <main style="position: absolute; left: 0; right: 0; top: 56px; bottom: 84px; overflow-y: auto; padding: 8px 16px 20px; box-sizing: border-box;">
+    <sc-if value="{{isWho}}" hint-placeholder-val="{{true}}"><div style="display: flex; flex-direction: column; gap: 10px;">
+      <h1 style="margin: 4px 0 6px; font-size: 30px; line-height: 1.1; font-weight: 800; letter-spacing: -0.02em;">Where is this happening?</h1>
+      <sc-for list="{{who}}" as="o" hint-placeholder-count="5"><button type="button" onClick="{{o.go}}" style="display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 58px; padding: 0 18px; border-radius: 16px; border: 1px solid #DDE6E8; background: #FFFFFF; font: 600 18px Figtree, sans-serif; color: #1E2B3A; text-align: left;"><span>{{o.label}}</span><span style="color: #9AA3A6;"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></span></button></sc-for>
+    </div></sc-if>
+    <sc-if value="{{isFeel}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 10px;">
+      <h1 style="margin: 4px 0 6px; font-size: 30px; line-height: 1.1; font-weight: 800; letter-spacing: -0.02em;">How are you feeling?</h1>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;"><sc-for list="{{feel}}" as="o" hint-placeholder-count="6"><button type="button" onClick="{{o.go}}" style="min-height: 76px; border-radius: 18px; border: 1px solid #DDE6E8; background: #FFFFFF; font: 700 19px Figtree, sans-serif; color: #1E2B3A;">{{o.label}}</button></sc-for></div>
+    </div></sc-if>
+    <sc-if value="{{isSit}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 10px;">
+      <h1 style="margin: 4px 0 6px; font-size: 30px; line-height: 1.1; font-weight: 800; letter-spacing: -0.02em;">Which is closest?</h1>
+      <sc-for list="{{sit}}" as="o" hint-placeholder-count="5"><button type="button" onClick="{{o.go}}" style="display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 58px; padding: 0 18px; border-radius: 16px; border: 1px solid #DDE6E8; background: #FFFFFF; font: 600 18px Figtree, sans-serif; color: #1E2B3A; text-align: left;"><span>{{o.label}}</span><span style="color: #9AA3A6;"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg></span></button></sc-for>
+    </div></sc-if>
+    <sc-if value="{{isAns}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 14px;">
+      <p style="margin: 0; font-size: 15px; color: #5D6B70;">I argued with a coworker</p>
+      <article style="padding: 20px 18px; border-radius: 22px; background: linear-gradient(180deg, #0F2E33, #0B2428); color: #F4F1E6; display: flex; flex-direction: column; gap: 12px;">
+        <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #E9C77A;">Krishna says &#183; 2.63</span>
+        <p lang="sa" style="margin: 0; font-family: 'Tiro Devanagari Sanskrit', serif; font-size: 21px; line-height: 1.6;">&#2325;&#2381;&#2352;&#2379;&#2343;&#2366;&#2342;&#2381;&#2349;&#2357;&#2340;&#2367; &#2360;&#2306;&#2350;&#2379;&#2361;&#2307; &#2360;&#2306;&#2350;&#2379;&#2361;&#2366;&#2340;&#2381;&#2360;&#2381;&#2350;&#2371;&#2340;&#2367;&#2357;&#2367;&#2349;&#2381;&#2352;&#2350;&#2307;&#160;&#2404;</p>
+        <p style="margin: 0; font-family: Newsreader, Georgia, serif; font-size: 19px; line-height: 1.45; text-wrap: pretty;">&#8220;Anger leads to delusion, delusion to loss of memory, and from that, good judgement is lost.&#8221;</p>
+        <p style="margin: 0; font-size: 15.5px; line-height: 1.5; color: #C9D8D5;">Replaying the fight keeps it burning. Let the anger cool before you decide anything.</p>
+        <div style="display: flex; gap: 10px;"><button type="button" style="display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 999px; border: 0; background: #F4F1E6; color: #0B2428; font: 700 15px Figtree, sans-serif;"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M7 4.5v15l13-7.5z"></path></svg>Listen</button><a href="PVerse.dc.html" style="display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(244,241,230,0.35); color: #F4F1E6; text-decoration: none; font-size: 15px; font-weight: 700;">Read in full</a></div>
+      </article>
+      <div style="padding: 16px 18px; border-radius: 18px; background: #E3F1EE; border: 1px solid #BFDDD7; display: flex; flex-direction: column; gap: 6px;"><span style="font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #0F5257;">Try today</span><span style="font-size: 17px; line-height: 1.45; font-weight: 600;">Write the reply you want to send. Sleep on it before you send it.</span></div>
+      <div style="padding: 16px 18px; border-radius: 18px; background: #FFFFFF; border: 1px solid #DDE6E8; display: flex; flex-direction: column; gap: 6px;"><span style="font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #0F5257;">Ask yourself</span><span style="font-family: Newsreader, Georgia, serif; font-size: 18px; line-height: 1.45;">What do I actually need from this person?</span></div>
+      <button type="button" onClick="{{restart}}" style="align-self: center; margin-top: 4px; height: 44px; padding: 0 18px; border: 0; background: none; color: #0F5257; font: 700 15px Figtree, sans-serif; text-decoration: underline;">Ask about something else</button>
+    </div></sc-if>
+  </main>
+<nav aria-label="Main" style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; box-sizing: border-box; padding: 6px 12px 22px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: rgba(255,255,255,0.96); border-top: 1px solid #DDE6E8; z-index: 5;"><a href="PHome.dc.html" aria-label="Ask" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; text-decoration: none; color: #0F5257; font-size: 12.5px; font-weight: 700;"><span style="display: grid; place-items: center; width: 56px; height: 30px; border-radius: 999px; background: #E3EFEC;"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path></svg></span>Ask</a><a href="PLearn.dc.html" aria-label="Learn" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; text-decoration: none; color: #5D6B70; font-size: 12.5px; font-weight: 600;"><span style="display: grid; place-items: center; width: 56px; height: 30px; border-radius: 999px; "><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c2.6 3.3 2.6 6.2 0 8.4-2.6-2.2-2.6-5.1 0-8.4z" fill="currentColor"></path><path d="M4 13h16c0 4.4-3.6 7-8 7s-8-2.6-8-7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path></svg></span>Learn</a><a href="PExplore.dc.html" aria-label="Explore" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; text-decoration: none; color: #5D6B70; font-size: 12.5px; font-weight: 600;"><span style="display: grid; place-items: center; width: 56px; height: 30px; border-radius: 999px; "><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"></circle><path d="M15.5 8.5l-2 5-5 2 2-5z" fill="currentColor"></path></svg></span>Explore</a><a href="DAsk.dc.html" data-toggle="theme" aria-label="Switch to Dark colours" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; text-decoration: none; color: #5D6B70; font-size: 12.5px; font-weight: 600;"><span style="display: grid; place-items: center; width: 56px; height: 30px; border-radius: 999px;"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path></svg></span>Dark</a></nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview": {"width": 390, "height": 844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.state.step || 'who';
+    const go = (n) => () => this.setState({ step: n });
+    const order = ['who', 'feel', 'sit', 'ans'];
+    const i = order.indexOf(s);
+    const on = '#0F5257', off = '#CBD6D9';
+    return {
+      isWho: s === 'who', isFeel: s === 'feel', isSit: s === 'sit', isAns: s === 'ans',
+      atStart: s === 'who', notStart: s !== 'who',
+      stepLabel: s === 'ans' ? 'Krishna’s answer' : 'Step ' + (i + 1) + ' of 3',
+      d1: i >= 0 ? on : off, d2: i >= 1 ? on : off, d3: i >= 2 ? on : off,
+      who: ['Studies', 'At work', 'Family', 'Relationships', 'Just me'].map((l) => ({ label: l, go: go('feel') })),
+      feel: ['Angry', 'Anxious', 'Low', 'Hurt', 'Stuck', 'Afraid'].map((l) => ({ label: l, go: go('sit') })),
+      sit: ['I argued with a coworker', 'Someone took credit for my work', 'My boss criticised me', 'I feel stuck in my job'].map((l) => ({ label: l, go: go('ans') })),
+      back: () => this.setState({ step: order[Math.max(0, i - 1)] }),
+      restart: () => this.setState({ step: 'who' })
+    };
+  }
+}
+</script>
+</body>
+</html>
