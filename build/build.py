@@ -732,6 +732,7 @@ def build_themes():
   {nav}
 </aside>
 <ol class="flist tp-main">{items}</ol>
+<div class="tp-end">{nav}</div>
 </div>""".format(i=i, name=esc(name), pc=V[vids[0]]["c"], pn=V[vids[0]]["n"], items="".join(items), rail="".join(rail), nav=nav)
         page("themes/%s/index.html" % tid, "%s: Bhagavad Gita theme %d" % (name, i), body, nav="themes", body_class="pg-list",
              desc=trim("%s: %d Bhagavad Gita shlokas (%s) with word meanings, translation and recitation practice." % (name, len(vids), ", ".join(vids)), 155))
