@@ -80,7 +80,12 @@ if [ "$WITH_COACH" = 1 ]; then
 fi
 
 echo "== 5. Caddy site block"
-if grep -q "^$DOMAIN" "$CADDYFILE"; then
+# The site block may live in the shared Caddyfile or in an imported file under caddy-sites/.
+# A site defined twice fails validation for every site on the proxy, so look in both places.
+SITES_DIR="${SITES_DIR:-/home/deploy/caddy-sites}"
+if grep -qs "^$DOMAIN" "$SITES_DIR"/*.caddy; then
+  echo "Site block for $DOMAIN is in $SITES_DIR; leaving the Caddyfile alone."
+elif grep -q "^$DOMAIN" "$CADDYFILE"; then
   if grep -q "$COACH:8000" "$CADDYFILE"; then
     echo "Site block for $DOMAIN already present; leaving the Caddyfile alone."
   else
