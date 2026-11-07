@@ -242,6 +242,75 @@ learn = '<div style="' + FRAME % (PAPER, INK) + '">' + '''
 ''' + tabbar("learn") + '\n</div>'
 save("PLearn.dc.html", page("Learn", learn))
 
+# The verse's connections (live data for 3.42 from build/graph_data.py), drawn as a thread:
+# the verse at the top, one line down through plain-worded stops. Tap a word, its "why" opens under it.
+# kind -> (dot, label and line colour, chip tint); dark.py lightens these colours.
+KIND = {"speaks": ("#B4533A", "rgba(180,83,58,0.10)"), "cultivates": ("#1F7A7A", "rgba(31,122,122,0.10)"),
+        "helps": ("#A8801A", "rgba(201,162,39,0.14)"), "verse": ("#0F5257", "rgba(15,82,87,0.08)"),
+        "chain": ("#A8801A", "rgba(201,162,39,0.12)"), "idea": ("#4B5AA8", "rgba(75,90,168,0.10)")}
+SA = '<span lang="sa" style="font-family: \'Tiro Devanagari Sanskrit\', serif; font-weight: 400; font-size: 17px;">%s</span> '
+VMAP = [  # id, stop, kind, name (html), why (JS string, ASCII escapes)
+    ("rest", "feel", "speaks", "Restlessness", "It speaks to restlessness: a mind that will not settle."),
+    ("mind", "feel", "helps", "My mind won&#8217;t settle", "Ask brings you here when your mind won\\u2019t settle."),
+    ("ctrl", "grow", "cultivates", "Self-control", "It builds self-control: the senses guided, not driving."),
+    ("clar", "grow", "cultivates", "Clarity", "It builds clarity: seeing things as they are."),
+    ("manas", "idea", "idea", SA % "मनस्" + "manas", "manas, the mind. Higher than the senses, lower than the intellect."),
+    ("buddhi", "idea", "idea", SA % "बुद्धि" + "buddhi", "buddhi, the intellect that discerns and decides for the mind."),
+    ("atman", "idea", "idea", SA % "आत्मन्" + "ātman", "\\u0101tman, the Self, beyond the intellect and beyond desire\\u2019s reach."),
+]
+STOPS = [("feel", "speaks", "Reach for it when"), ("grow", "cultivates", "What it grows in you"), ("idea", "idea", "Ideas inside it")]
+LADDER = [("Body", "3.42"), ("Senses", "3.42"), ("Mind", "3.42"), ("Intellect", "3.42"), ("The Self", "3.42"), ("Master desire", "3.43")]
+
+
+def _stop(kind, title, inner, last=False):
+    col = KIND[kind][0]
+    seg = '' if last else '<span aria-hidden="true" style="position: absolute; left: 17px; top: 10px; bottom: -10px; width: 2px; background: %s; opacity: 0.6;"></span>' % col
+    return ('<div style="position: relative; padding: 0 0 %dpx 44px;">' + seg +
+            '<span aria-hidden="true" style="position: absolute; left: 11px; top: 3px; width: 14px; height: 14px; border-radius: 999px; background: %s; box-shadow: 0 0 0 4px rgba(233,168,69,0.12), 0 0 0 1px rgba(255,255,255,0.5);"></span>'
+            '<h3 style="margin: 0 0 10px; font-size: 16px; font-weight: 800; color: #1E2B3A;">%s</h3>%s</div>') % (4 if last else 22, col, title, inner)
+
+
+def verse_map():
+    stops = []
+    for sid, kind, title in STOPS:
+        chips = []
+        for nid, st, k, name, _ in VMAP:
+            if st != sid:
+                continue
+            col, tint = KIND[k]
+            chips.append('<button type="button" onClick="{{p_%s}}" aria-pressed="{{a_%s}}" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1.5px solid %s; background: #FFFFFF; background-image: linear-gradient(%s, %s); box-shadow: {{r_%s}}; font: 700 16px Figtree, sans-serif; color: #1E2B3A;">'
+                         '<span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: %s; flex: none;"></span>%s</button>' % (nid, nid, col, tint, tint, nid, col, name))
+        inner = ('<div style="display: flex; flex-wrap: wrap; gap: 8px;">' + "".join(chips) + '</div>'
+                 '<sc-if value="{{s_%s}}" hint-placeholder-val="{{false}}"><p aria-live="polite" style="margin: 10px 0 0; padding: 10px 14px; border-radius: 14px; border-left: 3px solid #E9A845; background: rgba(233,168,69,0.10); font-family: Newsreader, Georgia, serif; font-size: 17px; line-height: 1.4; color: #2F3C42; text-wrap: pretty;">{{y_%s}}</p></sc-if>' % (sid, sid))
+        stops.append(_stop(kind, title, inner))
+    nxt = ('<a href="PVerse.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: #FFFFFF; border: 1.5px solid #0F5257; text-decoration: none; color: #1E2B3A;">'
+           '<span style="flex: none; font-size: 20px; font-weight: 800; color: #0F5257;">3.43</span>'
+           '<span style="flex-grow: 1; font-family: Newsreader, Georgia, serif; font-size: 17px; line-height: 1.35;">Knowing the Self above the intellect, master desire.</span>' + CHEV_R + '</a>')
+    stops.append(_stop("verse", "Where it leads", nxt))
+    steps = []
+    for i, (n, v) in enumerate(LADDER):
+        here = v == "3.42"
+        steps.append('<span style="display: inline-flex; align-items: center; min-height: 34px; padding: 0 12px; border-radius: 10px; font-size: 15px; font-weight: 700; %s">%s</span>'
+                     % ("background: rgba(201,162,39,0.16); color: #1E2B3A;" if here else "border: 1.5px dashed #A8801A; color: #A8801A;", n))
+        if i < len(LADDER) - 1:
+            steps.append('<span aria-hidden="true" style="color: #A8801A; font-weight: 800;">&#8250;</span>')
+    chain = ('<div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 16px; background: #FFFFFF; border: 1px dashed #A8801A;">'
+             '<span style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 17px; font-weight: 800;">The ladder of faculties</span><span style="font-size: 14.5px; color: #67777C;">What rules what, from body to Self.</span></span>'
+             '<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px;">' + "".join(steps) + '</div>'
+             '<span style="font-size: 14px; color: #67777C;">Lit steps are this verse. The last step is 3.43.</span></div>')
+    stops.append(_stop("chain", "Part of a chain", chain, last=True))
+    return ('<section aria-label="Verse map: how 3.42 connects" style="display: flex; flex-direction: column; gap: 18px;">\n'
+            '      <div style="display: flex; align-items: center; gap: 14px;">'
+            '<span aria-hidden="true" style="flex: none; width: 64px; height: 64px; border-radius: 999px; background: radial-gradient(circle at 35% 30%, #1A4D52, #0B2A2E); box-shadow: 0 0 0 5px rgba(233,168,69,0.25), 0 0 24px 4px rgba(233,168,69,0.25); display: grid; place-items: center; font-size: 19px; font-weight: 800; color: #F6C46A;">3.42</span>'
+            '<span style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #0F5257;">Verse map</span>'
+            '<span style="font-size: 20px; font-weight: 800; line-height: 1.2;">Where this verse connects</span><span style="font-size: 14.5px; color: #67777C;">Tap a word to see why.</span></span></div>\n'
+            '      <div style="position: relative;">'
+            '<span aria-hidden="true" style="position: absolute; left: 17px; top: -24px; height: 28px; width: 2px; background: #E9A845; opacity: 0.6;"></span>'
+            + "".join(stops) + '</div>\n'
+            '      <a href="PMap.dc.html" style="display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding: 0 16px; border-radius: 14px; background: #FFFFFF; border: 1px solid #DDE6E8; text-decoration: none; color: #1E2B3A;"><span style="font-size: 16px; font-weight: 700;">See the whole map</span>' + CHEV_R + '</a>\n'
+            '    </section>')
+
+
 # ---------------------------------------------------------------- 4. Verse 3.42
 words = [("indriyāṇi", "the senses"), ("parāṇi", "higher"), ("āhuḥ", "they say"), ("indriyebhyaḥ", "than the senses"), ("param", "higher"), ("manaḥ", "the mind"),
          ("manasaḥ", "than the mind"), ("tu", "but"), ("parā", "higher"), ("buddhiḥ", "the intellect"), ("yaḥ", "who"), ("buddheḥ", "than the intellect"), ("parataḥ", "beyond"), ("saḥ", "He, the Self")]
@@ -274,11 +343,7 @@ THEMEROW
     </div>
     <sc-if value="{{showWords}}" hint-placeholder-val="{{true}}"><div style="display: flex; flex-wrap: wrap; gap: 8px;">''' + wchips + '''</div></sc-if>
     <sc-if value="{{showExplain}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 8px;"><p style="margin: 0 0 4px; font-size: 16.5px; line-height: 1.5; color: #2F3C42;">Krishna names a ladder inside us. Each step is finer and steers the one below. Desire can rule the senses, mind and intellect, but it can’t reach the Self at the top.</p>''' + lad + '''<span style="font-size: 13.5px; color: #67777C;">From Swami Sivananda’s commentary</span></div></sc-if>
-    <sc-if value="{{showLinks}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-direction: column; gap: 8px;">
-      <a href="PExplore.dc.html" style="display: flex; align-items: center; justify-content: space-between; min-height: 56px; padding: 0 16px; border-radius: 14px; background: #FFFFFF; border: 1px solid #DDE6E8; text-decoration: none; color: #1E2B3A;"><span><span lang="sa" style="font-family: 'Tiro Devanagari Sanskrit', serif; font-size: 18px;">बुद्धि</span> <b style="font-size: 16px;">buddhi</b> <span style="color: #5D6B70; font-size: 14.5px;">· the intellect</span></span>''' + CHEV_R + '''</a>
-      <a href="PExplore.dc.html" style="display: flex; align-items: center; justify-content: space-between; min-height: 56px; padding: 0 16px; border-radius: 14px; background: #FFFFFF; border: 1px solid #DDE6E8; text-decoration: none; color: #1E2B3A;"><span><span lang="sa" style="font-family: 'Tiro Devanagari Sanskrit', serif; font-size: 18px;">मनस्</span> <b style="font-size: 16px;">manas</b> <span style="color: #5D6B70; font-size: 14.5px;">· the mind</span></span>''' + CHEV_R + '''</a>
-      <a href="PLearn.dc.html" style="display: flex; align-items: center; justify-content: space-between; min-height: 56px; padding: 0 16px; border-radius: 14px; background: #FFFFFF; border: 1px solid #DDE6E8; text-decoration: none; color: #1E2B3A;"><span style="font-size: 16px; font-weight: 700;">Theme 2: Mastering your faculties</span>''' + CHEV_R + '''</a>
-    </div></sc-if>
+    <sc-if value="{{showLinks}}" hint-placeholder-val="{{false}}">''' + verse_map() + '''</sc-if>
   </main>
   <div style="position: absolute; left: 0; right: 0; bottom: 84px; z-index: 4; padding: 12px 16px; box-sizing: border-box; height: 72px; display: flex; gap: 10px; background: linear-gradient(180deg, rgba(242,246,247,0), #F2F6F7 30%);">
     <a href="PPractice.dc.html" style="flex-grow: 1; display: flex; align-items: center; justify-content: center; gap: 10px; border-radius: 999px; background: linear-gradient(180deg, #F6C46A, #E39A35); color: #1C1204; text-decoration: none; font-size: 17px; font-weight: 800; box-shadow: 0 12px 26px -10px rgba(227,154,53,0.8);">''' + MIC.format(s=20) + '''Learn it by heart</a>
@@ -287,13 +352,29 @@ THEMEROW
 ''' + tabbar("learn") + '\n</div>'
 verse_js = """renderVals() {
     const tab = this.state.tab || 'words';
+    const sel = this.state.sel || '';
+    const WHY = WHYJSON;
+    const STOP = STOPJSON;
+    const node = {};
+    Object.keys(WHY).forEach((k) => {
+      const on = sel === k;
+      node['p_' + k] = () => this.setState({ sel: on ? '' : k });
+      node['a_' + k] = on ? 'true' : 'false';
+      node['r_' + k] = on ? '0 0 0 3px rgba(233,168,69,0.6)' : 'none';
+    });
+    ['feel', 'grow', 'idea'].forEach((st) => {
+      node['s_' + st] = !!sel && STOP[sel] === st;
+      node['y_' + st] = sel ? WHY[sel] : '';
+    });
     const mk = (id, label) => ({ label, sel: tab === id ? 'true' : 'false', bg: tab === id ? '#FFFFFF' : 'transparent', fg: tab === id ? '#1E2B3A' : '#5D6B70', sh: tab === id ? '0 2px 6px rgba(30,43,58,0.12)' : 'none', pick: () => this.setState({ tab: id }) });
     return {
       tabs: [mk('words', 'Words'), mk('explain', 'Explained'), mk('links', 'Connected')],
-      showWords: tab === 'words', showExplain: tab === 'explain', showLinks: tab === 'links'
+      showWords: tab === 'words', showExplain: tab === 'explain', showLinks: tab === 'links',
+      ...node
     };
   }"""
 verse = verse.replace('THEMEROW', THEME_ROW)
+verse_js = verse_js.replace('WHYJSON', '{ ' + ', '.join("%s: '%s'" % (v[0], v[4]) for v in VMAP) + ' }').replace('STOPJSON', '{ ' + ', '.join("%s: '%s'" % (v[0], v[1]) for v in VMAP) + ' }')
 save("PVerse.dc.html", page("Verse 3.42", verse, script_body=verse_js))
 
 # ---------------------------------------------------------------- 5. Practice (focus mode)
@@ -352,15 +433,127 @@ def tile(title, sub, chips, bg, fg, href):
     return ('<a href="%s" style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border-radius: 22px; background: %s; color: %s; text-decoration: none;">'
             '<span style="display: flex; align-items: center; justify-content: space-between;"><span style="font-size: 22px; font-weight: 800;">%s</span>%s</span>'
             '<span style="font-size: 15px; line-height: 1.4; opacity: 0.85;">%s</span><span style="display: flex; flex-wrap: wrap; gap: 6px;">%s</span></a>' % (href, bg, fg, title, CHEV_R, sub, ch))
+MAP_ART = ('<svg width="92" height="84" viewBox="0 0 92 84" aria-hidden="true" style="flex: none;">'
+           '<g fill="none" stroke-width="1.3" opacity="0.7"><path d="M46 42 Q30 20 14 16" stroke="#E59A84"></path><path d="M46 42 Q64 18 80 14" stroke="#E9C77A"></path>'
+           '<path d="M46 42 Q24 44 10 52" stroke="#7FCFC4"></path><path d="M46 42 Q70 46 84 50" stroke="#86CDC2"></path><path d="M46 42 Q40 62 26 74" stroke="#AEB8F0"></path>'
+           '<path d="M46 42 Q56 64 66 74" stroke="#AEB8F0"></path><path d="M14 16 Q12 34 10 52" stroke="#9DB6B3" stroke-dasharray="3 3"></path></g>'
+           '<circle cx="14" cy="16" r="4.5" fill="#E59A84"></circle><circle cx="80" cy="14" r="4.5" fill="#E9C77A"></circle><circle cx="10" cy="52" r="4" fill="#7FCFC4"></circle>'
+           '<circle cx="84" cy="50" r="4" fill="#86CDC2"></circle><circle cx="26" cy="74" r="3.5" fill="#AEB8F0"></circle><circle cx="66" cy="74" r="3.5" fill="#AEB8F0"></circle>'
+           '<circle cx="46" cy="42" r="15" fill="rgba(233,168,69,0.18)"></circle><circle cx="46" cy="42" r="9" fill="#F6C46A"></circle></svg>')
+MAP_CARD = ('<a href="PMap.dc.html" style="display: flex; align-items: center; gap: 14px; padding: 16px 16px 16px 14px; border-radius: 22px; background: linear-gradient(135deg, #123F44, #0A2B30); border: 1px solid rgba(233,168,69,0.35); color: #FFFFFF; text-decoration: none;">'
+            + MAP_ART + '<span style="flex-grow: 1; display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 22px; font-weight: 800;">See the map</span>'
+            '<span style="font-size: 15px; line-height: 1.4; color: #C9D8D5;">How feelings, verses and ideas connect. Find a path from one to another.</span></span>'
+            '<span style="color: #F6C46A; display: grid;">' + CHEV_R + '</span></a>')
 explore = '<div style="' + FRAME % (PAPER, INK) + '">' + '''
   <main style="position: absolute; left: 0; right: 0; top: 0; bottom: 84px; overflow-y: auto; padding: 32px 16px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px;">
     <h1 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.02em;">Explore</h1>
     <label for="xs" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Search the Gita</label>
     <div style="display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 16px; border-radius: 16px; background: #FFFFFF; border: 1px solid #DDE6E8; color: #5D6B70;">''' + SEARCH + '''<input id="xs" placeholder="Search a word, a verse, a feeling" style="flex-grow: 1; min-width: 0; border: 0; outline: none; background: transparent; font: 400 16.5px Figtree, sans-serif; color: #1E2B3A;"></div>
+    ''' + MAP_CARD + '''
     ''' + tile("18 chapters", "Read the Gita in order, verse by verse.", ["1 Arjuna’s grief", "2 Knowledge", "3 Action", "+15"], "#DDEFEC", "#0B3F43", "PVerse.dc.html") + '''
     ''' + tile("Big ideas", "Words like dharma and karma, and every verse they appear in.", ["dharma", "karma", "ātman", "yoga", "+20"], "#E6EEFB", "#1F3A6E", "PVerse.dc.html") + '''
     ''' + tile("Feelings", "What the Gita says when you feel angry, afraid or low.", ["Anger", "Fear", "Grief", "Doubt", "+6"], "#EEE7F6", "#3E2C63", "PAsk.dc.html") + '''
   </main>
 ''' + tabbar("explore") + '\n</div>'
 save("PExplore.dc.html", page("Explore", explore))
+
+# ---------------------------------------------------------------- 7. The Gita map (opened from Explore and the verse map)
+# Real data from build/graph_data.py: journey() per feeling and shortest paths from the live path finder.
+JOURNEYS = {
+    "restlessness": {"label": "Restlessness", "understand": ["2.60", "2.66", "3.42"], "practise": ["6.26", "6.5", "3.8", "13.8"],
+                     "cures": [["Steadiness", "6.26", "Bring the wandering mind back, again and again"], ["Self-control", "2.61", "Restrain the senses and the mind grows steady"]]},
+    "anger": {"label": "Anger", "understand": ["2.62", "2.63", "16.4"], "practise": ["16.3", "13.8", "16.2", "11.42"],
+              "cures": [["Forgiveness", "16.3", "Forgiveness and freedom from malice are divine"]]},
+    "fear": {"label": "Fear", "understand": ["2.56", "10.34", "12.15"], "practise": ["16.1", "12.16", "9.22", "13.5"],
+             "cures": [["Fearlessness", "16.1", "Fearlessness heads the list of divine qualities"], ["Faith", "9.22", "The Lord carries what His devotee lacks"]]},
+    "anxiety": {"label": "Anxiety", "understand": ["2.47", "2.48", "3.30"], "practise": ["15.5", "5.18", "2.56", "12.13"],
+                "cures": [["Equanimity", "2.48", "Act, staying even in success and failure"], ["Non-attachment", "2.47", "The right is to the action, never to its fruits"]]},
+    "craving": {"label": "Craving", "understand": ["2.62", "2.60", "3.43"], "practise": ["4.21", "17.8", "5.24", "12.14"],
+                "cures": [["Contentment", "4.21", "Wanting nothing, one acts without being bound"], ["Inner joy", "5.21", "The joy within needs no outer objects"]]},
+    "grief": {"label": "Grief", "understand": ["16.5", "2.56", "6.17"], "practise": ["13.5", "4.39", "15.4", "15.6"],
+              "cures": [["Faith", "16.5", "Do not grieve: your nature is divine"]]},
+    "doubt": {"label": "Doubt", "understand": ["4.39", "6.5", "16.5"], "practise": ["13.5", "15.4", "15.6", "18.56"],
+              "cures": [["Faith", "4.39", "Faith, effort and self-control lead to knowledge"]]},
+}
+PATHS = {  # from the live path finder's weights; each step: from, relation, to, note
+    "rp": ["Restlessness", "Peace", [["Restlessness", "is addressed in", "17.16", ""], ["17.16", "cultivates", "Peace", ""]]],
+    "af": ["Anger", "Forgiveness", [["Anger", "is answered by", "Forgiveness", "Forgiveness and freedom from malice are divine (16.3)"]]],
+    "ff": ["Fear", "Faith", [["Fear", "is answered by", "Faith", "The Lord carries what His devotee lacks (9.22)"]]],
+    "vv": ["2.47", "18.56", [["2.47", "arrives at", "18.56", "Selfless action ends in grace"]]],
+}
+CHAINS = [("The ladder of fall", "How a passing thought becomes ruin.", ["Dwelling on objects", "Attachment", "Desire", "Anger", "Delusion", "Loss of memory", "Loss of reason", "Ruin"], "2.62&#8211;63", "#B4533A"),
+          ("From senses to serenity", "Taming the senses step by step.", ["Senses pull the mind", "Restrain them", "Wisdom grows steady", "No like or dislike", "Serenity"], "2.60&#8211;64", "#1F7A7A"),
+          ("The ladder of faculties", "What rules what, from body to Self.", ["Body", "Senses", "Mind", "Intellect", "The Self", "Master desire"], "3.42&#8211;43", "#A8801A")]
+VPILL = '<a href="PVerse.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 12px; background: #FFFFFF; border: 1px solid #DDE6E8; text-decoration: none; color: #0F5257; font-size: 16px; font-weight: 800;">{{v.n}}</a>'
+
+
+def mstop(n, col, title, inner, last=False):
+    seg = '' if last else '<span aria-hidden="true" style="position: absolute; left: 13px; top: 28px; bottom: -4px; width: 2px; background: %s; opacity: 0.5;"></span>' % col
+    return ('<div style="position: relative; padding: 0 0 %dpx 42px;">%s'
+            '<span aria-hidden="true" style="position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 999px; background: %s; color: #FFFFFF; display: grid; place-items: center; font-size: 14px; font-weight: 800;">%d</span>'
+            '<h3 style="margin: 2px 0 10px; font-size: 17px; font-weight: 800;">%s</h3>%s</div>') % (4 if last else 20, seg, col, n, title, inner)
+
+
+chain_cards = "".join(
+    '<div style="display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: 18px; background: #FFFFFF; border: 1px solid #DDE6E8;">'
+    '<span style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;"><span style="font-size: 17px; font-weight: 800;">%s</span><span style="flex: none; font-size: 14px; font-weight: 700; color: #0F5257;">%s</span></span>'
+    '<span style="font-size: 14.5px; color: #67777C;">%s</span>'
+    '<span style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: 15px; font-weight: 600; line-height: 1.5;">%s</span></div>'
+    % (t, v, d, ('<span aria-hidden="true" style="color: %s; font-weight: 800;">&#8250;</span>' % col).join('<span style="border-bottom: 2px solid %s;">%s</span>' % (col, st) for st in steps))
+    for t, d, steps, v, col in CHAINS)
+
+mapb = '<div style="' + FRAME % (PAPER, INK) + '">' + '''
+  <header style="position: absolute; left: 0; right: 0; top: 0; z-index: 4; height: 56px; box-sizing: border-box; padding: 0 12px 0 4px; display: flex; align-items: center; gap: 4px; background: rgba(242,246,247,0.96); border-bottom: 1px solid #DDE6E8;">
+    <a href="PExplore.dc.html" aria-label="Back to Explore" style="width: 44px; height: 44px; display: grid; place-items: center; color: #1E2B3A;">''' + CHEV_L + '''</a>
+    <span style="font-size: 17px; font-weight: 800;">The Gita map</span>
+  </header>
+  <main style="position: absolute; left: 0; right: 0; top: 56px; bottom: 84px; overflow-y: auto; padding: 20px 18px 28px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <h1 style="margin: 0; font-size: 30px; line-height: 1.1; font-weight: 800; letter-spacing: -0.02em;">Where are you right now?</h1>
+      <p style="margin: 0; font-size: 16.5px; line-height: 1.45; color: #5D6B70;">Pick a feeling. The map draws your path through the Gita.</p>
+    </div>
+    <div role="group" aria-label="Feelings" style="display: flex; flex-wrap: wrap; gap: 8px;">
+      <sc-for list="{{feels}}" as="f" hint-placeholder-count="7"><button type="button" onClick="{{f.pick}}" aria-pressed="{{f.sel}}" style="min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1.5px solid {{f.bd}}; background: {{f.bg}}; color: {{f.fg}}; font: 700 16px Figtree, sans-serif;">{{f.label}}</button></sc-for>
+    </div>
+    <section aria-live="polite" style="display: flex; flex-direction: column; padding: 18px 16px 14px; border-radius: 22px; background: #FFFFFF; border: 1px solid #DDE6E8;">
+      <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #B4533A; margin-bottom: 14px;">Your path from {{feelName}}</span>
+      ''' + mstop(1, "#B4533A", "See how it works", '<div style="display: flex; flex-wrap: wrap; gap: 8px;"><sc-for list="{{understand}}" as="v" hint-placeholder-count="3">' + VPILL + '</sc-for></div>') + '''
+      ''' + mstop(2, "#1F7A7A", "What answers it", '<div style="display: flex; flex-direction: column; gap: 8px;"><sc-for list="{{cures}}" as="c" hint-placeholder-count="2"><a href="PVerse.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: #E3F1EE; text-decoration: none; color: #1E2B3A;"><span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 17px; font-weight: 800; color: #0F5257;">{{c.name}} <span style="font-size: 14px; font-weight: 700; color: #67777C;">&#183; {{c.v}}</span></span><span style="font-family: Newsreader, Georgia, serif; font-size: 16.5px; line-height: 1.35;">{{c.note}}</span></span>' + CHEV_R + '</a></sc-for></div>') + '''
+      ''' + mstop(3, "#A8801A", "Verses to practise", '<div style="display: flex; flex-wrap: wrap; gap: 8px;"><sc-for list="{{practise}}" as="v" hint-placeholder-count="4">' + VPILL + '</sc-for></div>', last=True) + '''
+    </section>
+    <h2 style="margin: 12px 0 0; font-size: 22px; font-weight: 800;">Chains of cause and effect</h2>
+    <p style="margin: -8px 0 0; font-size: 15.5px; color: #5D6B70;">The Gita often teaches in steps.</p>
+    ''' + chain_cards + '''
+    <h2 style="margin: 12px 0 0; font-size: 22px; font-weight: 800;">Find a path</h2>
+    <p style="margin: -8px 0 0; font-size: 15.5px; color: #5D6B70;">Pick two points and see how the Gita links them.</p>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+      <sc-for list="{{tries}}" as="t" hint-placeholder-count="4"><button type="button" onClick="{{t.pick}}" aria-pressed="{{t.sel}}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1.5px solid {{t.bd}}; background: {{t.bg}}; color: #1E2B3A; font: 700 15px Figtree, sans-serif;">{{t.label}}</button></sc-for>
+    </div>
+    <ol aria-live="polite" style="margin: 0; padding: 16px; list-style: none; border-radius: 20px; background: #FFFFFF; border: 1px solid #DDE6E8; display: flex; flex-direction: column;">
+      <li style="display: flex; align-items: center; gap: 10px;"><span aria-hidden="true" style="width: 14px; height: 14px; border-radius: 999px; background: #B4533A; flex: none;"></span><span style="font-size: 18px; font-weight: 800;">{{pFrom}}</span></li>
+      <sc-for list="{{steps}}" as="s" hint-placeholder-count="2"><li style="display: flex; flex-direction: column;"><span style="margin-left: 6px; padding: 8px 0 8px 18px; border-left: 2px dashed #CBD6D9; font-size: 14.5px; color: #67777C;">{{s.rel}}<span style="display: block; font-family: Newsreader, Georgia, serif; font-size: 16px; color: #2F3C42;">{{s.note}}</span></span><span style="display: flex; align-items: center; gap: 10px;"><span aria-hidden="true" style="width: 14px; height: 14px; border-radius: 999px; background: {{s.dot}}; flex: none;"></span><span style="font-size: 18px; font-weight: 800;">{{s.to}}</span></span></li></sc-for>
+    </ol>
+    <p style="margin: 4px 0 0; font-size: 13.5px; line-height: 1.45; color: #67777C;">The map links the core shlokas of the twenty themes. Its links are drafts waiting for review.</p>
+  </main>
+''' + tabbar("explore") + '\n</div>'
+map_js = """renderVals() {
+    const J = JJSON;
+    const P = PJSON;
+    const f = this.state.feel || 'restlessness';
+    const p = this.state.path || 'rp';
+    const j = J[f];
+    const v = (n) => ({ n });
+    const path = P[p];
+    return {
+      feels: Object.keys(J).map((k) => ({ label: J[k].label, sel: k === f ? 'true' : 'false', bd: k === f ? '#B4533A' : '#DDE6E8', bg: k === f ? '#B4533A' : '#FFFFFF', fg: k === f ? '#FFFFFF' : '#1E2B3A', pick: () => this.setState({ feel: k }) })),
+      feelName: j.label.toLowerCase(),
+      understand: j.understand.map(v), practise: j.practise.map(v),
+      cures: j.cures.map((c) => ({ name: c[0], v: c[1], note: c[2] })),
+      tries: Object.keys(P).map((k) => ({ label: P[k][0] + ' to ' + P[k][1], sel: k === p ? 'true' : 'false', bd: k === p ? '#E9A845' : '#DDE6E8', bg: k === p ? 'rgba(233,168,69,0.16)' : '#FFFFFF', pick: () => this.setState({ path: k }) })),
+      pFrom: path[0],
+      steps: path[2].map((s, i) => ({ rel: s[1], note: s[3], to: s[2], dot: i === path[2].length - 1 ? '#1F7A7A' : '#0F5257' }))
+    };
+  }"""
+map_js = map_js.replace("JJSON", json.dumps(JOURNEYS)).replace("PJSON", json.dumps(PATHS))
+save("PMap.dc.html", page("The Gita map", mapb, script_body=map_js))
 print("ok")

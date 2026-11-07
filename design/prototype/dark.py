@@ -1,6 +1,6 @@
 import os, re, sys
 src, dst = sys.argv[1], sys.argv[2]
-names = ["Home", "Ask", "Learn", "Verse", "Practice", "Explore"]
+names = ["Home", "Ask", "Learn", "Verse", "Practice", "Explore", "Map"]
 ORDER = [  # light value -> dark value, applied in order (longest/most specific first)
  ('background: #FFFFFF; border-radius: 18px; text-decoration: none; box-shadow', 'background: @@WHITE@@; border-radius: 18px; text-decoration: none; box-shadow'),
  ('rgba(242,246,247,0.96)', 'rgba(7,30,34,0.96)'), ('rgba(242,246,247,0)', 'rgba(7,30,34,0)'),
@@ -19,7 +19,19 @@ ORDER = [  # light value -> dark value, applied in order (longest/most specific 
  ('#E6EEFB', '#16274A'), ('#1F3A6E', '#B5CBF5'), ('#EEE7F6', '#251B3B'), ('#3E2C63', '#D3C0F2'),
  ('#FBE9C6', '#3A3015'), ('#8A5A12', '#E9D58A'),
  ('rgba(255,255,255,0.55)', 'rgba(255,255,255,0.08)'),
+ # verse map: lighter label and line colours on the dark cards
+ ('#B4533A', '#E59A84'), ('#1F7A7A', '#7FCFC4'), ('#A8801A', '#E9C77A'), ('#4B5AA8', '#AEB8F0'),
  ('@@WHITE@@', '#FFFFFF'),
+]
+# fixes made by hand on the dark boards, now applied here: (file, light-derived value, dark value)
+AFTER = [
+ ("Practice", "micBg: m === 'listening' ? '#B04A3A' : '#86CDC2'", "micBg: m === 'listening' ? '#B04A3A' : '#2A8C82'"),
+ ("Verse", "bg: tab === id ? '#FFFFFF' : 'transparent'", "bg: tab === id ? '#1F5A5F' : 'transparent'"),
+ ("Verse", "sh: tab === id ? '0 2px 6px rgba(30,43,58,0.12)' : 'none'", "sh: tab === id ? '0 2px 8px rgba(0,0,0,0.35)' : 'none'"),
+ # the map's chips and step numbers: dark text on the lightened colours, dark cards when unselected
+ ("Map", "bg: k === f ? '#E59A84' : '#FFFFFF', fg: k === f ? '#FFFFFF'", "bg: k === f ? '#E59A84' : '#0C2A2F', fg: k === f ? '#071E22'"),
+ ("Map", "bg: k === p ? 'rgba(233,168,69,0.16)' : '#FFFFFF'", "bg: k === p ? 'rgba(233,168,69,0.16)' : '#0C2A2F'"),
+ ("Map", "color: #FFFFFF; display: grid; place-items: center; font-size: 14px", "color: #071E22; display: grid; place-items: center; font-size: 14px"),
 ]
 for n in names:
     s = open(os.path.join(src, "P%s.dc.html" % n), encoding="utf-8").read()
@@ -30,7 +42,11 @@ for n in names:
     # the home ask box stays white, as in production; its placeholder and button keep their colours
     head = head.replace('<span style="flex-grow: 1; text-align: left; font-size: 17px; color: #7A8790;">', '<span style="flex-grow: 1; text-align: left; font-size: 17px; color: #6B7A80;">')
     s = head + sep + tail
-    s = re.sub(r'href="P(Home|Ask|Learn|Verse|Practice|Explore)\.dc\.html"', r'href="D\1.dc.html"', s)
+    for f, a, b in AFTER:
+        if f == n:
+            assert a in s, (n, a)
+            s = s.replace(a, b)
+    s = re.sub(r'href="P(Home|Ask|Learn|Verse|Practice|Explore|Map)\.dc\.html"', r'href="D\1.dc.html"', s)
     s = s.replace("<title>", "<title>Dark: ", 1)
     # colour switch in the dark files leads to the light twin
     s = re.sub(r'href="D(\w+)\.dc\.html" data-toggle="theme" aria-label="Switch to Dark colours"', r'href="P\1.dc.html" data-toggle="theme" aria-label="Switch to Light colours"', s)

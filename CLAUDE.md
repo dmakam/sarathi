@@ -51,17 +51,19 @@ Owner: Dhiraj (repo dmakam/sarathi, public). Most users are on phones; pilot use
 Pilot users found the UI unintuitive, so the whole phone flow was prototyped first on the Claude
 Design canvas: https://claude.ai/artifact/4SsnoBQKhtFi5NqXEE69BY (dark boards in the main row,
 light boards below). The generator for those boards is in `design/prototype/`
-(`python3 gen.py light && python3 dark.py light dark`; after dark.py, set the DPractice mic colour
-to `#2A8C82` and the DVerse selected tab to `#1F5A5F`). Exported boards: `design/prototype/boards/`.
+(`python3 gen.py boards && python3 dark.py boards boards`; dark.py also applies the DPractice mic
+colour and the DVerse selected tab, which used to be hand edits). Exported boards: `design/prototype/boards/`.
 
 Screens: Home, Ask (guided consult), Learn (themes with lamps), Verse (tabs Words / Explained /
 Connected, an "In Theme" lamp card, one "Learn it by heart" button plus a labelled "Next 3.43" pill),
-Learn it by heart (focused recite screen), Explore.
+Learn it by heart (focused recite screen), Explore, Map (feeling journey, chains, find a path).
+The Connected tab's verse map is a vertical thread of plain-worded stops (not a radial graph): it stays
+legible at phone width. Tapping a word opens its "why" under that stop.
 
 ## Open items
 - Waiting on Dhiraj's approval of the prototype, then rebuild the live site to match it.
-- Add the verse map back to the prototype: a "See the map" card on Explore and the verse's
-  connections graph inside the Connected tab (live site: `/map/` and `assets/map.js`).
+- Map boards (PMap/DMap) use real data from `build/graph_data.py`; the gunas table from the live
+  `/map/` page is left out on the phone. Map boards are on the Claude Design canvas as column 7.
 - Desktop nav hover fix (`e714fa7`) is committed but not yet deployed.
 - Dhiraj to spot-check the chant clips listed in SPOT-CHECK.txt. Theme 12's first shloka is held back
   until he confirms it.
