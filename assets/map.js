@@ -8,7 +8,8 @@
   var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   var SVGNS = "http://www.w3.org/2000/svg";
   var cache = {};
-  function getJSON(u) { if (!cache[u]) cache[u] = fetch(u).then(function (r) { if (!r.ok) throw new Error(u); return r.json(); }); return cache[u]; }
+  function dv(u) { var m = document.querySelector('meta[name="sarathi-data"]'); return m && u.indexOf("/data/") === 0 && u.indexOf("?") < 0 ? u + "?v=" + m.getAttribute("content") : u; }
+  function getJSON(u) { u = dv(u); if (!cache[u]) cache[u] = fetch(u).then(function (r) { if (!r.ok) throw new Error(u); return r.json(); }); return cache[u]; }
 
   // ---------- verse map ----------
   function colorOf(n) {

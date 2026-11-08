@@ -41,6 +41,25 @@ def norm(s):
 _VER = {}
 
 
+def _data_version():
+    """One fingerprint for everything under /data/: the generator code plus the pinned dataset.
+    Pages carry it and every /data/ request adds ?v=<it>, so a deploy that changes the data
+    reaches phones at once even though /data/ files are cached for a week."""
+    h = hashlib.md5()
+    here = os.path.dirname(os.path.abspath(__file__))
+    for name in sorted(os.listdir(here)):
+        if name.endswith(".py"):
+            with open(os.path.join(here, name), "rb") as f:
+                h.update(name.encode() + f.read())
+    for name in ("verse.json", "chapters.json", "translation.json", "commentary.json"):
+        with open(os.path.join(SRC, name), "rb") as f:
+            h.update(name.encode() + f.read())
+    return h.hexdigest()[:10]
+
+
+DATA_V = _data_version()
+
+
 def asset_version(m):
     """Add a short fingerprint of the file to each /assets/*.css|js link, so phones
     fetch the new file after every deploy instead of keeping last week's copy."""
@@ -59,6 +78,7 @@ def asset_version(m):
 def write(rel, text):
     if rel.endswith(".html"):
         text = re.sub(r'"/assets/([A-Za-z0-9_-]+\.(?:css|js))"', asset_version, text)
+        text = re.sub(r'"(/data/[A-Za-z0-9_/.-]+\.json)"', r'"\1?v=%s"' % DATA_V, text)
     path = os.path.join(OUT, rel)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "wb") as f:
@@ -291,6 +311,7 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
 <meta property="og:type" content="website">
 <meta property="og:url" content="{base}{canon}">
 <meta name="theme-color" content="#071E22">
+<meta name="sarathi-data" content="{dv}">
 <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -323,7 +344,7 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
            base=BASE_URL, canon=esc(canonical), fonts=FONTS, ld=ld, bc=body_class, site=SITE, body=body,
            n1=nl("learn", "/themes/", "Learn"), n2=nl("consult", "/consult/", "Ask"),
            n3=nl("explore", "/explore/", "Explore"),
-           scripts=scripts)
+           scripts=scripts, dv=DATA_V)
     write(rel, doc)
 
 

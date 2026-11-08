@@ -68,5 +68,3 @@ legible at phone width. Tapping a word opens its "why" under that stop.
   `prefers-color-scheme` blocks became `:root[data-theme="dark"]` rules. Redesign CSS is at the end of app.css.
 - Map boards (PMap/DMap) use real data from `build/graph_data.py`; the gunas table from the live
   `/map/` page is left out on the phone. Map boards are on the Claude Design canvas as column 7.
-- Dhiraj to spot-check the chant clips listed in SPOT-CHECK.txt. Theme 12's first shloka is held back
-  until he confirms it.

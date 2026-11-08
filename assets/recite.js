@@ -223,7 +223,7 @@
     var all = store.get("recite", {}), ids = Object.keys(all);
     var ess = JSON.parse(board.getAttribute("data-essentials"));
     var themes = JSON.parse(board.getAttribute("data-themes") || "[]");
-    fetch("/data/search.json").then(function (r) { return r.json(); }).then(function (rows) {
+    fetch((function (u) { var m = document.querySelector('meta[name="sarathi-data"]'); return m ? u + "?v=" + m.getAttribute("content") : u; })("/data/search.json")).then(function (r) { return r.json(); }).then(function (rows) {
       var sa = {}; rows.forEach(function (r) { sa[r[0]] = r[5]; });
       function row(id) {
         var st = status(getRec(id));
