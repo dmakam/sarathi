@@ -194,7 +194,7 @@
   })();
   (function sky() {
     var sk = document.querySelector(".sky"); if (!sk) return;
-    var t = document.documentElement.getAttribute("data-sky") || "day";
+    var t = document.documentElement.getAttribute("data-time") || "day";
     var greet = { morning: "Namaste. Good morning.", day: "Namaste. Good afternoon.", evening: "Namaste. Good evening.", night: "Namaste. Can\u2019t sleep? You\u2019re not alone." }[t];
     sk.querySelector(".sky-greet").textContent = greet;
     var tod = JSON.parse(sk.getAttribute("data-tod")), d = Math.floor(Date.now() / 86400000), v = tod[d % tod.length];
@@ -320,6 +320,8 @@
     var root = document.documentElement, meta = document.querySelector('meta[name="theme-color"]');
     function apply(t) {
       root.setAttribute("data-theme", t);
+      // the home sky is night in Dark (as on the approved board); Light follows the time of day
+      root.setAttribute("data-sky", t === "dark" ? "night" : (root.getAttribute("data-time") || "day"));
       var other = t === "dark" ? "Light" : "Dark";
       b.setAttribute("aria-label", "Switch to " + other.toLowerCase() + " colours");
       b.querySelector(".nt-l").textContent = other;

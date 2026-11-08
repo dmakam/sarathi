@@ -317,7 +317,7 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="{fonts}">
 <link rel="stylesheet" href="/assets/app.css">
-<script>(function(){{var t="dark";try{{t=localStorage.getItem("sarathi.theme")||"dark"}}catch(e){{}}document.documentElement.setAttribute("data-theme",t==="light"?"light":"dark")}})();(function(){{var h=new Date().getHours();document.documentElement.setAttribute("data-sky",h>=5&&h<11?"morning":h<17?"day":h<20?"evening":"night")}})();try{{var z=JSON.parse(localStorage.getItem("sarathi.textsize")||"1");if(z>1)document.documentElement.style.setProperty("--zoom",z)}}catch(e){{}}</script>
+<script>(function(){{var t="dark";try{{t=localStorage.getItem("sarathi.theme")||"dark"}}catch(e){{}}document.documentElement.setAttribute("data-theme",t==="light"?"light":"dark")}})();(function(){{var h=new Date().getHours(),r=document.documentElement,s=h>=5&&h<11?"morning":h<17?"day":h<20?"evening":"night";r.setAttribute("data-time",s);r.setAttribute("data-sky",r.getAttribute("data-theme")==="dark"?"night":s)}})();try{{var z=JSON.parse(localStorage.getItem("sarathi.textsize")||"1");if(z>1)document.documentElement.style.setProperty("--zoom",z)}}catch(e){{}}</script>
 {ld}
 </head>
 <body class="{bc}">
