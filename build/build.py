@@ -286,10 +286,10 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
     ld = ('<script type="application/ld+json">%s</script>' % json.dumps(jsonld, ensure_ascii=True)) if jsonld else ""
 
     group = {"themes": "learn", "plans": "learn", "practice": "learn", "read": "explore", "map": "explore",
-             "facing": "explore", "concepts": "explore", "explore": "explore", "consult": "consult"}.get(nav, nav)
+             "facing": "explore", "concepts": "explore", "explore": "explore", "consult": "home", "home": "home"}.get(nav, nav)
 
     NAV_ICON = {
-        "consult": '<path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+        "home": '<path d="M4 11.5L12 4.5l8 7V20h-5.5v-5.5h-5V20H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
         "learn": '<path d="M12 3c2.6 3.3 2.6 6.2 0 8.4-2.6-2.2-2.6-5.1 0-8.4z" fill="currentColor"/><path d="M4 13h16c0 4.4-3.6 7-8 7s-8-2.6-8-7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
         "explore": '<circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 8.5l-2 5-5 2 2-5z" fill="currentColor"/>',
     }
@@ -342,7 +342,7 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
 </html>
 """.format(title=esc(full), desc=esc(desc or "Read the Bhagavad Gita word by word, with recitation, classical commentaries and verses for what you are facing."),
            base=BASE_URL, canon=esc(canonical), fonts=FONTS, ld=ld, bc=body_class, site=SITE, body=body,
-           n1=nl("learn", "/themes/", "Learn"), n2=nl("consult", "/consult/", "Ask"),
+           n1=nl("learn", "/themes/", "Learn"), n2=nl("home", "/", "Home"),
            n3=nl("explore", "/explore/", "Explore"),
            scripts=scripts, dv=DATA_V)
     write(rel, doc)
@@ -832,7 +832,7 @@ def build_themes():
                    % (tid, ",".join(vids), i, esc(name), len(vids), CHEV_R) for i, (tid, name, vids) in enumerate(THEMES, 1))
     first = THEMES[0][2][0]
     body = """<section class="ln" data-themes='{themes}'>
-<div class="ln-head"><h1 class="rd-h1">Learn by heart</h1><p>20 themes, a few verses each. A lamp lights for every verse you can recite.</p></div>
+<div class="ln-head"><div class="rd-title"><a class="rd-home" href="/" aria-label="S&#257;rathi home"><img src="/assets/icon.svg" alt="" width="28" height="28"></a><h1 class="rd-h1">Learn by heart</h1></div><p>20 themes, a few verses each. A lamp lights for every verse you can recite.</p></div>
 <a class="ln-next" href="{furl}"><span class="edge" aria-hidden="true"></span><span class="ln-nb"><span class="ln-nk">Next up &middot; verse {first}</span><span class="ln-nt">{fname}</span><span class="ln-lamps" aria-hidden="true"></span></span><span class="go-saff" aria-hidden="true">{arrow}</span></a>
 <h2 class="ln-k">All themes</h2>
 <ol class="ln-list">{rows}</ol>
@@ -965,7 +965,7 @@ def build_home():
            wheel=SA.wheel(1150, 640, 220), wheel_ph=SA.wheel(0, 0, 150), feather=SA.FEATHER)
     jsonld = {"@context": "https://schema.org", "@type": "WebSite", "name": SITE, "url": BASE_URL + "/",
               "potentialAction": {"@type": "SearchAction", "target": BASE_URL + "/search/?q={q}", "query-input": "required name=q"}}
-    page("index.html", "%s: guidance from the Bhagavad Gita" % SITE, body, jsonld=jsonld, body_class="pg-home", nav="",
+    page("index.html", "%s: guidance from the Bhagavad Gita" % SITE, body, jsonld=jsonld, body_class="pg-home", nav="home",
          desc="Say what's on your mind and get one verse from the Bhagavad Gita, what it means for you, and one small step for today.")
 
 
@@ -980,7 +980,7 @@ def build_explore():
     ideas = [("/concept/%s/" % c[0], esc(c[1])) for c in CONCEPTS[:4]]
     feels = [("/facing/%s/" % sid, label) for sid, label in (("anger", "Anger"), ("fear", "Fear"), ("grief", "Grief"), ("doubt", "Doubt"))]
     body = """<section class="xp">
-<h1 class="xp-h">Explore</h1>
+<div class="rd-title"><a class="rd-home" href="/" aria-label="S&#257;rathi home"><img src="/assets/icon.svg" alt="" width="28" height="28"></a><h1 class="xp-h">Explore</h1></div>
 <form class="xp-search" action="/search/" method="get" role="search"><label for="xs" class="vh">Search the Gita</label>{search}<input id="xs" name="q" placeholder="Search a word, a verse, a feeling" autocomplete="off"></form>
 <a class="xp-map" href="/map/">{art}<span class="xp-mt"><span class="xp-mh">See the map</span><span class="xp-md">How feelings, verses and ideas connect. Find a path from one to another.</span></span><span class="xp-mc">{chev}</span></a>
 <div class="xp-grid">

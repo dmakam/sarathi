@@ -1648,3 +1648,11 @@ html[data-sky="morning"] .pg-home .nav a:focus-visible,html[data-sky="day"] .pg-
 :root[data-theme="dark"] .gtable thead th:nth-child(2){color:#7FCFC4}:root[data-theme="dark"] .gtable thead th:nth-child(3){color:#E59A84}:root[data-theme="dark"] .gtable thead th:nth-child(4){color:#AEB8F0}
 :root:not([data-theme="dark"]) .vt-step:not(.here){color:#7A5C12}
 @media (max-width:760px){.ph-focus .p-head .tl{opacity:1;color:var(--rd-muted)}}
+
+/* small Sarathi mark before the Learn and Explore titles: tap it to go home (phones; desktop has the header logo) */
+.rd-title{display:flex;align-items:center;gap:10px}
+.rd-home{display:none}
+@media (max-width:760px){
+  .rd-home{display:grid;place-items:center;width:44px;height:44px;margin:-8px 0 -8px -8px;border-radius:12px;flex:none}
+  .rd-home:active{background:var(--tint)}
+}
