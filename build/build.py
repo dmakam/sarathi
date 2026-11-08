@@ -79,6 +79,8 @@ def write(rel, text):
     if rel.endswith(".html"):
         text = re.sub(r'"/assets/([A-Za-z0-9_-]+\.(?:css|js|svg))"', asset_version, text)
         text = re.sub(r'"(/data/[A-Za-z0-9_/.-]+\.json)"', r'"\1?v=%s"' % DATA_V, text)
+        # a no-break space before the danda, so a lone | or || never wraps onto its own line
+        text = re.sub(r" ((?:<[^<>]+>)*[।॥])", " \\1", text)
     path = os.path.join(OUT, rel)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "wb") as f:
@@ -451,8 +453,6 @@ def build_verse(vid):
         audio = """<div class="player" data-src="{src}"{chant}>
   <button type="button" class="play" aria-label="Play recitation"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path class="i-play" d="M8 5v14l11-7z" fill="currentColor"/><path class="i-pause" d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg></button>
   <div class="p-track"><div class="p-bar"></div></div>
-  <label class="p-opt"><input type="checkbox" class="repeat"> Repeat after me</label>
-  <select class="p-speed" aria-label="Playback speed"><option value="0.75">0.75x</option><option value="1" selected>1x</option><option value="1.25">1.25x</option></select>
 </div>""".format(src=v["audio"], chant=chant_attr(v))
 
     speaker = '<p class="speaker"><span lang="sa">%s</span> %s</p>' % (esc(v["speaker"]), esc(v["t_speaker"] or "")) if v["speaker"] else ""
@@ -749,7 +749,7 @@ def build_practice(vid):
                 parts.append('<span class="pd">%s</span>' % esc(tok))
         lines.append(" ".join(parts))
     player = ('<div class="player" data-src="%s"%s><button type="button" class="play" aria-label="Play recitation"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path class="i-play" d="M8 5v14l11-7z" fill="currentColor"/><path class="i-pause" d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg></button>'
-              '<div class="p-track"><div class="p-bar"></div></div><label class="p-opt"><input type="checkbox" class="repeat"> Repeat after me</label>'
+              '<div class="p-track"><div class="p-bar"></div></div>'
               '<select class="p-speed" aria-label="Playback speed"><option value="0.75">0.75x</option><option value="1" selected>1x</option><option value="1.25">1.25x</option></select></div>' % (v["audio"], chant_attr(v))) if v["audio"] else ""
     i = ORDER.index(vid)
     nxt = ORDER[i + 1] if i < len(ORDER) - 1 else None
@@ -789,13 +789,12 @@ def build_practice(vid):
   <h1>Recite {vid}</h1>
   <p class="pv" lang="sa">{lines}</p>
   <p class="tl" lang="sa-Latn"><span class="tl-k">Say it</span>{tl}</p>
-  <button type="button" class="say-toggle" aria-pressed="false">Hide how to say it</button>
   <p class="p-en">{en}</p>
   <p class="p-how">Listen first, then tap the mic and say the whole verse. Recording stops by itself when you finish.</p>
 </div>
 <div class="psteps">
   <p class="dock-hint">Listen once, then say the whole verse from memory.</p>
-  <section class="pstep"><h2>Listen</h2><p class="hint">Hear it first. In Chant, a teacher chants each line and a group repeats it: chant along with the group. Word by word reads the verse slowly with the joins between words opened up; turn on Repeat after me to say it back in the pauses.</p>{player}</section>
+  <section class="pstep"><h2>Listen</h2><p class="hint">Hear it first. A teacher chants each line and a group repeats it: chant along with the group. Slow it down in Options if you need to.</p>{player}</section>
   <section class="pstep rec"><h2>Recite</h2><p class="hint">Say the whole verse at your own pace. Recording stops by itself a few seconds after you finish.</p>
     <button type="button" class="mic" aria-pressed="false" aria-label="Start reciting"><svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></button>
     <p class="mic-label">Tap and recite</p>

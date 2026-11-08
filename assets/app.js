@@ -87,16 +87,6 @@
     var pr = document.querySelector("article.practice"); if (!pr) return;
     var bar = pr.querySelector(".ptop .vtop-lamps");
     if (bar) bar.innerHTML = lampRow(bar.getAttribute("data-v").split(","), bar.getAttribute("data-here"));
-    var say = pr.querySelector(".say-toggle");
-    if (say) {
-      var setSay = function (hide) {
-        pr.classList.toggle("no-say", hide);
-        say.setAttribute("aria-pressed", hide ? "true" : "false");
-        say.textContent = hide ? "Show how to say it" : "Hide how to say it";
-      };
-      setSay(store.get("hideSay", false));
-      say.addEventListener("click", function () { var h = !pr.classList.contains("no-say"); store.set("hideSay", h); setSay(h); });
-    }
     var ob = pr.querySelector(".p-opts-btn"), dock = pr.querySelector(".psteps");
     if (ob && dock) ob.addEventListener("click", function () {
       var open = !dock.classList.contains("opts-open");
@@ -347,65 +337,33 @@
   function dayNumber(d) { d = d || new Date(); return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000); }
   var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // ---------- audio player with "repeat after me" ----------
-  // Two recordings where we have both: "Chant" (Aarsha Vidya Varshini, teacher chants a
-  // line and students repeat it) and "Word by word" (slow reading from the dataset).
+  // ---------- audio player ----------
+  // The Aarsha Vidya Varshini chant (a teacher chants each line, the group repeats it). The dataset's
+  // slow reading plays only where there is no chant clip (13.1). Speed is offered on the practice page.
   function Player(root) {
-    var a = new Audio(), slow = root.getAttribute("data-src"), chant = root.getAttribute("data-chant"), src = slow;
+    var a = new Audio(), chant = root.getAttribute("data-chant"), src = chant || root.getAttribute("data-src");
     a.preload = "none";
-    var btn = $(".play", root), bar = $(".p-bar", root), rep = $(".repeat", root), spd = $(".p-speed", root);
-    var rounds = 0, waitT = null;
-    function ui() { root.classList.toggle("playing", !a.paused || !!waitT); }
-    function stop() { a.pause(); clearTimeout(waitT); waitT = null; root.classList.remove("wait"); rounds = 0; ui(); }
+    var btn = $(".play", root), bar = $(".p-bar", root), spd = $(".p-speed", root);
+    function rate() { return spd ? parseFloat(spd.value) || 1 : 1; }
+    function ui() { root.classList.toggle("playing", !a.paused); }
     if (chant) {
-      var mode = "chant";
-      try { mode = localStorage.getItem("sarathi.listen") || "chant"; } catch (e) {}
-      var sw = document.createElement("div");
-      sw.className = "p-src"; sw.setAttribute("role", "group"); sw.setAttribute("aria-label", "Recording");
-      sw.innerHTML = '<button type="button" data-m="chant">Chant</button><button type="button" data-m="slow">Word by word</button>';
-      root.insertBefore(sw, rep ? rep.parentNode : spd);
+      root.classList.add("is-chant");
       var cr = document.createElement("p");
       cr.className = "p-credit";
       cr.innerHTML = 'Chanting by <a href="' + root.getAttribute("data-credit-url") + '" target="_blank" rel="noopener">' + root.getAttribute("data-credit") + "</a>, used with permission.";
       root.parentNode.insertBefore(cr, root.nextSibling);
-      var setMode = function (m) {
-        mode = m; src = m === "chant" ? chant : slow;
-        $$("button", sw).forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-m") === m ? "true" : "false"); });
-        root.classList.toggle("is-chant", m === "chant");
-        cr.hidden = m !== "chant";
-        if (rep && m === "chant") rep.checked = false;
-        if (a.src) { stop(); a.removeAttribute("src"); a.load(); bar.style.width = "0"; }
-      };
-      $$("button", sw).forEach(function (b) {
-        b.addEventListener("click", function () {
-          setMode(b.getAttribute("data-m"));
-          try { localStorage.setItem("sarathi.listen", mode); } catch (e) {}
-        });
-      });
-      setMode(mode === "slow" ? "slow" : "chant");
     }
     btn.addEventListener("click", function () {
-      if (!a.paused || waitT) { stop(); return; }
+      if (!a.paused) { a.pause(); ui(); return; }
       if (!a.getAttribute("src")) a.src = src;
-      a.playbackRate = parseFloat(spd.value) || 1;
-      rounds = 0;
+      a.playbackRate = rate();
       a.play();
       ui();
     });
-    spd.addEventListener("change", function () { a.playbackRate = parseFloat(spd.value) || 1; });
+    if (spd) spd.addEventListener("change", function () { a.playbackRate = rate(); });
     a.addEventListener("timeupdate", function () { if (a.duration) bar.style.width = (100 * a.currentTime / a.duration) + "%"; });
     a.addEventListener("pause", ui);
-    a.addEventListener("ended", function () {
-      bar.style.width = "100%";
-      if (rep.checked && rounds < 2) {
-        // Leave a gap as long as the verse so the listener can chant it back.
-        rounds++;
-        root.classList.add("wait");
-        var gap = (a.duration || 8) * 1000 / (a.playbackRate || 1);
-        waitT = setTimeout(function () { waitT = null; root.classList.remove("wait"); a.currentTime = 0; a.play(); ui(); }, gap);
-        ui();
-      } else { rounds = 0; ui(); }
-    });
+    a.addEventListener("ended", function () { bar.style.width = "100%"; ui(); });
   }
   $$(".player").forEach(Player);
 
