@@ -508,7 +508,6 @@ def build_verse(vid):
   <p class="tl" lang="sa-Latn"><span class="tl-k">Say it</span>{tl}</p>
   {meaning}
   <div class="v-actions">
-    <button type="button" class="btn ghost mark" data-vid="{vid}">Mark as read</button>
     <button type="button" class="btn ghost share">Make a share card</button>
     <a class="btn ghost" href="/practice/{c}/{n}/">Practice reciting</a>
   </div>

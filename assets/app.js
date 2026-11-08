@@ -8,7 +8,6 @@
     set: function (k, v) { try { localStorage.setItem("sarathi." + k, JSON.stringify(v)); } catch (e) {} }
   };
   function readSet() { return store.get("read", []); }
-  function isRead(id) { return readSet().indexOf(id) !== -1; }
   function setRead(id, on) {
     var s = readSet().filter(function (x) { return x !== id; });
     if (on) s.push(id);
@@ -545,12 +544,9 @@
       });
     });
 
-    // mark as read
-    var mark = $(".mark", verse);
-    function markUI() { var on = isRead(vid); mark.textContent = on ? "Read" : "Mark as read"; mark.classList.toggle("done", on); mark.setAttribute("aria-pressed", on ? "true" : "false"); }
-    mark.addEventListener("click", function () { setRead(vid, !isRead(vid)); markUI(); });
-    markUI();
-    store.set("last", vid);
+    // opening a verse counts as reading it (chapter progress, Resume and reading plans use this);
+    // lamps light only through Learn it by heart
+    setRead(vid, true);
 
     // share card
     var dlg = $(".card-dlg"), canvas = $("canvas", dlg), data = JSON.parse(verse.getAttribute("data-card"));
