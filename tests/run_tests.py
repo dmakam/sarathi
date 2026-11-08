@@ -222,6 +222,31 @@ def run():
         check("Verse 2.47: romanised Sanskrit is shown", page.locator('.tl[lang="sa-Latn"]').count() >= 1)
         check("Verse 2.47: verse map is drawn", page.locator(".vt-hub").count() >= 1 and page.locator(".vt-chip").count() >= 1)
 
+        # 7b. ribbons: keep a verse and a chapter, find them in Explore, lift one; Continue on Home
+        page.goto(BASE + "/6/26/")
+        page.wait_for_timeout(400)
+        page.click(".v-head .ribbon")
+        check("Ribbon: tapping keeps the verse", page.get_attribute(".v-head .ribbon", "aria-pressed") == "true")
+        page.goto(BASE + "/3/")
+        page.wait_for_timeout(300)
+        page.click(".ribbon")
+        page.goto(BASE + "/explore/")
+        page.wait_for_timeout(400)
+        shelf = page.locator(".rb-shelf")
+        check("Ribbon: Explore lists what you kept, newest first",
+              shelf.is_visible() and page.locator(".rb-card .rb-t").all_inner_texts() == ["Chapter 3", "Verse 6.26"])
+        page.click(".rb-card .rb-x")
+        page.wait_for_timeout(200)
+        page.goto(BASE + "/3/")
+        page.wait_for_timeout(300)
+        check("Ribbon: lifting it in Explore clears it on the page", page.get_attribute(".ribbon", "aria-pressed") == "false")
+        page.evaluate("var p = JSON.parse(localStorage.getItem('sarathi.place')); p.at = Date.now() - 3 * 3600e3; localStorage.setItem('sarathi.place', JSON.stringify(p))")
+        page.goto(BASE + "/")
+        page.wait_for_timeout(500)
+        check("Home: after a break, the verse card offers Continue with the last verse",
+              "continue" in page.locator(".sky-tod .sky-kt").inner_text().lower() and page.get_attribute(".sky-tod .sky-ref a", "href") == "/6/26/")
+        page.evaluate("localStorage.removeItem('sarathi.ribbons'); localStorage.removeItem('sarathi.place')")
+
         # 8. map: feeling journey and path finder
         page.goto(BASE + "/map/")
         page.wait_for_timeout(600)

@@ -199,7 +199,12 @@
     var greet = { morning: "Namaste. Good morning.", day: "Namaste. Good afternoon.", evening: "Namaste. Good evening.", night: "Namaste. Can\u2019t sleep? You\u2019re not alone." }[t];
     sk.querySelector(".sky-greet").textContent = greet;
     var tod = JSON.parse(sk.getAttribute("data-tod")), d = Math.floor(Date.now() / 86400000), v = tod[d % tod.length];
-    sk.querySelector(".sky-tod .sky-kt").innerHTML = "<span class=\"sky-kl\">Krishna says</span><span class=\"sky-kp\">Today\u2019s verse</span><span class=\"sky-kn\"> \u00b7 " + v[0] + "</span>";
+    // back after a break (10 minutes to 30 days): offer the last verse you opened instead of today's verse
+    var place = store.get("place", null), age = place && place.at ? Date.now() - place.at : 0;
+    var cont = !!(place && place.v && place.en && age > 6e5 && age < 2592e6);
+    if (cont) v = [place.v, place.en, "", []];
+    sk.querySelector(".sky-tod").classList.toggle("is-continue", cont);
+    sk.querySelector(".sky-tod .sky-kt").innerHTML = "<span class=\"sky-kl\">" + (cont ? "Continue where you left off" : "Krishna says") + "</span><span class=\"sky-kp\">" + (cont ? "Continue" : "Today\u2019s verse") + "</span><span class=\"sky-kn\"> \u00b7 " + v[0] + "</span>";
     sk.querySelector(".sky-ref a").textContent = "Read " + v[0] + " in full";
     var qEn = sk.querySelector(".sky-q:not(.sky-qsa)"), qSa = sk.querySelector(".sky-qsa");
     qEn.textContent = "\u201c" + v[1] + "\u201d";
@@ -255,6 +260,60 @@
       var i = steps.indexOf(store.get("textsize", 1)); var z = steps[(i + 1) % steps.length];
       store.set("textsize", z); apply(z);
     });
+  })();
+  // ---------- ribbons: keep a verse, theme or chapter, like the silk ribbon in a printed Gita ----------
+  function ribbons() { return store.get("ribbons", []); }
+  function toast(msg) {
+    var t = document.querySelector(".rb-toast");
+    if (!t) { t = el("div", { "class": "rb-toast", role: "status", "aria-live": "polite" }); document.body.appendChild(t); }
+    t.textContent = msg; t.classList.remove("on"); void t.offsetWidth; t.classList.add("on");
+    clearTimeout(t._h); t._h = setTimeout(function () { t.classList.remove("on"); }, 2600);
+  }
+  (function ribbonButtons() {
+    var bs = Array.prototype.slice.call(document.querySelectorAll(".ribbon[data-k]")); if (!bs.length) return;
+    function paint(b) {
+      var k = b.getAttribute("data-k"), on = ribbons().some(function (r) { return r.k === k; }), t = b.getAttribute("data-t");
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+      b.setAttribute("aria-label", on ? t + " is kept with a ribbon. Tap to lift the ribbon." : "Keep " + t + " with a ribbon");
+    }
+    bs.forEach(function (b) {
+      paint(b);
+      b.addEventListener("click", function () {
+        var k = b.getAttribute("data-k"), list = ribbons(), had = list.some(function (r) { return r.k === k; });
+        list = list.filter(function (r) { return r.k !== k; });
+        if (!had) list.unshift({ k: k, t: b.getAttribute("data-t"), s: b.getAttribute("data-s"), u: b.getAttribute("data-u"), sa: b.getAttribute("data-sa"), at: Date.now() });
+        store.set("ribbons", list);
+        paint(b);
+        if (!had) { b.classList.remove("drop"); void b.offsetWidth; b.classList.add("drop"); }
+        toast(had ? "Ribbon lifted" : "Kept " + b.getAttribute("data-t") + ". Find it in Explore.");
+      });
+    });
+  })();
+  (function ribbonShelf() {
+    var shelf = document.querySelector(".rb-shelf"); if (!shelf) return;
+    var ul = shelf.querySelector(".rb-list");
+    function draw() {
+      var list = ribbons();
+      shelf.hidden = !list.length;
+      ul.innerHTML = list.map(function (r, i) {
+        return '<li class="rb-card"><a href="' + escH(r.u) + '"><span class="rb-mark" aria-hidden="true"></span><span class="rb-t">' + escH(r.t) + "</span>" +
+          (r.sa ? '<span class="rb-sa" lang="sa">' + escH(r.sa) + "</span>" : "") + '<span class="rb-s">' + escH(r.s) + "</span></a>" +
+          '<button type="button" class="rb-x" data-i="' + i + '" aria-label="Lift the ribbon from ' + escH(r.t) + '">\u00d7</button></li>';
+      }).join("");
+      Array.prototype.forEach.call(ul.querySelectorAll(".rb-x"), function (x) {
+        x.addEventListener("click", function () {
+          var l = ribbons(); var gone = l.splice(+x.getAttribute("data-i"), 1)[0];
+          store.set("ribbons", l); draw(); if (gone) toast("Ribbon lifted from " + gone.t);
+        });
+      });
+    }
+    draw();
+  })();
+  // ---------- the last verse you opened, so Home can offer to continue after a break ----------
+  (function rememberPlace() {
+    var art = document.querySelector("article.verse[data-vid]"); if (!art) return;
+    var en = ""; try { en = JSON.parse(art.getAttribute("data-card")).en || ""; } catch (e) {}
+    store.set("place", { v: art.getAttribute("data-vid"), en: en, at: Date.now() });
   })();
   (function themeSwitch() {
     // Dark is the default; Light is remembered per device (read before paint in the page head).

@@ -348,6 +348,16 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
     write(rel, doc)
 
 
+RIBBON_I = ('<svg class="rb-i" width="22" height="30" viewBox="0 0 22 30" aria-hidden="true">'
+            '<path d="M3 0h16v27l-8-6-8 6z" fill="currentColor"/><path d="M3 0h16v3H3z" fill="#000" opacity=".12"/></svg>')
+
+
+def ribbon(key, title, sub, url, sa=""):
+    """A silk-ribbon bookmark, like the ribbon in a printed Gita. app.js keeps the list on this device."""
+    return ('<button type="button" class="ribbon" aria-pressed="false" data-k="%s" data-t="%s" data-s="%s" data-u="%s" data-sa="%s" '
+            'aria-label="Keep %s with a ribbon">%s</button>') % (key, esc(title), esc(sub), url, esc(sa), esc(title), RIBBON_I)
+
+
 def verse_url(vid):
     c, n = vid.split(".")
     return "/%s/%s/" % (c, n)
@@ -490,6 +500,7 @@ def build_verse(vid):
 <header class="vtop">{top}</header>
 <div class="v-head">
   <p class="crumb"><a href="/{c}/">Chapter {c}: {chname}</a>, verse {n}</p>
+  {ribbon}
   <p class="v-label">Bhagavad Gita {vid}</p>
   {speaker}
   {sa}
@@ -535,7 +546,8 @@ def build_verse(vid):
            c=v["c"], chname=esc(ch["tr"]), n=v["n"], speaker=speaker, sa=sa_html(v), tl="<br>".join(esc(l) for l in v["tl"]),
            audio=audio, words="".join(words), tabs="".join(tabs), panels="".join(panels), cm="".join(cm_html),
            related=('<section class="v-sec v-related%s" data-tab="links"><h2>In this verse</h2>' % (" dup" if vmap else "") + '<div class="chips">%s%s%s</div></section>' % (themes, concepts, sits)) if (themes or concepts or sits) else "",
-           nav=nav, vmap=vmap, top=top, theme_card=theme_card, vtabs=vtabs, meaning=meaning, cta=cta)
+           nav=nav, vmap=vmap, top=top, theme_card=theme_card, vtabs=vtabs, meaning=meaning, cta=cta,
+           ribbon=ribbon("v:" + vid, "Verse " + vid, (THEME[tids[0]][1] if tids else "Chapter %d: %s" % (v["c"], ch["tr"])), verse_url(vid), v["sa"][0] if v["sa"] else ""))
 
     en = eng(v)
     jsonld = {
@@ -564,7 +576,8 @@ def build_chapter(n):
     nav = '<nav class="vnav">%s<a href="/chapters/">All chapters</a>%s</nav>' % (
         '<a rel="prev" href="/%d/">Chapter %d</a>' % (n - 1, n - 1) if n > 1 else "<span></span>",
         '<a rel="next" href="/%d/">Chapter %d</a>' % (n + 1, n + 1) if n < 18 else "<span></span>")
-    body = """<section class="ch-head">
+    body = """<section class="ch-head has-ribbon">
+  {ribbon}
   <p class="crumb">Chapter {n} of 18</p>
   <h1><span lang="sa">{name}</span> {tr}</h1>
   <p class="lede">{meaning}. {count} verses.</p>
@@ -573,7 +586,8 @@ def build_chapter(n):
 <details class="summary"><summary>About this chapter</summary>{paras}</details>
 <ol class="vlist">{rows}</ol>
 {nav}""".format(n=n, name=esc(ch["name"]), tr=esc(ch["tr"]), meaning=esc(ch["meaning"]), count=ch["count"],
-                paras=paras, rows="".join(verse_row(x) for x in vids), nav=nav)
+                paras=paras, rows="".join(verse_row(x) for x in vids), nav=nav,
+                ribbon=ribbon("c:%d" % n, "Chapter %d" % n, ch["tr"], "/%d/" % n, ch["name"]))
     page("%d/index.html" % n, "Chapter %d: %s (%s)" % (n, ch["tr"], ch["meaning"]), body,
          desc=trim("Bhagavad Gita chapter %d, %s: %s" % (n, ch["tr"], ch["summary"]), 155), body_class="pg-list")
 
@@ -858,7 +872,8 @@ def build_themes():
             '<a rel="prev" href="/themes/%s/">Theme %d: %s</a>' % (prev_t[0], i - 1, esc(prev_t[1])) if prev_t else "<span></span>",
             '<a rel="next" href="/themes/%s/">Theme %d: %s</a>' % (next_t[0], i + 1, esc(next_t[1])) if next_t else "<span></span>")
         body = """<div class="tp">
-<aside class="tp-rail">
+<aside class="tp-rail has-ribbon">
+  {ribbon}
   <p class="crumb"><a href="/themes/">Themes</a>, {i} of 20</p>
   <h1>{name}</h1>
   <p class="lede">Read them in this order, then learn each one by heart.</p>
@@ -868,7 +883,8 @@ def build_themes():
 </aside>
 <ol class="flist tp-main">{items}</ol>
 <div class="tp-end">{nav}</div>
-</div>""".format(i=i, name=esc(name), pc=V[vids[0]]["c"], pn=V[vids[0]]["n"], items="".join(items), rail="".join(rail), nav=nav)
+</div>""".format(i=i, name=esc(name), pc=V[vids[0]]["c"], pn=V[vids[0]]["n"], items="".join(items), rail="".join(rail), nav=nav,
+                ribbon=ribbon("t:" + tid, "Theme %d" % i, name, "/themes/%s/" % tid))
         page("themes/%s/index.html" % tid, "%s: Bhagavad Gita theme %d" % (name, i), body, nav="themes", body_class="pg-list",
              desc=trim("%s: %d Bhagavad Gita shlokas (%s) with word meanings, translation and recitation practice." % (name, len(vids), ", ".join(vids)), 155))
 
@@ -982,6 +998,7 @@ def build_explore():
     body = """<section class="xp">
 <div class="rd-title"><a class="rd-home" href="/" aria-label="S&#257;rathi home"><img src="/assets/icon.svg" alt="" width="28" height="28"></a><h1 class="xp-h">Explore</h1></div>
 <form class="xp-search" action="/search/" method="get" role="search"><label for="xs" class="vh">Search the Gita</label>{search}<input id="xs" name="q" placeholder="Search a word, a verse, a feeling" autocomplete="off"></form>
+<section class="rb-shelf" aria-labelledby="rb-h" hidden><h2 id="rb-h" class="rb-h">Your ribbons</h2><ul class="rb-list"></ul></section>
 <a class="xp-map" href="/map/">{art}<span class="xp-mt"><span class="xp-mh">See the map</span><span class="xp-md">How feelings, verses and ideas connect. Find a path from one to another.</span></span><span class="xp-mc">{chev}</span></a>
 <div class="xp-grid">
 {t2}

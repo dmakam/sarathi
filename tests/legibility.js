@@ -17,7 +17,7 @@
     const r = el.getBoundingClientRect();
     // text sits in the vertical middle of pills, chips and buttons (not inline links)
     const hiddenLabel = [...el.querySelectorAll("*")].some((c) => { const cc = getComputedStyle(c); return cc.position === "absolute" && c.getBoundingClientRect().width <= 1; });
-    if (cs.display !== "inline" && r.height <= 80 && !hiddenLabel) {
+    if (cs.display !== "inline" && r.height <= 80 && !hiddenLabel && (el.textContent || "").trim()) {
       const rg = document.createRange(); rg.selectNodeContents(el); const t = rg.getBoundingClientRect();
       const off = ((t.top - r.top) - (r.bottom - t.bottom)) / 2;
       if (t.height > 0 && Math.abs(off) > 3) out.push({ kind: "off-centre", fs: Math.round(off) + "px", sel: el.tagName.toLowerCase() + (typeof el.className === "string" && el.className ? "." + el.className.split(" ")[0] : ""), txt: (el.textContent || "").trim().slice(0, 30) });
