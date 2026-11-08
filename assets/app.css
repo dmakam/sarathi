@@ -1656,3 +1656,50 @@ html[data-sky="morning"] .pg-home .nav a:focus-visible,html[data-sky="day"] .pg-
   .rd-home{display:grid;place-items:center;width:44px;height:44px;margin:-8px 0 -8px -8px;border-radius:12px;flex:none}
   .rd-home:active{background:var(--tint)}
 }
+
+/* ---------- legibility floor on phones (checked by tests/run_tests.py) ----------
+   Reading text >= 16px, any other text >= 13px, every tap target >= 44px. */
+@media (max-width:760px){
+  /* Explore tiles */
+  .xt{gap:10px}
+  .xt-t{font-size:23px}
+  .xt-d,.xp-md{font-size:17px;line-height:1.45;opacity:1}
+  .xt-chips{gap:8px}
+  .xt-chip{min-height:44px;padding:0 14px;font-size:16.5px}
+  .xt-head{min-height:44px}
+  /* small labels */
+  .v-k,.v-label,.tl-k,.vt-k,.ln-nk,.ln-k,.vtop-k,.vt-rel,.tl-k,.sky-k,.sky-kt,.sky-kn,.sky-kp,.sky-cnt,.cx-kicker{font-size:13px!important}
+  .nav a,.nav-theme,.nav-theme .nt-l{font-size:13.5px}
+  .v-next span{font-size:13px}
+  .tl-cell{font-size:14px}
+  .ln-st{font-size:14.5px}
+  /* reading text */
+  .hint,p.hint,.credit,p.credit,.p-credit,.cm-sum-d,.cmeta,.cname,.pf-note,.pf-try,.vt-s,.vt-cd,.vt-cn,.sky-sub,.ch-head p,.prose p,.band-lede,.lede{font-size:16px!important;line-height:1.5}
+  /* tap targets */
+  .btn,button.btn,a.btn,.chip,.cm-btn,.say-toggle,.vt-step,.pf-node,.cx-link{min-height:44px;box-sizing:border-box}
+  .chip,.cm-btn,.vt-step,.pf-node{display:inline-flex;align-items:center}
+  .p-src button{min-height:44px;padding-inline:14px}
+  .nav-search,.nav-size{width:44px;height:44px}
+  .brand{min-height:44px}
+  .cx-link{display:inline-flex;align-items:center}
+  .xp-search input,.sky-ask input,.sform input{align-self:stretch;min-height:44px}
+}
+/* home: the whole Today's verse card opens the verse (the link's overlay covers the card); no "Read" text */
+@media (max-width:760px) and (orientation:portrait){
+  .pg-home .sky-ref{position:static!important;margin:0}
+  .pg-home .sky-ref a::before{content:"\203A";position:absolute;top:clamp(8px,1.4dvh,14px);right:18px;font-size:26px;line-height:1;font-weight:700;color:var(--acc-k,#86CDC2)}
+  .pg-home .sky-tod .sky-k{padding-right:28px}
+}
+@media (max-width:760px){
+  .tl-also{font-size:16px}
+  .foot p{font-size:16px}
+  .bars span{font-size:13px}
+  .pg-verse:not(.pg-practice) .v-head .player .p-src{transform:none}
+  .v-tabs button{height:44px}
+  .tabs [role="tab"]{min-height:44px}
+  .pg-verse .v-actions .btn{min-height:44px}
+  .tl-h a{display:inline-flex;align-items:center;min-height:44px;margin:-12px 0}
+  .vnav a{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+}
+@media (max-width:760px){.trad p{font-size:16px;line-height:1.5}}
+@media (max-width:760px) and (orientation:portrait){.pg-home .sky-ref{height:0;line-height:0;overflow:visible}}

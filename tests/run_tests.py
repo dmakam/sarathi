@@ -63,6 +63,11 @@ CRISIS = ["I want to die", "I don't want to live anymore", "thinking about suici
 UNSAFE = ["my husband hits me", "my dad beats me"]
 
 
+# the redesigned phone screens, plus a few long-standing list pages
+PHONE_PAGES = ["/", "/themes/", "/explore/", "/3/42/", "/2/47/", "/practice/3/42/", "/consult/", "/map/",
+               "/chapters/", "/2/", "/search/", "/facing/anger/", "/concept/dharma/"]
+
+
 def run():
     if not os.path.exists(os.path.join(SITE, "index.html")):
         print("The site isn't built yet. Run  bash run-local.sh  once, then try again.")
@@ -84,6 +89,35 @@ def run():
                 check("%s on %s: opens cleanly" % (u, label), r.ok and not errs and over <= 1,
                       "status %s, errors %s, sideways scroll %spx" % (r.status, errs[:1], over))
             page.close()
+
+        # 1b. legible for young and old eyes, on a phone, in dark and light:
+        #     reading text >= 16px, any other text >= 13px, tap targets >= 44x44px (tests/legibility.js),
+        #     plus axe's WCAG 2.1 AA scan (contrast and more) at phone size in both colour themes
+        LEGIB = open(os.path.join(ROOT, "tests", "legibility.js"), encoding="utf-8").read()
+        for theme in ("dark", "light"):
+            ctx = browser.new_context(viewport={"width": 390, "height": 844})
+            ctx.add_init_script("try{localStorage.setItem('sarathi.theme','%s')}catch(e){}" % theme)
+            page = ctx.new_page()
+            for u in PHONE_PAGES:
+                page.goto(BASE + u)
+                page.wait_for_timeout(700)
+                views = [""]
+                if page.locator(".v-tabs [data-tab]").count():
+                    views = [b.get_attribute("data-tab") for b in page.locator(".v-tabs [data-tab]").all()]
+                bad, axe_bad = [], []
+                for t in views:
+                    if t:
+                        page.evaluate("document.querySelector('.v-tabs [data-tab=%s]').click()" % t)
+                    if theme == "dark":
+                        bad += ["%s %s %s '%s'" % (x["kind"], x["sel"], x["fs"], x["txt"]) for x in page.evaluate(LEGIB)]
+                    if not page.evaluate("typeof axe !== 'undefined'"):
+                        page.add_script_tag(content=AXE)
+                    axe_bad += page.evaluate("""async () => (await axe.run(document, {runOnly: ['wcag2a','wcag2aa','wcag21aa']}))
+                        .violations.map(v => v.id + ' x' + v.nodes.length)""")
+                if theme == "dark":
+                    check("%s on a phone: text size and tap targets" % u, not bad, "; ".join(bad[:4]))
+                check("%s on a phone, %s: accessibility scan" % (u, theme), not axe_bad, ", ".join(sorted(set(axe_bad))))
+            ctx.close()
 
         page = browser.new_page(viewport={"width": 1280, "height": 800})
 
