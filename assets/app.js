@@ -274,7 +274,7 @@
     function paint(b) {
       var k = b.getAttribute("data-k"), on = ribbons().some(function (r) { return r.k === k; }), t = b.getAttribute("data-t");
       b.setAttribute("aria-pressed", on ? "true" : "false");
-      b.setAttribute("aria-label", on ? t + " is kept with a ribbon. Tap to lift the ribbon." : "Keep " + t + " with a ribbon");
+      b.setAttribute("aria-label", on ? t + " is kept with a feather. Tap to take the feather out." : "Keep " + t + " with a feather");
     }
     bs.forEach(function (b) {
       paint(b);
@@ -285,7 +285,7 @@
         store.set("ribbons", list);
         paint(b);
         if (!had) { b.classList.remove("drop"); void b.offsetWidth; b.classList.add("drop"); }
-        toast(had ? "Ribbon lifted" : "Kept " + b.getAttribute("data-t") + ". Find it in Explore.");
+        toast(had ? "Feather taken out" : "Kept " + b.getAttribute("data-t") + ". Find it in Explore.");
       });
     });
   })();
@@ -296,14 +296,14 @@
       var list = ribbons();
       shelf.hidden = !list.length;
       ul.innerHTML = list.map(function (r, i) {
-        return '<li class="rb-card"><a href="' + escH(r.u) + '"><span class="rb-mark" aria-hidden="true"></span><span class="rb-t">' + escH(r.t) + "</span>" +
+        return '<li class="rb-card"><a href="' + escH(r.u) + '"><img class="rb-mark" src="' + escH(shelf.getAttribute("data-feather")) + '" alt="" width="16" height="34"><span class="rb-t">' + escH(r.t) + "</span>" +
           (r.sa ? '<span class="rb-sa" lang="sa">' + escH(r.sa) + "</span>" : "") + '<span class="rb-s">' + escH(r.s) + "</span></a>" +
-          '<button type="button" class="rb-x" data-i="' + i + '" aria-label="Lift the ribbon from ' + escH(r.t) + '">\u00d7</button></li>';
+          '<button type="button" class="rb-x" data-i="' + i + '" aria-label="Take the feather out of ' + escH(r.t) + '">\u00d7</button></li>';
       }).join("");
       Array.prototype.forEach.call(ul.querySelectorAll(".rb-x"), function (x) {
         x.addEventListener("click", function () {
           var l = ribbons(); var gone = l.splice(+x.getAttribute("data-i"), 1)[0];
-          store.set("ribbons", l); draw(); if (gone) toast("Ribbon lifted from " + gone.t);
+          store.set("ribbons", l); draw(); if (gone) toast("Feather taken out of " + gone.t);
         });
       });
     }

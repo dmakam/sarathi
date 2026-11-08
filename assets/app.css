@@ -1773,3 +1773,17 @@ html[data-sky="morning"] .pg-home .nav a:focus-visible,html[data-sky="day"] .pg-
 .rb-x:hover{color:var(--rd-ink)}
 @media (prefers-reduced-motion:reduce){.ribbon.drop .rb-i{animation:none}.rb-toast{transition:none}}
 .rb-toast{width:max-content}
+
+/* the bookmark is a peacock feather (assets/feather.svg, drawn from Dhiraj's own feather) */
+.ribbon{width:44px;height:58px;top:-6px;place-items:start center;overflow:visible}
+.pg-verse .v-head .ribbon{top:-8px}
+.ribbon .rb-i{display:block;width:26px;height:55px;transform-origin:50% 0;transition:filter .3s,opacity .3s,transform .25s}
+.ribbon[aria-pressed="false"] .rb-i{filter:grayscale(1) brightness(1.1);opacity:.5}
+:root[data-theme="light"] .ribbon[aria-pressed="false"] .rb-i{filter:grayscale(1) brightness(.8);opacity:.6}
+.ribbon:hover .rb-i{transform:rotate(-4deg)}
+.ribbon.drop .rb-i{animation:fz-settle .9s cubic-bezier(.3,1.4,.5,1) both}
+@keyframes fz-settle{0%{transform:translateY(-12px) rotate(-12deg);filter:brightness(1.7) saturate(1.3)}
+  45%{transform:translateY(0) rotate(6deg);filter:brightness(1.25)}70%{transform:rotate(-3deg)}100%{transform:none;filter:none}}
+.rb-card .rb-mark{position:absolute;top:-4px;left:12px;width:16px;height:34px;background:none;clip-path:none}
+.rb-t{margin-top:20px}
+@media (prefers-reduced-motion:reduce){.ribbon.drop .rb-i{animation:none}.ribbon .rb-i{transition:none}}

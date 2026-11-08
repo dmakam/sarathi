@@ -77,7 +77,7 @@ def asset_version(m):
 
 def write(rel, text):
     if rel.endswith(".html"):
-        text = re.sub(r'"/assets/([A-Za-z0-9_-]+\.(?:css|js))"', asset_version, text)
+        text = re.sub(r'"/assets/([A-Za-z0-9_-]+\.(?:css|js|svg))"', asset_version, text)
         text = re.sub(r'"(/data/[A-Za-z0-9_/.-]+\.json)"', r'"\1?v=%s"' % DATA_V, text)
     path = os.path.join(OUT, rel)
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -348,14 +348,14 @@ def page(rel, title, body, desc="", canonical=None, jsonld=None, body_class="", 
     write(rel, doc)
 
 
-RIBBON_I = ('<svg class="rb-i" width="22" height="30" viewBox="0 0 22 30" aria-hidden="true">'
-            '<path d="M3 0h16v27l-8-6-8 6z" fill="currentColor"/><path d="M3 0h16v3H3z" fill="#000" opacity=".12"/></svg>')
+RIBBON_I = '<img class="rb-i" src="/assets/feather.svg" alt="" width="26" height="55">'
 
 
 def ribbon(key, title, sub, url, sa=""):
-    """A silk-ribbon bookmark, like the ribbon in a printed Gita. app.js keeps the list on this device."""
+    """A peacock-feather bookmark, like the mor pankh kept in a Gita (drawn from Dhiraj's own feather).
+    app.js keeps the list on this device."""
     return ('<button type="button" class="ribbon" aria-pressed="false" data-k="%s" data-t="%s" data-s="%s" data-u="%s" data-sa="%s" '
-            'aria-label="Keep %s with a ribbon">%s</button>') % (key, esc(title), esc(sub), url, esc(sa), esc(title), RIBBON_I)
+            'aria-label="Keep %s with a feather">%s</button>') % (key, esc(title), esc(sub), url, esc(sa), esc(title), RIBBON_I)
 
 
 def verse_url(vid):
@@ -998,7 +998,7 @@ def build_explore():
     body = """<section class="xp">
 <div class="rd-title"><a class="rd-home" href="/" aria-label="S&#257;rathi home"><img src="/assets/icon.svg" alt="" width="28" height="28"></a><h1 class="xp-h">Explore</h1></div>
 <form class="xp-search" action="/search/" method="get" role="search"><label for="xs" class="vh">Search the Gita</label>{search}<input id="xs" name="q" placeholder="Search a word, a verse, a feeling" autocomplete="off"></form>
-<section class="rb-shelf" aria-labelledby="rb-h" hidden><h2 id="rb-h" class="rb-h">Your ribbons</h2><ul class="rb-list"></ul></section>
+<section class="rb-shelf" aria-labelledby="rb-h" data-feather="/assets/feather.svg" hidden><h2 id="rb-h" class="rb-h">Kept with a feather</h2><ul class="rb-list"></ul></section>
 <a class="xp-map" href="/map/">{art}<span class="xp-mt"><span class="xp-mh">See the map</span><span class="xp-md">How feelings, verses and ideas connect. Find a path from one to another.</span></span><span class="xp-mc">{chev}</span></a>
 <div class="xp-grid">
 {t2}

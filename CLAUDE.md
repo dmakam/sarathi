@@ -21,6 +21,9 @@ Owner: Dhiraj (repo dmakam/sarathi, public). Most users are on phones; pilot use
   `asset_version()` adds `?v=<hash>` to CSS/JS links). `build/content.py` curated layers.
 - `assets/app.css` (phone rules appended at the end, breakpoint `max-width:760px`), `assets/app.js`
   (player with Chant / Word-by-word switch, home toggles, journey card), `assets/recite.js` (coach UI).
+- `assets/feather.svg` is the bookmark (a peacock feather redrawn from Dhiraj's own photo); regenerate with
+  `python3 design/feather/gen.py` (`--mock` also writes a review page). Bookmarks and "Continue" live in
+  localStorage (`sarathi.ribbons`, `sarathi.place`).
 - `server/` recitation scorer (MMS forced aligner). `server/model-int8.pt` is NOT in git.
 - `tools/avv_*.py` cut the Aarsha Vidya Varshini chanting into per-verse clips (permission granted;
   credit them on the player and the Sources page). Clips are NOT in git; on the server they live in
