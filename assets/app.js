@@ -326,6 +326,9 @@
       b.setAttribute("aria-label", "Switch to " + other.toLowerCase() + " colours");
       b.querySelector(".nt-l").textContent = other;
       if (meta) meta.setAttribute("content", t === "dark" ? "#071E22" : "#F4F7F6");
+      // on the home page the browser's status bar takes the sky's top colour, so the sky reaches the edge
+      var top = document.querySelector(".pg-home") && getComputedStyle(root).getPropertyValue("--sk-top").trim();
+      if (meta && top) meta.setAttribute("content", top);
     }
     apply(root.getAttribute("data-theme") === "light" ? "light" : "dark");
     b.addEventListener("click", function () {
