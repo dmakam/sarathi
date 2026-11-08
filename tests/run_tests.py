@@ -213,9 +213,14 @@ def run():
         page.locator(".feel").first.click()
         page.wait_for_timeout(500)
         check("Map: picking a feeling draws its journey", page.locator(".jflow").count() == 1)
-        page.click(".pf-go")
         page.wait_for_timeout(400)
-        check("Map: path finder links Anger to Forgiveness", page.locator(".pf-out li").count() >= 2)
+        check("Map: path finder links Anger to Forgiveness", page.locator(".pf-out .pf-stop").count() >= 2)
+        page.select_option(".pf-from", "s:fear")
+        page.select_option(".pf-to", "s:faith")
+        page.wait_for_timeout(300)
+        check("Map: picking two points redraws the path, with no theme detours",
+              page.locator(".pf-out .pf-stop").count() >= 2 and "Theme" not in page.locator(".pf-out").inner_text()
+              and page.locator('.pf-pop [aria-pressed="true"]').count() == 1)
 
         # 9. practice: no-microphone check mark, text size control
         page.goto(BASE + "/practice/2/47/")

@@ -123,21 +123,17 @@
     });
   }
 
-  // ---------- path finder ----------
+  // ---------- path finder: where you are -> where you want to be, as numbered steps ----------
   var pf = $(".pathform");
   if (pf) {
     getJSON("/data/graph.json").then(function (Gr) {
-      var byLabel = {}, adj = {}, list = $("#pf-nodes"), opts = [];
-      Object.keys(Gr.nodes).forEach(function (k) {
-        var n = Gr.nodes[k];
-        byLabel[n.l.toLowerCase()] = k;
-        adj[k] = [];
-        opts.push('<option value="' + escH(n.l) + '"></option>');
-      });
-      list.innerHTML = opts.join("");
+      var adj = {};
+      Object.keys(Gr.nodes).forEach(function (k) { adj[k] = []; });
       Gr.edges.forEach(function (e) {
         var w = Gr.w[e[1]] || 1;
         if (!adj[e[0]] || !adj[e[2]]) return;
+        // theme membership makes hops like "Theme 7 includes ..." that mean nothing to a reader
+        if (Gr.nodes[e[0]].t === "theme" || Gr.nodes[e[2]].t === "theme") return;
         adj[e[0]].push({ to: e[2], e: e, fwd: true, w: w });
         adj[e[2]].push({ to: e[0], e: e, fwd: false, w: w });
       });
@@ -160,34 +156,42 @@
         while (cur !== a) { path.unshift(prev[cur]); cur = prev[cur].from; }
         return path;
       }
-      function node(k) {
-        var n = Gr.nodes[k], cls = n.t === "state" ? (n.v === "afflictive" ? "st-a" : "st-h") : n.t;
-        return '<a class="pf-node pf-' + cls + '" href="' + n.u + '">' + escH(n.l) + "</a>";
+      var KIND = { verse: "Verse", idea: "Idea", situation: "Situation" };
+      function kindOf(n) { return n.t === "state" ? (n.v === "afflictive" ? "st-a" : "st-h") : n.t; }
+      function kindLabel(n) { return n.t === "state" ? (n.v === "afflictive" ? "What troubles you" : "What it grows") : (KIND[n.t] || ""); }
+      // verse numbers like (16.3) inside a note become links
+      function noteHtml(t) {
+        return escH(t).replace(/\(?(\d{1,2}\.\d{1,2})\)?/g, function (m, v) { var p = v.split("."); return '<a href="/' + p[0] + "/" + p[1] + '/">verse ' + v + "</a>"; });
       }
-      function run(fromLabel, toLabel) {
-        var out = $(".pf-out"), a = byLabel[(fromLabel || "").trim().toLowerCase()], b = byLabel[(toLabel || "").trim().toLowerCase()];
-        if (!a || !b) { out.innerHTML = '<li class="hint">Pick both points from the list: a feeling, a verse number like 2.47, a situation or an idea.</li>'; return; }
-        if (a === b) { out.innerHTML = '<li class="hint">Pick two different points.</li>'; return; }
+      function stop(k, i, how, note) {
+        var n = Gr.nodes[k], body = n.t === "verse"
+          ? '<a class="pf-card pf-verse" href="' + n.u + '"><span class="pf-vn">Verse ' + escH(n.l) + '</span><span class="pf-vd">' + escH(n.d || "") + "</span></a>"
+          : '<a class="pf-card pf-' + kindOf(n) + '" href="' + n.u + '"><span class="pf-k">' + escH(kindLabel(n)) + '</span><span class="pf-l">' + escH(n.l) + "</span></a>";
+        return '<li class="pf-stop"><span class="pf-num" aria-hidden="true">' + i + '</span><div class="pf-body">' +
+          (how ? '<p class="pf-how">' + how + "</p>" : "") + body + (note ? '<p class="pf-why">' + noteHtml(note) + "</p>" : "") + "</div></li>";
+      }
+      var from = $(".pf-from"), to = $(".pf-to"), out = $(".pf-out"), pops = $$(".pf-pop [data-p]");
+      function run() {
+        var a = from.value, b = to.value;
+        pops.forEach(function (x) { x.setAttribute("aria-pressed", x.getAttribute("data-p") === a + "|" + b ? "true" : "false"); });
+        if (a === b) { out.innerHTML = '<li class="pf-msg">Pick two different points.</li>'; return; }
         var p = find(a, b);
-        if (!p) { out.innerHTML = '<li class="hint">No path yet between these two. The map grows as more links are reviewed.</li>'; return; }
-        var html = '<li class="pf-step pf-first">' + node(a) + "</li>";
-        p.forEach(function (st) {
+        if (!p) { out.innerHTML = '<li class="pf-msg">No path yet between these two. Try another pair.</li>'; return; }
+        var html = stop(a, 1, "", "");
+        p.forEach(function (st, i) {
           var e = st.step.e, phr = Gr.rel[e[1]][st.step.fwd ? 0 : 1];
-          // Read every link in its stored direction: "A <relation> B" when walked forwards,
-          // and the reverse phrase when walked backwards, so meaning never flips.
-          var subj = st.step.fwd ? st.from : st.step.to, obj = st.step.fwd ? st.step.to : st.from;
-          var sentence = escH(Gr.nodes[subj].l) + " " + escH(Gr.rel[e[1]][0]) + " " + escH(Gr.nodes[obj].l);
-          html += '<li class="pf-step"><span class="pf-rel" title="' + sentence + '">' + escH(phr) + "</span>" + node(st.step.to) +
-            (e[3] ? '<span class="pf-note">' + escH(e[3]) + "</span>" : "") + "</li>";
+          var how = escH(Gr.nodes[st.from].l) + " <em>" + escH(phr) + "</em> " + escH(Gr.nodes[st.step.to].l);
+          html += stop(st.step.to, i + 2, how, e[3]);
         });
         out.innerHTML = html;
         if (!reduced) { out.classList.remove("enter"); void out.offsetWidth; out.classList.add("enter"); }
       }
-      $(".pf-go").addEventListener("click", function () { run($(".pf-from").value, $(".pf-to").value); });
-      $$(".pf-try [data-p]").forEach(function (b) {
-        b.addEventListener("click", function () { var p = b.getAttribute("data-p").split("|"); $(".pf-from").value = p[0]; $(".pf-to").value = p[1]; run(p[0], p[1]); });
+      from.addEventListener("change", run);
+      to.addEventListener("change", run);
+      pops.forEach(function (x) {
+        x.addEventListener("click", function () { var v = x.getAttribute("data-p").split("|"); from.value = v[0]; to.value = v[1]; run(); });
       });
-      run($(".pf-from").value, $(".pf-to").value);
+      run();
     });
   }
 })();

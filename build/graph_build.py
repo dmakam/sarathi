@@ -239,6 +239,17 @@ def build_map_page():
             "verses": {v: [E["trim"](E["eng"](V[v]), 150), " ".join(V[v]["sa"][:1])] for v in G.TAGS}}
     E["write_json"]("data/map.json", data)
     E["write_json"]("data/graph.json", graph_json())
+    # path finder: start from a trouble or a situation, end at a quality to grow or an idea
+    def opts(groups, sel):
+        return "".join('<optgroup label="%s">%s</optgroup>' % (esc(g), "".join(
+            '<option value="%s"%s>%s</option>' % (k, " selected" if k == sel else "", esc(l)) for k, l in items)) for g, items in groups if items)
+    sits = [("h:%s" % x[0], x[1]) for x in E["SITUATIONS"]]
+    ideas = sorted([("c:%s" % c, E["CONCEPT"][c][1]) for c in {c for t in G.TAGS.values() for c in t["c"]}], key=lambda x: x[1].lower())
+    opt_from = opts([("What troubles you", [("s:%s" % x[0], x[1]) for x in aff]), ("What is happening", sits)], "s:anger")
+    opt_to = opts([("What you want to grow", [("s:%s" % x[0], x[1]) for x in heal]), ("An idea from the Gita", ideas)], "s:forgiveness")
+    POP = [("s:anger", "s:forgiveness", "Anger to forgiveness"), ("s:craving", "s:inner-joy", "Craving to inner joy"),
+           ("s:fear", "s:faith", "Fear to faith"), ("h:alone", "s:devotion", "Feeling alone to devotion")]
+    pop = "".join('<button type="button" class="chip" data-p="%s|%s" aria-pressed="false">%s</button>' % (a_, b_, esc(l)) for a_, b_, l in POP)
     body = """<header class="mtop"><a class="vtop-back" href="/explore/" aria-label="Back to Explore"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></a><span>The Gita map</span></header>
 <section class="map-hero">
   <div class="mh-copy">
@@ -254,17 +265,16 @@ def build_map_page():
 <section class="band" id="chains"><h2>Chains of cause and effect</h2><p class="band-lede">The Gita often teaches in steps. Each step links to its verse.</p>{chains}</section>
 <section class="band" id="gunas"><h2>The three gunas, four ways</h2><p class="band-lede">The same three qualities, applied to nature, signs, food and joy.</p>
 <div class="gtable-wrap"><table class="gtable"><thead><tr><th></th><th scope="col"><span lang="sa">&#2360;&#2340;&#2381;&#2340;&#2381;&#2357;</span> Sattva</th><th scope="col"><span lang="sa">&#2352;&#2332;&#2360;&#2381;</span> Rajas</th><th scope="col"><span lang="sa">&#2340;&#2350;&#2360;&#2381;</span> Tamas</th></tr></thead><tbody>{rows}</tbody></table></div></section>
-<section class="band" id="path"><h2>Find a path</h2><p class="band-lede">Pick any two points, a feeling, a verse, a situation or an idea, and see the shortest chain of links between them.</p>
+<section class="band" id="path"><h2>From one feeling to another</h2><p class="band-lede">Pick where you are and where you want to be. The map shows the steps between them, and the verse behind each step.</p>
+<div class="pf-pop" role="group" aria-label="Popular paths">{pop}</div>
 <form class="pathform" onsubmit="return false">
-  <label>From <input list="pf-nodes" class="pf-from" value="Anger" autocomplete="off"></label>
-  <label>To <input list="pf-nodes" class="pf-to" value="Forgiveness" autocomplete="off"></label>
-  <button type="submit" class="btn pf-go">Show the path</button>
-  <datalist id="pf-nodes"></datalist>
+  <label>Where you are<select class="pf-from">{opt_from}</select></label>
+  <label>Where you want to be<select class="pf-to">{opt_to}</select></label>
 </form>
-<div class="pf-try">Try: <button type="button" class="chip" data-p="Craving|Inner joy">Craving to inner joy</button><button type="button" class="chip" data-p="Fear|Faith">Fear to faith</button><button type="button" class="chip" data-p="2.47|18.56">2.47 to 18.56</button><button type="button" class="chip" data-p="I feel alone|Devotion">Feeling alone to devotion</button></div>
 <ol class="pf-out" aria-live="polite"></ol></section>
 <p class="credit">The map links the {n} core shlokas of the twenty themes. Its links are drafts made from the text and translations, waiting for review.</p>""".format(
-        pick=pick, pick_h=pick_h, chains="".join(chains), rows="".join(rows), n=len(G.TAGS))
+        pick=pick, pick_h=pick_h, chains="".join(chains), rows="".join(rows), n=len(G.TAGS),
+        pop=pop, opt_from=opt_from, opt_to=opt_to)
     E["page"]("map/index.html", "The Gita map: from what troubles you to what heals it", body, nav="map", body_class="pg-map ph-bare",
               desc="Pick a feeling and follow a path through the Bhagavad Gita: the verses that explain it, what answers it, and verses to practise.",
               scripts='<script src="/assets/map.js" defer></script>')

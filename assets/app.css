@@ -1703,3 +1703,36 @@ html[data-sky="morning"] .pg-home .nav a:focus-visible,html[data-sky="day"] .pg-
 }
 @media (max-width:760px){.trad p{font-size:16px;line-height:1.5}}
 @media (max-width:760px) and (orientation:portrait){.pg-home .sky-ref{height:0;line-height:0;overflow:visible}}
+
+/* Gita map: From one feeling to another (pickers, popular paths, numbered steps) */
+.pf-pop{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 16px}
+.pf-pop .chip{cursor:pointer;font:600 16px var(--ui);color:var(--text);min-height:44px;padding:0 16px}
+.pf-pop .chip[aria-pressed="true"]{background:linear-gradient(180deg,var(--saff1),var(--saff2));color:#1C1204;border-color:transparent}
+.pathform{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;max-width:720px}
+.pathform label{display:flex;flex-direction:column;gap:6px;font:700 16px var(--ui);color:var(--muted)}
+.pathform select{font:600 17px var(--ui);min-height:52px;padding:0 40px 0 14px;border-radius:14px;border:1.5px solid var(--line);color:var(--text);
+  background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239DB6B3' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center;
+  -webkit-appearance:none;appearance:none;width:100%}
+.pathform select:focus{outline:3px solid var(--focus);outline-offset:2px}
+.pf-out{list-style:none;margin:22px 0 0;padding:0;max-width:720px;display:block}
+.pf-msg{color:var(--muted);font-size:16px}
+.pf-stop{position:relative;display:flex;gap:14px;padding:0 0 18px;border:0;margin:0}
+.pf-stop::before{display:none}
+.pf-stop:not(:last-child)::after{content:"";position:absolute;left:15px;top:34px;bottom:2px;width:2px;background:var(--line)}
+.pf-num{flex:none;width:32px;height:32px;border-radius:999px;display:grid;place-items:center;font:800 14px var(--ui);background:#E9C77A;color:#1C1204;position:relative;z-index:1}
+.pf-stop:first-child .pf-num{background:#E59A84}
+.pf-stop:last-child .pf-num{background:#7FCFC4}
+.pf-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;padding-top:4px}
+.pf-how{margin:0;font-size:16px;line-height:1.45;color:var(--muted)}
+.pf-how em{font-style:normal;font-weight:700;color:var(--text)}
+.pf-card{display:flex;flex-direction:column;gap:2px;padding:12px 16px;border-radius:14px;background:var(--paper);border:1px solid var(--line);text-decoration:none;color:var(--text);min-height:44px;box-sizing:border-box}
+.pf-card .pf-k{font:700 12.5px var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.pf-card .pf-l{font-size:19px;font-weight:700}
+.pf-card.pf-st-a{border-color:rgba(180,83,58,.55)}.pf-card.pf-st-h{border-color:rgba(31,122,122,.6)}
+.pf-card.pf-verse .pf-vn{font:800 16px var(--ui);color:var(--acc-fg)}
+.pf-card.pf-verse .pf-vd{font-family:var(--verse);font-size:17px;line-height:1.4}
+.pf-why{margin:0;font-family:var(--verse);font-size:17px;line-height:1.45;color:var(--text);padding-left:12px;border-left:3px solid #E9A845}
+.pf-why a{font-family:var(--ui);font-size:15.5px;font-weight:700;color:var(--acc-fg);white-space:nowrap}
+.pf-out.enter .pf-stop{animation:jIn .4s ease both}
+.pf-out.enter .pf-stop:nth-child(2){animation-delay:.08s}.pf-out.enter .pf-stop:nth-child(3){animation-delay:.16s}.pf-out.enter .pf-stop:nth-child(4){animation-delay:.24s}
+@media (max-width:760px){.pf-card .pf-k{font-size:13px}.pf-why a{font-size:16px}}
