@@ -101,6 +101,9 @@ def run():
             for u in PHONE_PAGES:
                 page.goto(BASE + u)
                 page.wait_for_timeout(700)
+                if u == "/map/":
+                    page.locator(".feel").first.click()
+                    page.wait_for_timeout(400)
                 views = [""]
                 if page.locator(".v-tabs [data-tab]").count():
                     views = [b.get_attribute("data-tab") for b in page.locator(".v-tabs [data-tab]").all()]
@@ -118,6 +121,18 @@ def run():
                     check("%s on a phone: text size and tap targets" % u, not bad, "; ".join(bad[:4]))
                 check("%s on a phone, %s: accessibility scan" % (u, theme), not axe_bad, ", ".join(sorted(set(axe_bad))))
             ctx.close()
+
+        # 1c. on a laptop too: text sits in the middle of every pill, chip and button
+        page = browser.new_page(viewport={"width": 1280, "height": 800})
+        for u in PHONE_PAGES:
+            page.goto(BASE + u)
+            page.wait_for_timeout(600)
+            if u == "/map/":
+                page.locator(".feel").first.click()
+                page.wait_for_timeout(400)
+            bad = ["%s %s '%s'" % (x["sel"], x["fs"], x["txt"]) for x in page.evaluate(LEGIB) if x["kind"] == "off-centre"]
+            check("%s on a laptop: text centred in buttons and chips" % u, not bad, "; ".join(bad[:4]))
+        page.close()
 
         page = browser.new_page(viewport={"width": 1280, "height": 800})
 

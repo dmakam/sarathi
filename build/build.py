@@ -984,9 +984,9 @@ def build_explore():
 <form class="xp-search" action="/search/" method="get" role="search"><label for="xs" class="vh">Search the Gita</label>{search}<input id="xs" name="q" placeholder="Search a word, a verse, a feeling" autocomplete="off"></form>
 <a class="xp-map" href="/map/">{art}<span class="xp-mt"><span class="xp-mh">See the map</span><span class="xp-md">How feelings, verses and ideas connect. Find a path from one to another.</span></span><span class="xp-mc">{chev}</span></a>
 <div class="xp-grid">
-{t1}
 {t2}
 {t3}
+{t1}
 </div>
 <p class="xp-more"><a href="/plans/">Reading plans</a> &middot; <a href="/sources/">Sources and credits</a></p>
 </section>""".format(search=SEARCH_I, art=MAP_ART, chev=CHEV_R,

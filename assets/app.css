@@ -1736,3 +1736,8 @@ html[data-sky="morning"] .pg-home .nav a:focus-visible,html[data-sky="day"] .pg-
 .pf-out.enter .pf-stop{animation:jIn .4s ease both}
 .pf-out.enter .pf-stop:nth-child(2){animation-delay:.08s}.pf-out.enter .pf-stop:nth-child(3){animation-delay:.16s}.pf-out.enter .pf-stop:nth-child(4){animation-delay:.24s}
 @media (max-width:760px){.pf-card .pf-k{font-size:13px}.pf-why a{font-size:16px}}
+/* text sits in the middle of every pill and chip, at every width */
+.pf-pop .chip,.xt-chip,.pf-card{justify-content:center}
+.pf-pop .chip,.xt-chip{display:inline-flex;align-items:center}
+@media (max-width:760px){.pg-map .jv{flex-direction:row!important;justify-content:center;align-items:center}.pg-map .jv .vnum{line-height:1.2}}
+.feel.st-a[aria-pressed="true"]{background:#A2442D;border-color:#A2442D}
